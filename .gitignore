@@ -1,0 +1,26 @@
+# Dependency Configuration
+node_modules/
+.venv/
+venv/
+__pycache__/
+
+# System
+.DS_Store
+Thumbs.db
+
+# Build
+dist/
+build/
+*.exe
+*.dll
+
+# Env & Secrets
+.env
+.env.*
+
+# Logs
+*.log
+
+# Editor
+.vscode/
+.idea/

@@ -1,0 +1,337 @@
+:root {
+  --forest: #1b3022;
+  --accent: #ff9800;
+  /* Signal/GPS Warning color */
+  --glass: rgba(0, 0, 0, 0.6);
+  --land: #1b3022;
+  --air: #0d1b2a;
+  --water: #001219;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Mode Specific Backgrounds */
+.mode-land .vision-zone,
+.mode-land body {
+  background: #0b0f0c;
+}
+
+.mode-air .vision-zone,
+.mode-air body {
+  background: #050a10;
+}
+
+.mode-water .vision-zone,
+.mode-water body {
+  background: #000508;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  background: #0b0f0c;
+  color: #e0e0e0;
+  overflow: hidden;
+}
+
+/* Main Dashboard Grid */
+.dashboard {
+  display: grid;
+  grid-template-columns: 1fr 600px;
+  /* Camera | Content Panel */
+  height: 100vh;
+  height: 100dvh;
+  /* Mobile viewport fix */
+  overflow: hidden;
+  /* Prevent body scroll */
+}
+
+.content-panel {
+  display: grid;
+  grid-template-columns: 200px 400px;
+  /* Gallery | Sidebar */
+  height: 100%;
+  min-height: 0;
+  /* Prevent grid blowout */
+  overflow: hidden;
+}
+
+/* 1. VISION ZONE (Camera Feed) */
+.vision-zone {
+  position: relative;
+  background: #000;
+  display: flex;
+  flex-direction: column;
+  /* Changed to column to stack image and controls */
+  align-items: center;
+  justify-content: center;
+  border-right: 1px solid #333;
+  padding: 20px;
+}
+
+.camera-container {
+  position: relative;
+  width: 90%;
+  max-width: 800px;
+  height: 60vh;
+  /* Reduced height, still > half page */
+  display: flex;
+  justify-content: center;
+  border: 1px solid #333;
+  overflow: hidden;
+}
+
+.camera-feed {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.control-panel {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+
+/* HUD Overlays */
+.hud-overlay {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  display: flex;
+  justify-content: space-between;
+  background: var(--glass);
+  padding: 8px 15px;
+  border-radius: 8px;
+  backdrop-filter: blur(5px);
+  font-size: 0.8rem;
+  z-index: 10;
+}
+
+/* Control Button Default (Desktop) */
+.control-btn {
+  width: 64px !important;
+  height: 64px !important;
+}
+
+.mode-selector-group .MuiToggleButton-root {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  padding: 10px !important;
+}
+
+/* 2. TELEMETRY & CHAT ZONE */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  background: #141a16;
+  padding: 15px;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Mini Map Section */
+.map-container {
+  height: 200px;
+  min-height: 200px;
+  /* Force height */
+  background: #222;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #444;
+  flex-shrink: 0;
+  /* Prevent map from being squashed */
+}
+
+.map-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.8;
+}
+
+.gps-marker {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 12px;
+  height: 12px;
+  background: red;
+  border-radius: 50%;
+  box-shadow: 0 0 10px red;
+  transform: translate(-50%, -50%);
+}
+
+/* Chat Window */
+.chat-window {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  padding: 10px;
+  min-height: 0;
+  /* Enable internal scroll in flex child */
+  overflow: hidden;
+  /* Ensure content doesn't spill out */
+}
+
+.messages {
+  flex-grow: 1;
+  overflow-y: auto;
+  font-size: 0.9em;
+}
+
+.bot-msg {
+  background: #2c3e32;
+  padding: 10px;
+  border-radius: 5px;
+  margin-bottom: 10px;
+  border-left: 3px solid #4caf50;
+}
+
+input {
+  background: #000;
+  border: 1px solid #444;
+  color: white;
+  padding: 12px;
+  border-radius: 5px;
+  margin-top: 10px;
+  width: 100%;
+  /* Ensure it fits */
+  box-sizing: border-box;
+}
+
+/* Responsive Mobile View */
+@media (max-width: 900px) {
+  .dashboard {
+    grid-template-columns: 1fr;
+    grid-template-rows: 40dvh 1fr;
+    /* Camera Fixed Height (<50%) | Content Fills Rest */
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    /* Prevent body scroll */
+  }
+
+  .content-panel {
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    /* Scrollable Content Area */
+    height: 100%;
+    background: #0b0f0c;
+  }
+
+  .vision-zone {
+    height: 100%;
+    /* Fill the 45vh row */
+    border-right: none;
+    border-bottom: 2px solid #333;
+    padding: 5px;
+    justify-content: space-between;
+    /* Distribute space better */
+    overflow: hidden;
+  }
+
+  .camera-container {
+    height: auto;
+    flex: 1;
+    width: 100%;
+    min-height: 0;
+    /* Allow flex shrinking */
+  }
+
+  /* Transform Gallery to Horizontal Strip */
+  .screenshot-gallery {
+    height: 120px !important;
+    /* Fixed height for strip */
+    border-right: none;
+    border-bottom: 1px solid #333;
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 10px;
+    background: #0f1310;
+  }
+
+  .screenshot-gallery>div {
+    /* The inner box containing cards */
+    flex-direction: row !important;
+    gap: 10px;
+  }
+
+  /* Adjust Card size for horizontal strip */
+  .screenshot-gallery .MuiCard-root {
+    min-width: 120px;
+    height: 100px;
+    margin-bottom: 0;
+  }
+
+  .screenshot-gallery .MuiCardMedia-root {
+    height: 60px;
+  }
+
+  .sidebar {
+    height: auto;
+    padding: 10px;
+    overflow-y: visible;
+  }
+
+  .map-container {
+    height: 150px;
+  }
+
+  .chat-window {
+    min-height: 400px;
+    /* Specific height for chat on mobile */
+    flex-shrink: 0;
+  }
+
+  /* Compact Controls for Mobile */
+  .control-btn {
+    width: 42px !important;
+    height: 42px !important;
+  }
+
+  .control-btn .MuiSvgIcon-root {
+    font-size: 1.5rem !important;
+  }
+
+  /* Tighten control panel on mobile */
+  .control-panel {
+    margin-top: 5px !important;
+    gap: 4px !important;
+    flex-shrink: 0;
+    /* Controls must stay visible */
+  }
+
+  /* Make sure camera creates space for controls */
+  .camera-container {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .control-label {
+    display: none;
+    /* Hide label to save space */
+  }
+
+  .mode-selector-group .MuiToggleButton-root {
+    padding: 5px !important;
+  }
+
+  .mode-selector-group svg {
+    font-size: 1.2rem;
+  }
+}
