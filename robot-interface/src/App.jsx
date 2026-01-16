@@ -45,6 +45,18 @@ function App() {
     setActiveIndex(index);
   };
 
+  const handleDelete = (id) => {
+    setScreenshots(prev => prev.filter(shot => shot.id !== id));
+    if (screenshots[activeIndex]?.id === id) {
+      setActiveIndex(null);
+    }
+  };
+
+  const handleDeleteAll = () => {
+    setScreenshots([]);
+    setActiveIndex(null);
+  };
+
   return (
     <ErrorBoundary>
       <div className={`dashboard mode-${mode.toLowerCase()}`}>
@@ -56,6 +68,8 @@ function App() {
             screenshots={screenshots}
             onSelect={handleSelectScreenshot}
             activeIndex={activeIndex}
+            onDelete={handleDelete}
+            onDeleteAll={handleDeleteAll}
           />
 
           <Sidebar

@@ -1,8 +1,8 @@
-import { Box, Card, CardMedia, Typography, Fab } from '@mui/material';
-import { KeyboardArrowUp } from '@mui/icons-material';
+import { Box, Card, CardMedia, Typography, Fab, IconButton, Tooltip } from '@mui/material';
+import { KeyboardArrowUp, Remove, DeleteSweep } from '@mui/icons-material';
 import React, { useRef } from 'react';
 
-const ScreenshotGallery = ({ screenshots, onSelect, activeIndex }) => {
+const ScreenshotGallery = ({ screenshots, onSelect, activeIndex, onDelete, onDeleteAll }) => {
     const galleryRef = useRef(null);
 
     const scrollToTop = () => {
@@ -17,14 +17,27 @@ const ScreenshotGallery = ({ screenshots, onSelect, activeIndex }) => {
             bgcolor: '#0f1310',
             borderRight: '1px solid #333'
         }}>
-            <Typography variant="overline" sx={{ color: '#666', mb: 2, display: 'block', textAlign: 'center', letterSpacing: 2 }}>
-                CAPTURES ({screenshots.length})
-            </Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, px: 1 }}>
+                <Typography variant="overline" sx={{ color: '#666', letterSpacing: 2 }}>
+                    CAPTURES ({screenshots.length})
+                </Typography>
+                {screenshots.length > 0 && (
+                    <Tooltip title="Delete All">
+                        <IconButton
+                            size="small"
+                            onClick={onDeleteAll}
+                            sx={{ color: '#d32f2f', '&:hover': { bgcolor: 'rgba(211, 47, 47, 0.1)' } }}
+                        >
+                            <DeleteSweep />
+                        </IconButton>
+                    </Tooltip>
+                )}
+            </Box>
 
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {screenshots.map((shot, index) => (
                     <Card
-                        key={index}
+                        key={shot.id}
                         onClick={() => onSelect(shot, index)}
                         sx={{
                             cursor: 'pointer',
@@ -45,6 +58,27 @@ const ScreenshotGallery = ({ screenshots, onSelect, activeIndex }) => {
                             alt={`Capture ${index + 1}`}
                             sx={{ objectFit: 'cover' }}
                         />
+                        <Tooltip title="Delete">
+                            <IconButton
+                                size="small"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onDelete(shot.id);
+                                }}
+                                sx={{
+                                    position: 'absolute',
+                                    top: 5,
+                                    right: 5,
+                                    bgcolor: 'rgba(0,0,0,0.6)',
+                                    color: '#fff',
+                                    padding: '4px',
+                                    '&:hover': { bgcolor: '#d32f2f' }
+                                }}
+                            >
+                                <Remove fontSize="small" />
+                            </IconButton>
+                        </Tooltip>
+
                         <Box sx={{ p: 1 }}>
                             <Typography variant="caption" sx={{ color: '#aaa', display: 'block' }}>
                                 IMG_{1000 + index}
