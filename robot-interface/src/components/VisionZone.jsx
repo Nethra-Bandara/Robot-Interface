@@ -113,7 +113,7 @@ const VisionZone = ({ onCapture, mode, onModeChange }) => {
                     </ToggleButtonGroup>
 
                     {/* 2. Speed Lever (Slider) */}
-                    <Box sx={{ height: 120, display: 'flex', flexDirection: 'column', alignItems: 'center', mx: 1 }}>
+                    <Box sx={{ height: { xs: 80, md: 120 }, display: 'flex', flexDirection: 'column', alignItems: 'center', mx: 1 }}>
                         <Slider
                             orientation="vertical"
                             value={speed}
@@ -166,41 +166,41 @@ const VisionZone = ({ onCapture, mode, onModeChange }) => {
                     </Box>
 
                     {/* 4. Toggles & Actions */}
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                        <Box sx={{ display: 'flex', gap: 1 }}>
-                            <IconButton
-                                onClick={() => setCameraOn(!cameraOn)}
-                                sx={{ ...toggleButtonStyle, backgroundColor: cameraOn ? '#ff9800' : '#1b1b1b', color: cameraOn ? '#000' : '#888' }}
-                                title="Toggle Camera"
-                            >
-                                {cameraOn ? <Videocam /> : <VideocamOff />}
-                            </IconButton>
-                            <IconButton
-                                onClick={() => setMicOn(!micOn)}
-                                sx={{ ...toggleButtonStyle, backgroundColor: micOn ? '#ff9800' : '#1b1b1b', color: micOn ? '#000' : '#888' }}
-                                title="Toggle Mic"
-                            >
-                                {micOn ? <Mic /> : <MicOff />}
-                            </IconButton>
-                        </Box>
+                    <Box sx={{
+                        display: 'grid',
+                        gridTemplateColumns: { xs: 'repeat(4, 1fr)', md: 'repeat(2, 1fr)' },
+                        gap: 1
+                    }}>
+                        <IconButton
+                            onClick={() => setCameraOn(!cameraOn)}
+                            sx={{ ...toggleButtonStyle, backgroundColor: cameraOn ? '#ff9800' : '#1b1b1b', color: cameraOn ? '#000' : '#888' }}
+                            title="Toggle Camera"
+                        >
+                            {cameraOn ? <Videocam /> : <VideocamOff />}
+                        </IconButton>
+                        <IconButton
+                            onClick={() => setMicOn(!micOn)}
+                            sx={{ ...toggleButtonStyle, backgroundColor: micOn ? '#ff9800' : '#1b1b1b', color: micOn ? '#000' : '#888' }}
+                            title="Toggle Mic"
+                        >
+                            {micOn ? <Mic /> : <MicOff />}
+                        </IconButton>
 
-                        <Box sx={{ display: 'flex', gap: 1 }}>
-                            <IconButton
-                                onClick={() => setLightsOn(!lightsOn)}
-                                sx={{ ...toggleButtonStyle, backgroundColor: lightsOn ? '#ff9800' : '#1b1b1b', color: lightsOn ? '#000' : '#888' }}
-                                title="Toggle Lights"
-                            >
-                                {lightsOn ? <Lightbulb /> : <LightbulbOutline />}
-                            </IconButton>
+                        <IconButton
+                            onClick={() => setLightsOn(!lightsOn)}
+                            sx={{ ...toggleButtonStyle, backgroundColor: lightsOn ? '#ff9800' : '#1b1b1b', color: lightsOn ? '#000' : '#888' }}
+                            title="Toggle Lights"
+                        >
+                            {lightsOn ? <Lightbulb /> : <LightbulbOutline />}
+                        </IconButton>
 
-                            <IconButton
-                                onClick={() => onCapture && onCapture(cameraOn ? "https://images.unsplash.com/photo-1547407139-3c921a66005c?q=80&w=1000" : null)}
-                                sx={{ ...controlButtonStyle, borderColor: 'rgba(255, 255, 255, 0.3)', color: '#fff', width: 50, height: 50 }}
-                                title="Capture Screenshot"
-                            >
-                                <PhotoCamera />
-                            </IconButton>
-                        </Box>
+                        <IconButton
+                            onClick={() => onCapture && onCapture(cameraOn ? "https://images.unsplash.com/photo-1547407139-3c921a66005c?q=80&w=1000" : null)}
+                            sx={{ ...controlButtonStyle, borderColor: 'rgba(255, 255, 255, 0.3)', color: '#fff', width: 50, height: 50 }}
+                            title="Capture Screenshot"
+                        >
+                            <PhotoCamera />
+                        </IconButton>
                     </Box>
 
                 </Box>

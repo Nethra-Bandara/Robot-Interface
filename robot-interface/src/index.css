@@ -214,8 +214,8 @@ input {
 @media (max-width: 900px) {
   .dashboard {
     grid-template-columns: 1fr;
-    grid-template-rows: 40dvh 1fr;
-    /* Camera Fixed Height (<50%) | Content Fills Rest */
+    grid-template-rows: 55dvh 1fr;
+    /* Camera Fixed Height (55%) | Content Fills Rest */
     height: 100vh;
     height: 100dvh;
     overflow: hidden;
@@ -252,7 +252,7 @@ input {
 
   /* Transform Gallery to Horizontal Strip */
   .screenshot-gallery {
-    height: 120px !important;
+    height: 180px !important;
     /* Fixed height for strip */
     border-right: none;
     border-bottom: 1px solid #333;
@@ -273,12 +273,12 @@ input {
   /* Adjust Card size for horizontal strip */
   .screenshot-gallery .MuiCard-root {
     min-width: 120px;
-    height: 100px;
+    height: 150px;
     margin-bottom: 0;
   }
 
   .screenshot-gallery .MuiCardMedia-root {
-    height: 60px;
+    height: 100px;
   }
 
   .sidebar {
