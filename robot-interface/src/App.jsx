@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import VisionZone from './components/VisionZone';
 import Sidebar from './components/Sidebar';
 import ScreenshotGallery from './components/ScreenshotGallery';
+import { api } from './services/api';
 
 import './App.css';
 
@@ -30,31 +31,63 @@ function App() {
   const [activeIndex, setActiveIndex] = useState(null);
   const [mode, setMode] = useState('LAND'); // LAND, AIR, WATER
 
-  const handleCapture = (imageSrc) => {
-    const newScreenshot = {
-      url: imageSrc,
-      timestamp: new Date().toLocaleTimeString(),
-      id: Date.now(),
-      mode: mode
-    };
-    setScreenshots(prev => [newScreenshot, ...prev]);
-    setActiveIndex(0);
+  // Fetch screenshots on mount
+  useEffect(() => {
+    loadScreenshots();
+  }, []);
+
+  const loadScreenshots = async () => {
+    try {
+      const data = await api.getScreenshots();
+      // Backend returns { filename, url, timestamp }
+      // We map it to our internal structure if needed, or just use as is.
+      // We need 'id' for lists. Filename is unique enough.
+      const formatted = data.map(item => ({
+        ...item,
+        id: item.filename,
+        // formatted timestamp?
+        timestamp: new Date(item.timestamp * 1000).toLocaleTimeString()
+      }));
+      setScreenshots(formatted);
+    } catch (err) {
+      console.error("Failed to load screenshots", err);
+    }
+  };
+
+  const handleCapture = async (imageSrc) => {
+    try {
+      // Upload to backend
+      // imageSrc is a data URL from VisionZone?
+      const res = await api.upload(imageSrc);
+
+      await loadScreenshots();
+      setActiveIndex(0); // Select the newest one (first in list)
+    } catch (err) {
+      console.error("Upload failed", err);
+    }
   };
 
   const handleSelectScreenshot = (shot, index) => {
     setActiveIndex(index);
   };
 
-  const handleDelete = (id) => {
-    setScreenshots(prev => prev.filter(shot => shot.id !== id));
-    if (screenshots[activeIndex]?.id === id) {
-      setActiveIndex(null);
+  const handleDelete = async (id) => {
+    try {
+      await api.deleteScreenshot(id);
+      const newScreenshots = screenshots.filter(shot => shot.id !== id);
+      setScreenshots(newScreenshots);
+      if (activeIndex !== null && screenshots[activeIndex]?.id === id) {
+        setActiveIndex(null);
+      }
+    } catch (err) {
+      console.error("Delete failed", err);
     }
   };
 
   const handleDeleteAll = () => {
-    setScreenshots([]);
-    setActiveIndex(null);
+    // Not implemented in backend yet, looping or adding endpoint
+    // For MVP, just clear local or warn
+    alert("Delete All not supported securely yet");
   };
 
   return (

@@ -46,14 +46,13 @@ const ChatWindow = ({ activeContext }) => {
         setIsLoading(true);
 
         try {
-            // Dynamically import service to avoid build issues if file not yet caught by vite watcher? 
-            // Better to standard import at top, but for now standard import.
-            const { sendMessageToGemini } = await import('../services/geminiService');
-
-            const response = await sendMessageToGemini(userMessage);
+            // Use backend API
+            const { api } = await import('../services/api');
+            const response = await api.chat(userMessage);
 
             setMessages(prev => [...prev, { text: response, isBot: true }]);
         } catch (err) {
+            console.error(err);
             setMessages(prev => [...prev, { text: "Connection error. Please try again.", isBot: true }]);
         } finally {
             setIsLoading(false);
