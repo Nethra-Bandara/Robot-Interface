@@ -19,7 +19,11 @@ const ChatWindow = ({ activeContext }) => {
         if (activeContext) {
             setMessages(prev => [
                 ...prev,
-                { text: `Analyzing capture from ${activeContext.timestamp}... Looks like common foliage, checking for camouflage.`, isBot: true }
+                {
+                    text: `Analyzing capture from ${activeContext.timestamp}... Looks like common foliage, checking for camouflage.`,
+                    isBot: true,
+                    image: activeContext.url // Add image url to message
+                }
             ]);
         }
     }, [activeContext]);
@@ -75,6 +79,21 @@ const ChatWindow = ({ activeContext }) => {
                             maxWidth: '80%'
                         }}>
                             {msg.isBot && <strong>Assistant: </strong>}
+                            {msg.image && (
+                                <Box sx={{ mb: 1, mt: 1 }}>
+                                    <img
+                                        src={msg.image}
+                                        alt="Captured context"
+                                        style={{
+                                            width: '40px',
+                                            height: '40px',
+                                            objectFit: 'cover',
+                                            borderRadius: '4px',
+                                            border: '1px solid rgba(255,255,255,0.2)'
+                                        }}
+                                    />
+                                </Box>
+                            )}
                             {msg.text}
 
                             {msg.isContext && !activeContext && (
