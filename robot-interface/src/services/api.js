@@ -28,10 +28,16 @@ export const api = {
         // If it's a data URL (string), we need to convert it.
 
         let file = imageBlob;
-        if (typeof imageBlob === 'string' && imageBlob.startsWith('data:')) {
-            const res = await fetch(imageBlob);
-            const blob = await res.blob();
-            file = new File([blob], filename, { type: 'image/jpeg' });
+        if (typeof imageBlob === 'string') {
+            try {
+                // Handle both data URLs and regular URLs (http/https)
+                const res = await fetch(imageBlob);
+                const blob = await res.blob();
+                file = new File([blob], filename, { type: blob.type || 'image/jpeg' });
+            } catch (e) {
+                console.error("Failed to convert image string to blob:", e);
+                throw new Error("Failed to process image for upload");
+            }
         }
 
         formData.append('file', file);

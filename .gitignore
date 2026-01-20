@@ -24,3 +24,6 @@ build/
 # Editor
 .vscode/
 .idea/
+
+# Generated Content
+backend/uploads/

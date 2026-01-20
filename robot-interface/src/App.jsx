@@ -64,6 +64,7 @@ function App() {
       setActiveIndex(0); // Select the newest one (first in list)
     } catch (err) {
       console.error("Upload failed", err);
+      alert(`Capture failed: ${err.message}`);
     }
   };
 
