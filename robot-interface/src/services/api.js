@@ -55,7 +55,12 @@ export const api = {
     getScreenshots: async () => {
         const response = await fetch(`${API_URL}/screenshots`);
         if (!response.ok) throw new Error('Fetch failed');
-        return await response.json();
+        const data = await response.json();
+        return data.map(item => ({
+            ...item,
+            // Ensure URL is absolute for mobile devices
+            url: item.url.startsWith('http') ? item.url : `${API_URL}${item.url}`
+        }));
     },
 
     // Delete a screenshot

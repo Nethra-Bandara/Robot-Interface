@@ -67,9 +67,8 @@ async def upload_image(file: UploadFile = File(...)):
             shutil.copyfileobj(file.file, buffer)
         
         # Return the URL to access this image
-        # Assuming backend runs on localhost:8000
-        # In a real app, generate a full URL or relative path
-        img_url = f"http://localhost:8000/static/uploads/{file.filename}"
+        # Return relative path so frontend can construct full URL with correct host
+        img_url = f"/static/uploads/{file.filename}"
         
         return {"url": img_url, "filename": file.filename}
     except Exception as e:
@@ -87,7 +86,7 @@ def get_screenshots():
                 stats = os.stat(full_path)
                 files.append({
                     "filename": entry,
-                    "url": f"http://localhost:8000/static/uploads/{entry}",
+                    "url": f"/static/uploads/{entry}",
                     "timestamp": stats.st_mtime
                 })
         
