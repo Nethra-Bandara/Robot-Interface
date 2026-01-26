@@ -1,5 +1,5 @@
-// Use current hostname to allow mobile access via IP
-const API_URL = `http://${window.location.hostname}:8000`;
+// Use environment variable if available (e.g. Vercel), otherwise default to local dynamic IP
+const API_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:8000`;
 
 export const api = {
     // Chat with Gemini
