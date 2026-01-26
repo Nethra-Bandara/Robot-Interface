@@ -212,34 +212,13 @@ input {
 
 /* Responsive Mobile View */
 @media (max-width: 900px) {
-  .dashboard {
-    grid-template-columns: 1fr;
-    grid-template-rows: 55dvh 1fr;
-    /* Camera Fixed Height (55%) | Content Fills Rest */
-    height: 100vh;
-    height: 100dvh;
-    overflow: hidden;
-    /* Prevent body scroll */
-  }
 
-  .content-panel {
-    display: flex;
-    flex-direction: column;
-    overflow-y: auto;
-    /* Scrollable Content Area */
-    height: 100%;
-    background: #0b0f0c;
-  }
-
+  /* Vision Zone Full Screen Adjustments */
   .vision-zone {
     height: 100%;
-    /* Fill the 45vh row */
-    border-right: none;
-    border-bottom: 2px solid #333;
-    padding: 5px;
+    padding: 10px;
     justify-content: space-between;
-    /* Distribute space better */
-    overflow: hidden;
+    border: none;
   }
 
   .camera-container {
@@ -247,91 +226,50 @@ input {
     flex: 1;
     width: 100%;
     min-height: 0;
-    /* Allow flex shrinking */
-  }
-
-  /* Transform Gallery to Horizontal Strip */
-  .screenshot-gallery {
-    height: 180px !important;
-    /* Fixed height for strip */
-    border-right: none;
-    border-bottom: 1px solid #333;
-    display: flex;
-    flex-direction: row;
-    overflow-x: auto;
-    overflow-y: hidden;
-    padding: 10px;
-    background: #0f1310;
-  }
-
-  .screenshot-gallery>div {
-    /* The inner box containing cards */
-    flex-direction: row !important;
-    gap: 10px;
-  }
-
-  /* Adjust Card size for horizontal strip */
-  .screenshot-gallery .MuiCard-root {
-    min-width: 120px;
-    height: 150px;
-    margin-bottom: 0;
-  }
-
-  .screenshot-gallery .MuiCardMedia-root {
-    height: 100px;
-  }
-
-  .sidebar {
-    height: auto;
-    padding: 10px;
-    overflow-y: visible;
-  }
-
-  .map-container {
-    height: 150px;
-  }
-
-  .chat-window {
-    min-height: 400px;
-    /* Specific height for chat on mobile */
-    flex-shrink: 0;
   }
 
   /* Compact Controls for Mobile */
   .control-btn {
-    width: 42px !important;
-    height: 42px !important;
+    width: 48px !important;
+    height: 48px !important;
   }
 
   .control-btn .MuiSvgIcon-root {
     font-size: 1.5rem !important;
   }
 
-  /* Tighten control panel on mobile */
   .control-panel {
-    margin-top: 5px !important;
-    gap: 4px !important;
+    margin-top: 10px !important;
+    gap: 8px !important;
+    padding-bottom: 70px;
+    /* Space for Bottom Nav */
     flex-shrink: 0;
-    /* Controls must stay visible */
-  }
-
-  /* Make sure camera creates space for controls */
-  .camera-container {
-    flex: 1;
-    min-height: 0;
-    overflow: hidden;
-  }
-
-  .control-label {
-    display: none;
-    /* Hide label to save space */
   }
 
   .mode-selector-group .MuiToggleButton-root {
-    padding: 5px !important;
+    padding: 8px !important;
   }
 
   .mode-selector-group svg {
-    font-size: 1.2rem;
+    font-size: 1.3rem;
+  }
+
+  /* Adjustments for Sidebar/Map in Mobile Tab */
+  .sidebar {
+    height: 100%;
+    /* Fill tab */
+    overflow-y: auto;
+    padding-bottom: 70px;
+    /* Space for Bottom Nav */
+  }
+
+  .map-container {
+    height: 250px;
+    /* Larger map since it has its own tab */
+  }
+
+  .chat-window {
+    flex: 1;
+    min-height: 300px;
   }
 }

@@ -3,6 +3,8 @@ import VisionZone from './components/VisionZone';
 import Sidebar from './components/Sidebar';
 import ScreenshotGallery from './components/ScreenshotGallery';
 import { api } from './services/api';
+import useMobile from './hooks/useMobile';
+import MobileLayout from './components/MobileLayout';
 
 import './App.css';
 
@@ -26,10 +28,13 @@ class ErrorBoundary extends React.Component {
   }
 }
 
+
+
 function App() {
   const [screenshots, setScreenshots] = useState([]);
   const [activeIndex, setActiveIndex] = useState(null);
   const [mode, setMode] = useState('LAND'); // LAND, AIR, WATER
+  const isMobile = useMobile();
 
   // Fetch screenshots on mount
   useEffect(() => {
@@ -85,11 +90,35 @@ function App() {
     }
   };
 
-  const handleDeleteAll = () => {
-    // Not implemented in backend yet, looping or adding endpoint
-    // For MVP, just clear local or warn
-    alert("Delete All not supported securely yet");
+  const handleDeleteAll = async () => {
+    if (window.confirm("Are you sure you want to delete ALL screenshots? This cannot be undone.")) {
+      try {
+        await api.deleteAllScreenshots();
+        setScreenshots([]);
+        setActiveIndex(null);
+      } catch (err) {
+        console.error("Delete all failed", err);
+        alert("Failed to delete all screenshots");
+      }
+    }
   };
+
+  if (isMobile) {
+    return (
+      <ErrorBoundary>
+        <MobileLayout
+          mode={mode}
+          setMode={setMode}
+          handleCapture={handleCapture}
+          screenshots={screenshots}
+          handleSelectScreenshot={handleSelectScreenshot}
+          activeIndex={activeIndex}
+          handleDelete={handleDelete}
+          handleDeleteAll={handleDeleteAll}
+        />
+      </ErrorBoundary>
+    );
+  }
 
   return (
     <ErrorBoundary>

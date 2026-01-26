@@ -1,4 +1,5 @@
-const API_URL = 'http://localhost:8000';
+// Use current hostname to allow mobile access via IP
+const API_URL = `http://${window.location.hostname}:8000`;
 
 export const api = {
     // Chat with Gemini
@@ -64,6 +65,15 @@ export const api = {
             method: 'DELETE',
         });
         if (!response.ok) throw new Error('Delete failed');
+        return await response.json();
+    },
+
+    // Delete all screenshots
+    deleteAllScreenshots: async () => {
+        const response = await fetch(`${API_URL}/screenshots`, {
+            method: 'DELETE',
+        });
+        if (!response.ok) throw new Error('Delete all failed');
         return await response.json();
     }
 };

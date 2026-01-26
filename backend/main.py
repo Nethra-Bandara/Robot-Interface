@@ -97,6 +97,18 @@ def get_screenshots():
     except Exception as e:
          raise HTTPException(status_code=500, detail=str(e))
 
+@app.delete("/screenshots")
+def delete_all_screenshots():
+    try:
+        entries = os.listdir(UPLOADS_DIR)
+        for entry in entries:
+            file_path = os.path.join(UPLOADS_DIR, entry)
+            if os.path.isfile(file_path):
+                os.remove(file_path)
+        return {"message": "All screenshots deleted"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.delete("/screenshots/{filename}")
 def delete_screenshot(filename: str):
     file_path = os.path.join(UPLOADS_DIR, filename)
