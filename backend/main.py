@@ -48,16 +48,20 @@ def read_root():
 
 @app.post("/chat")
 async def chat_endpoint(request: ChatRequest):
-    if not GEMINI_API_KEY:
-        raise HTTPException(status_code=500, detail="Gemini API Key not configured")
+    if not GEMINI_API_KEY or GEMINI_API_KEY == "YOUR_API_KEY_HERE":
+        # Return a friendly response so the user sees the connection works
+        return {
+            "response": "⚠️ **System Alert**: Backend is connected, but `GEMINI_API_KEY` is missing or invalid in `backend/.env`. Please configure it to enable the AI."
+        }
     
     try:
-        model = genai.GenerativeModel('gemini-pro')
+        model = genai.GenerativeModel('gemini-flash-latest')
         response = model.generate_content(request.message)
         return {"response": response.text}
     except Exception as e:
         print(f"Gemini Error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        # Return error as a chat message so it's visible in UI
+        return {"response": f"❌ **API Error**: {str(e)}"}
 
 @app.post("/upload")
 async def upload_image(file: UploadFile = File(...)):
@@ -116,3 +120,7 @@ def delete_screenshot(filename: str):
         return {"message": "Deleted"}
     else:
         raise HTTPException(status_code=404, detail="File not found")
+
+if __name__ == '__main__':
+    import uvicorn
+    uvicorn.run(app, host='0.0.0.0', port=8000)
