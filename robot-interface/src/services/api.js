@@ -5,13 +5,13 @@ const REAL_API_URL = API_URL;
 
 const realApi = {
     // Chat with Gemini
-    chat: async (message) => {
+    chat: async (message, imageUrl = null) => {
         const response = await fetch(`${REAL_API_URL}/chat`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ message }),
+            body: JSON.stringify({ message, image_url: imageUrl }),
         });
         if (!response.ok) throw new Error('Chat request failed');
         const data = await response.json();
@@ -83,7 +83,7 @@ const realApi = {
 
 // --- MOCK API IMPLEMENTATION (Browser Storage) ---
 const mockApi = {
-    chat: async (message) => {
+    chat: async (message, imageUrl = null) => {
         // Simple mock chat response
         return new Promise(resolve => {
             setTimeout(() => {
@@ -171,8 +171,8 @@ const removeFromStorage = (filename) => {
 
 
 // DETECT ENVIRONMENT
-// Use Mock if explicit flag OR domain is vercel.app
-const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true' || window.location.hostname.includes('vercel.app');
+// Use Mock if explicit flag is set
+const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
 
 console.log("API MODE:", USE_MOCK ? "MOCK (Browser)" : "REAL (Backend)");
 

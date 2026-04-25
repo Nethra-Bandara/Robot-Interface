@@ -2,7 +2,7 @@ import { Box, Card, CardMedia, Typography, Fab, IconButton, Tooltip } from '@mui
 import { KeyboardArrowUp, Remove, DeleteSweep } from '@mui/icons-material';
 import React, { useRef } from 'react';
 
-const ScreenshotGallery = ({ screenshots, onSelect, activeIndex, onDelete, onDeleteAll }) => {
+const ScreenshotGallery = ({ screenshots, onSelect, activeIndex, onDelete, onDeleteAll, theme, isPurging }) => {
     const galleryRef = useRef(null);
 
     const scrollToTop = () => {
@@ -14,19 +14,31 @@ const ScreenshotGallery = ({ screenshots, onSelect, activeIndex, onDelete, onDel
             height: '100%',
             overflowY: 'auto',
             p: 1,
-            bgcolor: '#0f1310',
-            borderRight: '1px solid #333'
+            bgcolor: 'var(--bg-page)',
+            borderRight: '1px solid var(--panel-border)'
         }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, px: 1 }}>
-                <Typography variant="overline" sx={{ color: '#666', letterSpacing: 2 }}>
+                <Typography variant="overline" sx={{ color: theme === 'dark' ? '#888' : '#444', letterSpacing: 2, fontWeight: 'bold' }}>
                     CAPTURES ({screenshots.length})
                 </Typography>
                 {screenshots.length > 0 && (
-                    <Tooltip title="Delete All">
+                    <Tooltip title="Delete All Captures">
                         <IconButton
                             size="small"
                             onClick={onDeleteAll}
-                            sx={{ color: '#d32f2f', '&:hover': { bgcolor: 'rgba(211, 47, 47, 0.1)' } }}
+                            disabled={isPurging || screenshots.length === 0}
+                            sx={{ 
+                                color: theme === 'dark' ? '#00ff88' : '#2e7d32',
+                                transition: 'all 0.2s',
+                                '&:hover': { 
+                                    bgcolor: '#00ff88',
+                                    color: '#000',
+                                    borderRadius: '4px'
+                                },
+                                '&.Mui-disabled': {
+                                    color: 'rgba(255,255,255,0.1)'
+                                }
+                            }}
                         >
                             <DeleteSweep />
                         </IconButton>
@@ -41,12 +53,16 @@ const ScreenshotGallery = ({ screenshots, onSelect, activeIndex, onDelete, onDel
                         onClick={() => onSelect(shot, index)}
                         sx={{
                             cursor: 'pointer',
-                            bgcolor: activeIndex === index ? 'rgba(255, 152, 0, 0.1)' : 'rgba(255, 255, 255, 0.03)',
-                            border: activeIndex === index ? '1px solid #ff9800' : '1px solid #333',
+                            bgcolor: activeIndex === index 
+                                ? (theme === 'dark' ? 'rgba(0, 255, 136, 0.1)' : 'rgba(46, 125, 50, 0.1)') 
+                                : 'rgba(255, 255, 255, 0.03)',
+                            border: activeIndex === index 
+                                ? `1px solid ${theme === 'dark' ? '#00ff88' : '#2e7d32'}` 
+                                : '1px solid #333',
                             transition: 'all 0.2s',
                             '&:hover': {
                                 transform: 'translateY(-2px)',
-                                borderColor: '#ff9800'
+                                borderColor: theme === 'dark' ? '#00ff88' : '#2e7d32'
                             },
                             position: 'relative'
                         }}
@@ -69,10 +85,11 @@ const ScreenshotGallery = ({ screenshots, onSelect, activeIndex, onDelete, onDel
                                     position: 'absolute',
                                     top: 5,
                                     right: 5,
-                                    bgcolor: 'rgba(0,0,0,0.6)',
-                                    color: '#fff',
+                                    bgcolor: theme === 'dark' ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.8)',
+                                    color: theme === 'dark' ? '#fff' : '#d32f2f',
                                     padding: '4px',
-                                    '&:hover': { bgcolor: '#d32f2f' }
+                                    border: theme === 'dark' ? 'none' : '1px solid rgba(0,0,0,0.1)',
+                                    '&:hover': { bgcolor: '#d32f2f', color: '#fff' }
                                 }}
                             >
                                 <Remove fontSize="small" />
@@ -80,10 +97,10 @@ const ScreenshotGallery = ({ screenshots, onSelect, activeIndex, onDelete, onDel
                         </Tooltip>
 
                         <Box sx={{ p: 1 }}>
-                            <Typography variant="caption" sx={{ color: '#aaa', display: 'block' }}>
+                            <Typography variant="caption" sx={{ color: theme === 'dark' ? '#aaa' : '#2e3d34', display: 'block', fontWeight: '500' }}>
                                 IMG_{1000 + index}
                             </Typography>
-                            <Typography variant="caption" sx={{ color: '#555', fontSize: '0.6rem' }}>
+                            <Typography variant="caption" sx={{ color: theme === 'dark' ? '#555' : '#666', fontSize: '0.6rem' }}>
                                 {shot.timestamp}
                             </Typography>
                         </Box>
@@ -107,9 +124,14 @@ const ScreenshotGallery = ({ screenshots, onSelect, activeIndex, onDelete, onDel
                         aria-label="scroll up"
                         onClick={scrollToTop}
                         sx={{
-                            backgroundColor: 'rgba(255, 152, 0, 0.8)',
-                            '&:hover': { backgroundColor: '#f57c00' },
-                            display: screenshots.length > 3 ? 'flex' : 'none' // Only show if list is somewhat long
+                            backgroundColor: theme === 'dark' ? 'rgba(0, 255, 136, 0.8)' : 'rgba(46, 125, 50, 0.8)',
+                            color: theme === 'dark' ? '#000' : '#fff',
+                            '&:hover': { 
+                                backgroundColor: '#00ff88',
+                                color: '#000',
+                                boxShadow: '0 0 15px rgba(0, 255, 136, 0.5)'
+                            },
+                            display: screenshots.length > 3 ? 'flex' : 'none' 
                         }}
                     >
                         <KeyboardArrowUp />

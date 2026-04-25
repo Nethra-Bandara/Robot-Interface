@@ -13,7 +13,9 @@ const MobileLayout = ({
     handleSelectScreenshot,
     activeIndex,
     handleDelete,
-    handleDeleteAll
+    handleDeleteAll,
+    theme,
+    isPurging
 }) => {
     const [tab, setTab] = useState(0);
 
@@ -48,6 +50,8 @@ const MobileLayout = ({
                             activeIndex={activeIndex}
                             onDelete={handleDelete}
                             onDeleteAll={handleDeleteAll}
+                            theme={theme}
+                            isPurging={isPurging}
                         />
                     </Box>
                 )}
@@ -59,6 +63,7 @@ const MobileLayout = ({
                             activeContext={screenshots[activeIndex]}
                             currentMode={mode}
                             onModeChange={setMode}
+                            theme={theme}
                         />
                     </Box>
                 )}

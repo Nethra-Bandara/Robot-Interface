@@ -5,11 +5,11 @@ import ScreenshotGallery from './components/ScreenshotGallery';
 import { api } from './services/api';
 import useMobile from './hooks/useMobile';
 import MobileLayout from './components/MobileLayout';
+import ConfirmDialog from './components/ConfirmDialog';
 
 import './App.css';
 
 class ErrorBoundary extends React.Component {
-  // ... (keep existing)
   constructor(props) {
     super(props);
     this.state = { hasError: false, error: null };
@@ -28,13 +28,22 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-
-
 function App() {
   const [screenshots, setScreenshots] = useState([]);
   const [activeIndex, setActiveIndex] = useState(null);
-  const [mode, setMode] = useState('LAND'); // LAND, AIR, WATER
+  const [mode, setMode] = useState('LAND'); 
+  const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'dark');
+  const [isPurging, setIsPurging] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const isMobile = useMobile();
+
+  useEffect(() => {
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+  };
 
   // Fetch screenshots on mount
   useEffect(() => {
@@ -44,13 +53,9 @@ function App() {
   const loadScreenshots = async () => {
     try {
       const data = await api.getScreenshots();
-      // Backend returns { filename, url, timestamp }
-      // We map it to our internal structure if needed, or just use as is.
-      // We need 'id' for lists. Filename is unique enough.
       const formatted = data.map(item => ({
         ...item,
         id: item.filename,
-        // formatted timestamp?
         timestamp: new Date(item.timestamp * 1000).toLocaleTimeString()
       }));
       setScreenshots(formatted);
@@ -61,12 +66,9 @@ function App() {
 
   const handleCapture = async (imageSrc) => {
     try {
-      // Upload to backend
-      // imageSrc is a data URL from VisionZone?
       const res = await api.upload(imageSrc);
-
       await loadScreenshots();
-      setActiveIndex(0); // Select the newest one (first in list)
+      setActiveIndex(0); 
     } catch (err) {
       console.error("Upload failed", err);
       alert(`Capture failed: ${err.message}`);
@@ -90,16 +92,29 @@ function App() {
     }
   };
 
-  const handleDeleteAll = async () => {
-    if (window.confirm("Are you sure you want to delete ALL screenshots? This cannot be undone.")) {
-      try {
-        await api.deleteAllScreenshots();
-        setScreenshots([]);
-        setActiveIndex(null);
-      } catch (err) {
-        console.error("Delete all failed", err);
-        alert("Failed to delete all screenshots");
+  const handleDeleteAll = () => {
+    if (screenshots.length === 0 || isPurging) return;
+    setShowConfirm(true);
+  };
+
+  const confirmDelete = async () => {
+    setIsPurging(true);
+    try {
+      console.log("Initiating Delete All...");
+      const result = await api.deleteAllScreenshots();
+      console.log("Delete Result:", result);
+      
+      setScreenshots([]);
+      setActiveIndex(null);
+      
+      if (result.errors) {
+        console.warn("Some files could not be deleted:", result.errors);
       }
+    } catch (err) {
+      console.error("Delete all failed", err);
+      alert(`Failed to delete all screenshots: ${err.message}`);
+    } finally {
+      setIsPurging(false);
     }
   };
 
@@ -115,6 +130,8 @@ function App() {
           activeIndex={activeIndex}
           handleDelete={handleDelete}
           handleDeleteAll={handleDeleteAll}
+          theme={theme}
+          isPurging={isPurging}
         />
       </ErrorBoundary>
     );
@@ -122,25 +139,42 @@ function App() {
 
   return (
     <ErrorBoundary>
-      <div className={`dashboard mode-${mode.toLowerCase()}`}>
-        <VisionZone onCapture={handleCapture} mode={mode} onModeChange={setMode} />
+      <div className={`dashboard theme-${theme} mode-${mode.toLowerCase()}`}>
+        <VisionZone 
+          onCapture={handleCapture} 
+          mode={mode} 
+          onModeChange={setMode}
+          theme={theme}
+          onToggleTheme={toggleTheme}
+        />
 
         <div className="content-panel">
-          {/* Screenshot Gallery scrolls normally */}
           <ScreenshotGallery
             screenshots={screenshots}
             onSelect={handleSelectScreenshot}
             activeIndex={activeIndex}
             onDelete={handleDelete}
             onDeleteAll={handleDeleteAll}
+            theme={theme}
+            isPurging={isPurging}
           />
 
           <Sidebar
             activeContext={screenshots[activeIndex]}
             currentMode={mode}
             onModeChange={setMode}
+            theme={theme}
           />
         </div>
+        
+        <ConfirmDialog
+          open={showConfirm}
+          onClose={() => setShowConfirm(false)}
+          onConfirm={confirmDelete}
+          title="Confirm Global Delete"
+          message="Are you sure you want to delete ALL captured screenshots? This action is permanent and cannot be reversed."
+          theme={theme}
+        />
       </div>
     </ErrorBoundary>
   );

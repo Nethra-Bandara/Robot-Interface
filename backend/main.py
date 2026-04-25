@@ -24,16 +24,38 @@ app.add_middleware(
 
 # Directories
 UPLOADS_DIR = "uploads"
+KNOWLEDGE_DIR = "knowledge"
 os.makedirs(UPLOADS_DIR, exist_ok=True)
+os.makedirs(KNOWLEDGE_DIR, exist_ok=True)
+
+# Helper function for RAG (Simple version: reads all files in knowledge dir)
+def get_knowledge_context():
+    context = ""
+    try:
+        if os.path.exists(KNOWLEDGE_DIR):
+            for filename in os.listdir(KNOWLEDGE_DIR):
+                if filename.endswith(".md") or filename.endswith(".txt"):
+                    with open(os.path.join(KNOWLEDGE_DIR, filename), "r", encoding="utf-8") as f:
+                        context += f"\n--- {filename} ---\n"
+                        context += f.read() + "\n"
+    except Exception as e:
+        print(f"Error reading knowledge base: {e}")
+    return context
 
 # Mount static files
-app.mount("/updates", StaticFiles(directory=UPLOADS_DIR), name="uploads") 
-# Note: mounted at /updates to avoid conflict with /uploads endpoint, or just convenience.
-# Actually let's mount at /static/uploads to be clear.
 app.mount("/static/uploads", StaticFiles(directory=UPLOADS_DIR), name="static_uploads")
 
 # Gemini Setup
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") or os.getenv("VITE_GEMINI_API_KEY") # Try both
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") or os.getenv("VITE_GEMINI_API_KEY") 
+SYSTEM_INSTRUCTION = (
+    "You are the AI assistant for a Robot Interface. "
+    "Your goal is to provide concise, accurate, and necessary information only. "
+    "Use the provided knowledge base context to answer questions about the robot and identify species. "
+    "If an image is provided, analyze it carefully. "
+    "If the species information is in the knowledge base, use that as the primary source. "
+    "Otherwise, use your general knowledge but mention if the data is from your general training rather than the local knowledge base."
+)
+
 if GEMINI_API_KEY:
     genai.configure(api_key=GEMINI_API_KEY)
 else:
@@ -41,6 +63,7 @@ else:
 
 class ChatRequest(BaseModel):
     message: str
+    image_url: str = None
 
 @app.get("/")
 def read_root():
@@ -49,18 +72,46 @@ def read_root():
 @app.post("/chat")
 async def chat_endpoint(request: ChatRequest):
     if not GEMINI_API_KEY or GEMINI_API_KEY == "YOUR_API_KEY_HERE":
-        # Return a friendly response so the user sees the connection works
         return {
-            "response": "⚠️ **System Alert**: Backend is connected, but `GEMINI_API_KEY` is missing or invalid in `backend/.env`. Please configure it to enable the AI."
+            "response": "⚠️ **System Alert**: Backend is connected, but `GEMINI_API_KEY` is missing. Please configure it."
         }
     
     try:
-        model = genai.GenerativeModel('gemini-flash-latest')
-        response = model.generate_content(request.message)
+        # Retrieve context from knowledge base
+        context = get_knowledge_context()
+        
+        # Initialize model with system instruction
+        model = genai.GenerativeModel(
+            model_name='gemini-3-flash-preview',
+            system_instruction=SYSTEM_INSTRUCTION
+        )
+        
+        # Combine context and user message
+        full_prompt = f"Knowledge Base Context:\n{context}\n\nUser Question: {request.message}"
+        
+        parts = [full_prompt]
+        
+        if request.image_url:
+            # The image_url is usually relative like /static/uploads/filename.png
+            filename = request.image_url.split("/")[-1]
+            file_path = os.path.join(UPLOADS_DIR, filename)
+            
+            if os.path.exists(file_path):
+                import base64
+                with open(file_path, "rb") as f:
+                    img_data = base64.b64encode(f.read()).decode("utf-8")
+                
+                parts.append({
+                    "mime_type": "image/jpeg",
+                    "data": img_data
+                })
+            else:
+                print(f"Warning: Image file not found at {file_path}")
+        
+        response = model.generate_content(parts)
         return {"response": response.text}
     except Exception as e:
         print(f"Gemini Error: {e}")
-        # Return error as a chat message so it's visible in UI
         return {"response": f"❌ **API Error**: {str(e)}"}
 
 @app.post("/upload")
@@ -103,13 +154,29 @@ def get_screenshots():
 @app.delete("/screenshots")
 def delete_all_screenshots():
     try:
+        if not os.path.exists(UPLOADS_DIR):
+            return {"message": "Uploads directory does not exist, nothing to delete"}
+            
         entries = os.listdir(UPLOADS_DIR)
+        deleted_count = 0
+        errors = []
+        
         for entry in entries:
             file_path = os.path.join(UPLOADS_DIR, entry)
             if os.path.isfile(file_path):
-                os.remove(file_path)
-        return {"message": "All screenshots deleted"}
+                try:
+                    os.remove(file_path)
+                    deleted_count += 1
+                except Exception as e:
+                    print(f"Error removing {entry}: {e}")
+                    errors.append(f"{entry}: {e}")
+        
+        return {
+            "message": f"Deleted {deleted_count} files", 
+            "errors": errors if errors else None
+        }
     except Exception as e:
+        print(f"Global deletion error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.delete("/screenshots/{filename}")

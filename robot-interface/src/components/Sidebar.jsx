@@ -3,7 +3,7 @@ import MapContainer from './MapContainer';
 import ChatWindow from './ChatWindow';
 
 
-const Sidebar = ({ activeContext, currentMode, onModeChange }) => {
+const Sidebar = ({ activeContext, currentMode, onModeChange, theme }) => {
 
 
 
@@ -11,8 +11,8 @@ const Sidebar = ({ activeContext, currentMode, onModeChange }) => {
         <aside className="sidebar">
 
 
-            <MapContainer />
-            <ChatWindow activeContext={activeContext} currentMode={currentMode} />
+            <MapContainer theme={theme} />
+            <ChatWindow activeContext={activeContext} currentMode={currentMode} theme={theme} />
         </aside>
     );
 };

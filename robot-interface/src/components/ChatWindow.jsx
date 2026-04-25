@@ -1,9 +1,9 @@
 import React from 'react';
 
-import { SmartToy, Send, KeyboardArrowDown } from '@mui/icons-material';
+import { SmartToy, Send, KeyboardArrowDown, DeleteSweep } from '@mui/icons-material';
 import { IconButton, Box, Fab } from '@mui/material';
 
-const ChatWindow = ({ activeContext }) => {
+const ChatWindow = ({ activeContext, theme }) => {
     const [input, setInput] = React.useState('');
     const [messages, setMessages] = React.useState([
         {
@@ -13,6 +13,7 @@ const ChatWindow = ({ activeContext }) => {
         }
     ]);
     const [isLoading, setIsLoading] = React.useState(false);
+    const [showScrollButton, setShowScrollButton] = React.useState(false);
 
     // Update initial message when context changes
     React.useEffect(() => {
@@ -32,8 +33,16 @@ const ChatWindow = ({ activeContext }) => {
     const messagesEndRef = React.useRef(null);
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        setShowScrollButton(false);
     };
     React.useEffect(scrollToBottom, [messages]);
+
+    const handleScroll = (e) => {
+        const { scrollTop, scrollHeight, clientHeight } = e.target;
+        // Show button if we are more than 100px away from bottom
+        const distanceToBottom = scrollHeight - scrollTop - clientHeight;
+        setShowScrollButton(distanceToBottom > 100);
+    };
 
     const handleSend = async () => {
         if (!input.trim()) return;
@@ -48,7 +57,7 @@ const ChatWindow = ({ activeContext }) => {
         try {
             // Use backend API
             const { api } = await import('../services/api');
-            const response = await api.chat(userMessage);
+            const response = await api.chat(userMessage, activeContext?.url);
 
             setMessages(prev => [...prev, { text: response, isBot: true }]);
         } catch (err) {
@@ -59,9 +68,35 @@ const ChatWindow = ({ activeContext }) => {
         }
     };
 
+    const handleClear = () => {
+        setMessages([]);
+    };
+
     return (
-        <div className="chat-window">
-            <div className="messages" style={{ overflowY: 'auto', maxHeight: 'calc(100% - 60px)' }}>
+        <div className="chat-window" style={{ position: 'relative' }}>
+            {/* Chat Header/Tools */}
+            <Box sx={{ 
+                display: 'flex', 
+                justifyContent: 'flex-end', 
+                mb: 1, 
+                borderBottom: `1px solid ${theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}`,
+                pb: 0.5
+            }}>
+                <IconButton 
+                    size="small" 
+                    onClick={handleClear} 
+                    title="Clear Chat History"
+                    sx={{ 
+                        color: theme === 'dark' ? '#ff3d00' : '#d32f2f',
+                        '&:hover': {
+                            backgroundColor: theme === 'dark' ? 'rgba(255, 61, 0, 0.1)' : 'rgba(211, 47, 47, 0.1)',
+                        }
+                    }}
+                >
+                    <DeleteSweep fontSize="small" />
+                </IconButton>
+            </Box>
+            <div className="messages" onScroll={handleScroll} style={{ overflowY: 'auto', maxHeight: 'calc(100% - 60px)' }}>
                 {messages.map((msg, index) => (
                     <div key={index} className={msg.isBot ? "bot-msg" : "user-msg"} style={{
                         display: 'flex',
@@ -72,10 +107,12 @@ const ChatWindow = ({ activeContext }) => {
                         {msg.isBot && <SmartToy sx={{ color: '#4caf50', mt: 0.5 }} />}
 
                         <div style={{
-                            backgroundColor: msg.isBot ? 'transparent' : 'rgba(76, 175, 80, 0.2)',
+                            backgroundColor: msg.isBot ? 'transparent' : (theme === 'dark' ? 'rgba(0, 255, 136, 0.15)' : 'rgba(46, 125, 50, 0.15)'),
+                            color: theme === 'dark' ? '#fff' : '#0a1c12',
                             padding: msg.isBot ? '0' : '10px 15px',
                             borderRadius: '10px',
-                            maxWidth: '80%'
+                            maxWidth: '80%',
+                            border: msg.isBot ? 'none' : `1px solid ${theme === 'dark' ? 'rgba(0, 255, 136, 0.3)' : 'rgba(46, 125, 50, 0.3)'}`
                         }}>
                             {msg.isBot && <strong>Assistant: </strong>}
                             {msg.image && (
@@ -88,7 +125,7 @@ const ChatWindow = ({ activeContext }) => {
                                             height: '40px',
                                             objectFit: 'cover',
                                             borderRadius: '4px',
-                                            border: '1px solid rgba(255,255,255,0.2)'
+                                            border: `1px solid ${theme === 'dark' ? 'rgba(255,255,255,0.2)' : '#1a3324'}`
                                         }}
                                     />
                                 </Box>
@@ -98,15 +135,14 @@ const ChatWindow = ({ activeContext }) => {
                             {msg.isContext && !activeContext && (
                                 <>
                                     <br /><br />
-                                    <em>Note: GPS accuracy may vary under the canopy.</em>
+                                    <em style={{ color: theme === 'dark' ? '#888' : '#555' }}>Note: GPS accuracy may vary under the canopy.</em>
                                 </>
                             )}
                         </div>
                     </div>
                 ))}
                 {isLoading && (
-                    <div style={{ display: 'flex', gap: '10px', color: '#888', fontStyle: 'italic' }}>
-                        <SmartToy sx={{ color: '#666', mt: 0.5 }} />
+                    <div style={{ display: 'flex', gap: '10px', color: theme === 'dark' ? '#aaa' : '#555', fontStyle: 'italic', paddingLeft: '34px' }}>
                         <div>Analyzing...</div>
                     </div>
                 )}
@@ -114,26 +150,37 @@ const ChatWindow = ({ activeContext }) => {
             </div>
 
             {/* Scroll to Bottom Button */}
-            <Box sx={{ position: 'absolute', bottom: '80px', right: '20px', zIndex: 10 }}>
-                <Fab
-                    size="small"
-                    color="primary"
-                    aria-label="scroll down"
-                    onClick={scrollToBottom}
-                    sx={{ backgroundColor: 'rgba(255, 152, 0, 0.8)', '&:hover': { backgroundColor: '#f57c00' } }}
-                >
-                    <KeyboardArrowDown />
-                </Fab>
-            </Box>
+            {showScrollButton && (
+                <Box sx={{ position: 'absolute', bottom: '80px', left: '20px', zIndex: 10 }}>
+                    <Fab
+                        size="small"
+                        color="primary"
+                        aria-label="scroll down"
+                        onClick={scrollToBottom}
+                        sx={{ 
+                            backgroundColor: theme === 'dark' ? 'rgba(0, 255, 136, 0.8)' : 'rgba(46, 125, 50, 0.8)',
+                            color: theme === 'dark' ? '#000' : '#fff',
+                            '&:hover': { 
+                                backgroundColor: '#00ff88',
+                                color: '#000',
+                                boxShadow: '0 0 15px rgba(0, 255, 136, 0.5)'
+                            } 
+                        }}
+                    >
+                        <KeyboardArrowDown />
+                    </Fab>
+                </Box>
+            )}
 
             <Box sx={{
                 display: 'flex',
                 alignItems: 'center',
                 mt: 1,
-                bgcolor: '#000',
+                bgcolor: theme === 'dark' ? '#000' : '#fff',
                 borderRadius: 1,
-                border: '1px solid #444',
-                pr: 1
+                border: `1px solid ${theme === 'dark' ? '#444' : '#1a3324'}`,
+                pr: 1,
+                boxShadow: theme === 'dark' ? 'none' : '0 2px 6px rgba(0,0,0,0.1)'
             }}>
                 <input
                     type="text"
@@ -146,7 +193,7 @@ const ChatWindow = ({ activeContext }) => {
                         outline: 'none',
                         background: 'transparent',
                         flexGrow: 1,
-                        color: 'white',
+                        color: theme === 'dark' ? 'white' : '#0a1c12',
                         padding: '12px',
                         margin: 0
                     }}
@@ -154,7 +201,18 @@ const ChatWindow = ({ activeContext }) => {
                 />
                 <IconButton
                     size="small"
-                    sx={{ color: isLoading ? '#666' : '#ff9800' }}
+                    sx={{ 
+                        color: isLoading 
+                            ? (theme === 'dark' ? '#444' : '#ccc') 
+                            : (theme === 'dark' ? '#00ff88' : '#2e7d32'),
+                        p: '8px',
+                        transition: 'all 0.2s',
+                        '&:hover': {
+                            backgroundColor: isLoading ? 'transparent' : '#00ff88',
+                            color: isLoading ? 'inherit' : '#000',
+                            borderRadius: '4px'
+                        }
+                    }}
                     onClick={handleSend}
                     disabled={isLoading}
                 >

@@ -1,88 +1,103 @@
 :root {
-  --forest: #1b3022;
-  --accent: #ff9800;
-  /* Signal/GPS Warning color */
-  --glass: rgba(0, 0, 0, 0.6);
-  --land: #1b3022;
-  --air: #0d1b2a;
-  --water: #001219;
+  /* Common Accents */
+  --accent-primary: #00ff88; /* Switched from amber to neon green */
+  --accent-neon: #00ff88;
+  --accent-blue: #00e5ff;
+  --accent-red: #ff3d00;
+  
+  /* DEFAULT DARK THEME - Deep Forest Green */
+  --bg-page: #040d08; /* Very deep forest green */
+  --bg-gradient: radial-gradient(circle at top left, #0a1c12 0%, #040d08 100%);
+  --panel-bg: rgba(10, 28, 18, 0.7);
+  --text-main: #e8f5e9; /* Minty white */
+  --text-dim: #8ba893;
+  --panel-border: rgba(255, 255, 255, 0.08);
+  --card-bg: #0d2117;
+  --input-bg: rgba(0, 0, 0, 0.4);
+}
+
+.theme-light {
+  /* HIGH-CONTRAST LIGHT THEME - Crisp Design */
+  --bg-page: #f8fdfa; 
+  --bg-gradient: linear-gradient(135deg, #f8fdfa 0%, #eefbf1 100%);
+  --panel-bg: rgba(255, 255, 255, 0.85); /* Frosty white */
+  --text-main: #0a1c12; 
+  --text-dim: #2e3d34;
+  --panel-border: #1a3324; /* Solid, dark forest green border */
+  --card-bg: #ffffff;
+  --input-bg: #ffffff;
 }
 
 *,
 *::before,
 *::after {
   box-sizing: border-box;
-}
-
-/* Mode Specific Backgrounds */
-.mode-land .vision-zone,
-.mode-land body {
-  background: #0b0f0c;
-}
-
-.mode-air .vision-zone,
-.mode-air body {
-  background: #050a10;
-}
-
-.mode-water .vision-zone,
-.mode-water body {
-  background: #000508;
+  transition: background-color 0.4s ease, color 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
 }
 
 body {
   margin: 0;
-  font-family: 'Inter', sans-serif;
-  background: #0b0f0c;
-  color: #e0e0e0;
+  font-family: 'Outfit', 'Inter', sans-serif;
+  background: var(--bg-page);
+  color: var(--text-main);
   overflow: hidden;
 }
 
-/* Main Dashboard Grid */
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--panel-border);
+  border-radius: 10px;
+}
+
+/* Dashboard Layout */
 .dashboard {
   display: grid;
   grid-template-columns: 1fr 600px;
-  /* Camera | Content Panel */
   height: 100vh;
   height: 100dvh;
-  /* Mobile viewport fix */
   overflow: hidden;
-  /* Prevent body scroll */
+  background: var(--bg-gradient);
 }
 
 .content-panel {
   display: grid;
   grid-template-columns: 200px 400px;
-  /* Gallery | Sidebar */
   height: 100%;
   min-height: 0;
-  /* Prevent grid blowout */
   overflow: hidden;
+  border-left: 2px solid var(--panel-border);
+  background: var(--panel-bg);
+  backdrop-filter: blur(10px);
 }
 
 /* 1. VISION ZONE (Camera Feed) */
 .vision-zone {
   position: relative;
-  background: #000;
   display: flex;
   flex-direction: column;
-  /* Changed to column to stack image and controls */
   align-items: center;
   justify-content: center;
-  border-right: 1px solid #333;
   padding: 20px;
 }
 
 .camera-container {
   position: relative;
   width: 90%;
-  max-width: 800px;
-  height: 60vh;
-  /* Reduced height, still > half page */
+  max-width: 850px;
+  aspect-ratio: 16 / 9;
   display: flex;
   justify-content: center;
-  border: 1px solid #333;
+  border: 1px solid var(--panel-border);
+  border-radius: 16px;
   overflow: hidden;
+  background: #000;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
 }
 
 .camera-feed {
@@ -91,14 +106,16 @@ body {
   object-fit: cover;
 }
 
-.control-panel {
-  width: 100%;
-  display: flex;
-  justify-content: center;
+/* Theme Toggle Position */
+.theme-toggle-btn {
+  position: absolute;
+  top: 0; /* Aligned with top of vision zone container padding if relative, but let's be precise */
+  left: 20px; /* Same as vision-zone padding */
+  z-index: 100;
+  color: var(--text-main) !important;
 }
 
-
-/* HUD Overlays */
+/* HUD Overlay */
 .hud-overlay {
   position: absolute;
   top: 10px;
@@ -106,170 +123,116 @@ body {
   right: 10px;
   display: flex;
   justify-content: space-between;
-  background: var(--glass);
+  background: var(--bg-page);
+  color: var(--text-main);
   padding: 8px 15px;
   border-radius: 8px;
   backdrop-filter: blur(5px);
   font-size: 0.8rem;
   z-index: 10;
+  border: 1px solid var(--panel-border);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 
-/* Control Button Default (Desktop) */
+.theme-dark .hud-overlay {
+  background: rgba(0, 0, 0, 0.6);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+/* Controls */
 .control-btn {
   width: 64px !important;
   height: 64px !important;
+  color: var(--text-main) !important;
+  border-color: var(--panel-border) !important;
+  background: var(--panel-bg) !important;
 }
 
-.mode-selector-group .MuiToggleButton-root {
-  border-color: rgba(255, 255, 255, 0.1) !important;
-  padding: 10px !important;
+.control-btn:hover {
+  background: var(--accent-primary) !important;
+  color: #000 !important;
+  border-color: var(--accent-primary) !important;
 }
 
 /* 2. TELEMETRY & CHAT ZONE */
 .sidebar {
   display: flex;
   flex-direction: column;
-  background: #141a16;
+  background: var(--panel-bg);
   padding: 15px;
   height: 100%;
   min-height: 0;
   overflow: hidden;
 }
 
-/* Mini Map Section */
 .map-container {
   height: 200px;
   min-height: 200px;
-  /* Force height */
-  background: #222;
-  border-radius: 8px;
+  border-radius: 12px;
   margin-bottom: 15px;
-  position: relative;
+  border: 1px solid var(--panel-border);
   overflow: hidden;
-  border: 1px solid #444;
-  flex-shrink: 0;
-  /* Prevent map from being squashed */
 }
 
-.map-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  opacity: 0.8;
-}
-
-.gps-marker {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 12px;
-  height: 12px;
-  background: red;
-  border-radius: 50%;
-  box-shadow: 0 0 10px red;
-  transform: translate(-50%, -50%);
-}
-
-/* Chat Window */
 .chat-window {
   flex-grow: 1;
   display: flex;
   flex-direction: column;
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
   padding: 10px;
   min-height: 0;
-  /* Enable internal scroll in flex child */
-  overflow: hidden;
-  /* Ensure content doesn't spill out */
-}
-
-.messages {
-  flex-grow: 1;
-  overflow-y: auto;
-  font-size: 0.9em;
+  border: 1px solid var(--panel-border);
 }
 
 .bot-msg {
-  background: #2c3e32;
+  background: rgba(76, 175, 80, 0.15);
   padding: 10px;
-  border-radius: 5px;
+  border-radius: 8px;
   margin-bottom: 10px;
-  border-left: 3px solid #4caf50;
+  border-left: 3px solid var(--accent-neon);
 }
 
 input {
-  background: #000;
-  border: 1px solid #444;
-  color: white;
+  background: var(--input-bg);
+  border: 1px solid var(--panel-border);
+  color: var(--text-main);
   padding: 12px;
-  border-radius: 5px;
+  border-radius: 8px;
   margin-top: 10px;
   width: 100%;
-  /* Ensure it fits */
-  box-sizing: border-box;
+  outline: none;
 }
 
-/* Responsive Mobile View */
+/* GALLERY */
+.screenshot-gallery {
+  padding: 15px;
+  overflow-y: auto;
+  border-right: 2px solid var(--panel-border);
+  background: transparent;
+}
+
+.screenshot-card {
+  border-radius: 8px;
+  margin-bottom: 10px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  background: var(--card-bg);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  overflow: hidden;
+}
+
+.theme-dark .screenshot-card {
+  background: #000;
+  box-shadow: none;
+}
+
+.screenshot-card.active {
+  border-color: var(--accent-primary);
+}
+
 @media (max-width: 900px) {
-
-  /* Vision Zone Full Screen Adjustments */
-  .vision-zone {
-    height: 100%;
-    padding: 10px;
-    justify-content: space-between;
-    border: none;
-  }
-
-  .camera-container {
-    height: auto;
-    flex: 1;
-    width: 100%;
-    min-height: 0;
-  }
-
-  /* Compact Controls for Mobile */
-  .control-btn {
-    width: 48px !important;
-    height: 48px !important;
-  }
-
-  .control-btn .MuiSvgIcon-root {
-    font-size: 1.5rem !important;
-  }
-
-  .control-panel {
-    margin-top: 10px !important;
-    gap: 8px !important;
-    padding-bottom: 70px;
-    /* Space for Bottom Nav */
-    flex-shrink: 0;
-  }
-
-  .mode-selector-group .MuiToggleButton-root {
-    padding: 8px !important;
-  }
-
-  .mode-selector-group svg {
-    font-size: 1.3rem;
-  }
-
-  /* Adjustments for Sidebar/Map in Mobile Tab */
-  .sidebar {
-    height: 100%;
-    /* Fill tab */
-    overflow-y: auto;
-    padding-bottom: 70px;
-    /* Space for Bottom Nav */
-  }
-
-  .map-container {
-    height: 250px;
-    /* Larger map since it has its own tab */
-  }
-
-  .chat-window {
-    flex: 1;
-    min-height: 300px;
-  }
+  .dashboard { grid-template-columns: 1fr; }
+  .content-panel { display: none; }
 }
