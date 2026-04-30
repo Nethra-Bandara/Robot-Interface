@@ -50,7 +50,9 @@ def get_knowledge_context():
 app.mount("/static/uploads", StaticFiles(directory=UPLOADS_DIR), name="static_uploads")
 
 # Gemini Setup
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") or os.getenv("VITE_GEMINI_API_KEY") 
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") or os.getenv("VITE_GEMINI_API_KEY")
+if GEMINI_API_KEY:
+    GEMINI_API_KEY = GEMINI_API_KEY.replace("GEMINI_API_KEY=", "").strip() 
 SYSTEM_INSTRUCTION = (
     "You are the AI assistant for a Robot Interface. "
     "Your goal is to provide concise, accurate, and necessary information only. "
