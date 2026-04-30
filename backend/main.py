@@ -16,7 +16,11 @@ app = FastAPI()
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # For dev only. In prod, specify the frontend URL.
+    allow_origins=[
+        "http://localhost:5173",
+        "https://robot-interface-rho.vercel.app",
+        "*"
+    ],  # For dev only. In prod, specify the frontend URL.
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
