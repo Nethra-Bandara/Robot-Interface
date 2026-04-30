@@ -61,7 +61,7 @@ SYSTEM_INSTRUCTION = (
 )
 
 if GEMINI_API_KEY:
-    genai.configure(api_key=GEMINI_API_KEY)
+    genai.configure(api_key=GEMINI_API_KEY, transport="rest")
 else:
     print("WARNING: GEMINI_API_KEY not found.")
 
@@ -112,7 +112,7 @@ async def chat_endpoint(request: ChatRequest):
             else:
                 print(f"Warning: Image file not found at {file_path}")
         
-        response = model.generate_content(parts)
+        response = model.generate_content(parts, request_options={"timeout": 15})
         return {"response": response.text}
     except Exception as e:
         print(f"Gemini Error: {e}")
