@@ -5,13 +5,7 @@ import { IconButton, Box, Fab } from '@mui/material';
 
 const ChatWindow = ({ activeContext, theme }) => {
     const [input, setInput] = React.useState('');
-    const [messages, setMessages] = React.useState([
-        {
-            text: "Panthera Pardus Kotiya (Sri Lankan Leopard) detected near your waypoint.",
-            isBot: true,
-            isContext: true // Special flag for initial context message
-        }
-    ]);
+    const [messages, setMessages] = React.useState([]);
     const [isLoading, setIsLoading] = React.useState(false);
     const [showScrollButton, setShowScrollButton] = React.useState(false);
 
@@ -132,12 +126,7 @@ const ChatWindow = ({ activeContext, theme }) => {
                             )}
                             {msg.text}
 
-                            {msg.isContext && !activeContext && (
-                                <>
-                                    <br /><br />
-                                    <em style={{ color: theme === 'dark' ? '#888' : '#555' }}>Note: GPS accuracy may vary under the canopy.</em>
-                                </>
-                            )}
+
                         </div>
                     </div>
                 ))}
