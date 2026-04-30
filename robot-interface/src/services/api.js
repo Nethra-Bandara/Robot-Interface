@@ -1,10 +1,8 @@
 // Use environment variable if available (e.g. Vercel), otherwise default to production backend or local
-const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? "https://robot-interface-production.up.railway.app" : `http://${window.location.hostname}:8000`);
-
+const API_URL = import.meta.env.VITE_API_URL;
 const REAL_API_URL = API_URL;
 
-VITE_API_URL=https://robot-interface.production.up.railway.app
-
+VITE_API_URL=https://robot-interface-production.up.railway.app
 const realApi = {
     // Chat with Gemini
     chat: async (message, imageUrl = null) => {
