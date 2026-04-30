@@ -6,13 +6,7 @@ VITE_API_URL=https://robot-interface-production.up.railway.app
 
 from fastapi.middleware.cors import CORSMiddleware
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["https://your-vercel-app.vercel.app"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+
 
 const realApi = {
     // Chat with Gemini
