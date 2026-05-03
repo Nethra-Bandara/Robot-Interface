@@ -12,13 +12,14 @@ from dotenv import load_dotenv
 # Load environment variables from .env (for local dev)
 load_dotenv()
 
+
 app = FastAPI()
 
 # Configure CORS (add your frontend origins here)
 FRONTEND_ORIGINS = [
     "http://localhost:5173",
     "https://robot-interface-rho.vercel.app",
-    "https://robot-interface-olive.vercel.app"
+    
 ]
 app.add_middleware(
     CORSMiddleware,
