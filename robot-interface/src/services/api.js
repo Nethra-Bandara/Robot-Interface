@@ -5,6 +5,7 @@ const REAL_API_URL = API_URL;
 const realApi = {
     // Chat with Gemini
     chat: async (message, imageUrl = null) => {
+    try {
         const response = await fetch(`${REAL_API_URL}/chat`, {
             method: 'POST',
             headers: {
@@ -12,9 +13,22 @@ const realApi = {
             },
             body: JSON.stringify({ message, image_url: imageUrl }),
         });
-        if (!response.ok) throw new Error('Chat request failed');
-        const data = await response.json();
+
+        const text = await response.text();
+        console.log("RAW RESPONSE:", text);
+
+        if (!response.ok) {
+            throw new Error(`Server error: ${text}`);
+        }
+
+        const data = JSON.parse(text);
         return data.response;
+
+    } catch (err) {
+        console.error("CHAT ERROR:", err);
+        throw err;
+    }
+}
     },
 
     // Upload a captured screenshot
