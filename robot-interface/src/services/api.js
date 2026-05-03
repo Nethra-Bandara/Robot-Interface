@@ -4,7 +4,7 @@ const REAL_API_URL = API_URL;
 
 const realApi = {
     // Chat with Gemini
-    chat: async (message, imageUrl = null) => {
+   chat: async (message, imageUrl = null) => {
     try {
         const response = await fetch(`${REAL_API_URL}/chat`, {
             method: 'POST',
@@ -28,7 +28,7 @@ const realApi = {
         console.error("CHAT ERROR:", err);
         throw err;
     }
-}
+},
     },
 
     // Upload a captured screenshot
