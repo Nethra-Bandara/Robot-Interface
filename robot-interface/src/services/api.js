@@ -1,3 +1,6 @@
+const API_URL = import.meta.env.VITE_API_URL;
+const REAL_API_URL = API_URL;
+
 const realApi = {
     chat: async (message, imageUrl = null) => {
         try {
@@ -9,16 +12,13 @@ const realApi = {
                 body: JSON.stringify({ message, image_url: imageUrl }),
             });
 
-            const text = await response.text();
-            console.log("RAW RESPONSE:", text);
+            const data = await response.json();
 
             if (!response.ok) {
-                throw new Error(`Server error: ${text}`);
+                throw new Error(data?.response || 'Chat request failed');
             }
 
-            const data = JSON.parse(text);
             return data.response;
-
         } catch (err) {
             console.error("CHAT ERROR:", err);
             throw err;
@@ -85,3 +85,8 @@ const realApi = {
         return await response.json();
     }
 };
+
+// Toggle mock
+const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
+
+export const api = USE_MOCK ? {} : realApi;
