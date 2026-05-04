@@ -8,6 +8,7 @@ import os
 import shutil
 import google.generativeai as genai
 from dotenv import load_dotenv
+from typing import Optional
 
 # Load environment variables from .env (for local dev)
 load_dotenv()
@@ -73,7 +74,7 @@ SYSTEM_INSTRUCTION = (
 
 class ChatRequest(BaseModel):
     message: str
-    image_url: str = None
+    image_url: Optional[str] = None
 
 @app.get("/")
 def read_root():
