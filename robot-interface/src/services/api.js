@@ -44,8 +44,8 @@ const realApi = {
 
         formData.append('file', file);
 
-        const response = await fetch(`${REAL_API_URL}/upload`, {
-            method: 'POST',
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/upload`, {
+                  method: 'POST',
             body: formData,
         });
 
