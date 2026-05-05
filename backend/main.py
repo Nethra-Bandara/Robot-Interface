@@ -26,8 +26,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=FRONTEND_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["*"], # Allows GET, POST, DELETE, etc.
+    allow_headers=["*"], # Allows Content-Type, Authorization, etc.
 )
 
 # Directories
