@@ -19,9 +19,7 @@ app = FastAPI()
 # Configure CORS (add your frontend origins here)
 FRONTEND_ORIGINS = [
     "http://localhost:5173",
-    "https://robot-interface-rho.vercel.app",
-    "https://vercel.com/nethradmk-1485s-projects/robot-interface/6SGmTRqe5D6ytFjF71LeRSwHXA9t",
-    
+    "https://robot-interface-rho.vercel.app",    
 ]
 app.add_middleware(
     CORSMiddleware,
@@ -191,4 +189,5 @@ def delete_screenshot(filename: str):
 
 if __name__ == '__main__':
     import uvicorn
-    uvicorn.run(app, host='0.0.0.0', port=int(os.getenv("PORT", 8000)))
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
