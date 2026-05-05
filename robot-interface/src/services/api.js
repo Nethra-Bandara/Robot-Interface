@@ -1,10 +1,15 @@
+// api.js
+
+// 1. Ensure the URL is consistently loaded and sanitized
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-console.log('API_URL loaded:', API_URL);
-const REAL_API_URL = API_URL;
+const REAL_API_URL = API_URL.replace(/\/$/, ""); // Removes trailing slash if present
+
+console.log('API_URL loaded:', REAL_API_URL);
 
 const realApi = {
     chat: async (message, imageUrl = null) => {
         try {
+            // FIX: Using REAL_API_URL instead of the raw import.meta.env
             const response = await fetch(`${REAL_API_URL}/chat`, {
                 method: 'POST',
                 headers: {
@@ -27,60 +32,81 @@ const realApi = {
     },
 
     upload: async (imageBlob, filename) => {
-        const formData = new FormData();
+        try {
+            const formData = new FormData();
 
-        if (!filename) {
-            filename = `capture_${Date.now()}.jpg`;
-        }
-
-        let file;
-
-        if (typeof imageBlob === 'string' && imageBlob.startsWith('data:')) {
-            // Parse the data URL directly — re-fetching data URLs can produce empty MIME types
-            const [header, base64Data] = imageBlob.split(',');
-            const mimeType = header.match(/:(.*?);/)?.[1] || 'image/jpeg';
-            const byteString = atob(base64Data);
-            const byteArray = new Uint8Array(byteString.length);
-            for (let i = 0; i < byteString.length; i++) {
-                byteArray[i] = byteString.charCodeAt(i);
+            if (!filename) {
+                filename = `capture_${Date.now()}.jpg`;
             }
-            const blob = new Blob([byteArray], { type: mimeType });
-            file = new File([blob], filename, { type: mimeType });
-        } else if (typeof imageBlob === 'string') {
-            const res = await fetch(imageBlob);
-            const blob = await res.blob();
-            file = new File([blob], filename, { type: blob.type || 'image/jpeg' });
-        } else {
-            file = imageBlob;
+
+            let file;
+
+            // Handle base64 strings or blobs
+            if (typeof imageBlob === 'string' && imageBlob.startsWith('data:')) {
+                // Parse the data URL directly — re-fetching data URLs can produce empty MIME types
+                const [header, base64Data] = imageBlob.split(',');
+                const mimeType = header.match(/:(.*?);/)?.[1] || 'image/jpeg';
+                const byteString = atob(base64Data);
+                const byteArray = new Uint8Array(byteString.length);
+                for (let i = 0; i < byteString.length; i++) {
+                    byteArray[i] = byteString.charCodeAt(i);
+                }
+                const blob = new Blob([byteArray], { type: mimeType });
+                file = new File([blob], filename, { type: mimeType });
+            } else if (typeof imageBlob === 'string') {
+                const res = await fetch(imageBlob);
+                const blob = await res.blob();
+                file = new File([blob], filename, { type: blob.type || 'image/jpeg' });
+            } else {
+                file = imageBlob;
+            }
+
+            formData.append('file', file);
+
+            // FIX: Using REAL_API_URL
+            const response = await fetch(`${REAL_API_URL}/upload`, {
+                method: 'POST',
+                body: formData,
+                // Note: Do NOT set Content-Type header manually for FormData; 
+                // the browser needs to set the boundary itself.
+            });
+
+            if (!response.ok) {
+                const errorBody = await response.text();
+                console.error("Upload server error:", errorBody);
+                throw new Error('Upload failed');
+            }
+
+            const data = await response.json();
+
+            // FIX: Return absolute URL so frontend knows the image is on Railway
+            return {
+                ...data,
+                url: data.url.startsWith('http') ? data.url : `${REAL_API_URL}${data.url}`
+            };
+        } catch (err) {
+            console.error("UPLOAD ERROR:", err);
+            throw err;
         }
-
-        formData.append('file', file);
-
-        const response = await fetch(`${REAL_API_URL}/upload`, {
-            method: 'POST',
-            body: formData,
-        });
-
-        if (!response.ok) {
-            const errText = await response.text();
-            console.error('Upload response error:', errText);
-            throw new Error('Upload failed');
-        }
-
-        return await response.json();
     },
 
     getScreenshots: async () => {
-        const response = await fetch(`${REAL_API_URL}/screenshots`);
+        try {
+            const response = await fetch(`${REAL_API_URL}/screenshots`);
 
-        if (!response.ok) throw new Error('Fetch failed');
+            if (!response.ok) throw new Error('Fetch failed');
 
-        const data = await response.json();
+            const data = await response.json();
 
-        return data.map(item => ({
-            ...item,
-            url: item.url.startsWith('http') ? item.url : `${REAL_API_URL}${item.url}`
-        }));
+            // Ensure every screenshot URL points to the Railway backend
+            return data.map(item => ({
+                ...item,
+                url: item.url.startsWith('http') ? item.url : `${REAL_API_URL}${item.url}`
+            }));
+        } catch (err) {
+            console.error("GET SCREENSHOTS ERROR:", err);
+            throw err;
+        }
     },
 
     deleteScreenshot: async (filename) => {
@@ -103,7 +129,5 @@ const realApi = {
         return await response.json();
     }
 };
-
-// Toggle mock
 
 export const api = realApi;
