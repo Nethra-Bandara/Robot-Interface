@@ -5,8 +5,9 @@ const REAL_API_URL = API_URL;
 const realApi = {
     chat: async (message, imageUrl = null) => {
         try {
-            const response = await fetch(`${REAL_API_URL}/chat`, {
-                method: 'POST',
+            
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/chat`, {
+                  method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
