@@ -33,12 +33,25 @@ const realApi = {
             filename = `capture_${Date.now()}.jpg`;
         }
 
-        let file = imageBlob;
+        let file;
 
-        if (typeof imageBlob === 'string') {
+        if (typeof imageBlob === 'string' && imageBlob.startsWith('data:')) {
+            // Parse the data URL directly — re-fetching data URLs can produce empty MIME types
+            const [header, base64Data] = imageBlob.split(',');
+            const mimeType = header.match(/:(.*?);/)?.[1] || 'image/jpeg';
+            const byteString = atob(base64Data);
+            const byteArray = new Uint8Array(byteString.length);
+            for (let i = 0; i < byteString.length; i++) {
+                byteArray[i] = byteString.charCodeAt(i);
+            }
+            const blob = new Blob([byteArray], { type: mimeType });
+            file = new File([blob], filename, { type: mimeType });
+        } else if (typeof imageBlob === 'string') {
             const res = await fetch(imageBlob);
             const blob = await res.blob();
             file = new File([blob], filename, { type: blob.type || 'image/jpeg' });
+        } else {
+            file = imageBlob;
         }
 
         formData.append('file', file);
@@ -48,7 +61,11 @@ const realApi = {
             body: formData,
         });
 
-        if (!response.ok) throw new Error('Upload failed');
+        if (!response.ok) {
+            const errText = await response.text();
+            console.error('Upload response error:', errText);
+            throw new Error('Upload failed');
+        }
 
         return await response.json();
     },
