@@ -89,10 +89,19 @@ def on_mqtt_message(client, userdata, message):
         
         conn = sqlite3.connect(DB_FILE)
         cursor = conn.cursor()
+        
+        # Insert the new record
         cursor.execute('''
             INSERT INTO telemetry_history (battery, temperature, humidity, speed, signal, status)
             VALUES (?, ?, ?, ?, ?, ?)
         ''', (battery, temperature, humidity, speed, signal, status))
+        
+        # Delete any records older than 7 days
+        cursor.execute('''
+            DELETE FROM telemetry_history 
+            WHERE timestamp <= datetime('now', '-7 days')
+        ''')
+        
         conn.commit()
         conn.close()
     except Exception as e:
