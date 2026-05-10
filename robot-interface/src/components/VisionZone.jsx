@@ -3,7 +3,7 @@ import { IconButton, Box, Typography, ToggleButton, ToggleButtonGroup, Slider } 
 import { ArrowUpward, ArrowDownward, ArrowBack, ArrowForward, PhotoCamera, Terrain, Water, Videocam, VideocamOff, Mic, MicOff, Lightbulb, LightbulbOutline, Brightness4, Brightness7 } from '@mui/icons-material';
 import CameraFeed from './CameraFeed';
 
-const VisionZone = ({ onCapture, mode, onModeChange, theme, onToggleTheme }) => {
+const VisionZone = ({ onCapture, mode, onModeChange, theme, onToggleTheme, sendMoveCommand }) => {
     const [activeDirection, setActiveDirection] = useState(null);
     const cameraFeedRef = useRef(null);
 
@@ -15,6 +15,9 @@ const VisionZone = ({ onCapture, mode, onModeChange, theme, onToggleTheme }) => 
     const handleControl = (direction) => {
         console.log(`Camera moving: ${direction}`);
         setActiveDirection(direction);
+        if (sendMoveCommand) {
+            sendMoveCommand(direction.toLowerCase());
+        }
         setTimeout(() => setActiveDirection(null), 200);
     };
 

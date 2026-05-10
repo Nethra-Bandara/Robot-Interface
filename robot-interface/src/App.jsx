@@ -3,6 +3,7 @@ import VisionZone from './components/VisionZone';
 import Sidebar from './components/Sidebar';
 import ScreenshotGallery from './components/ScreenshotGallery';
 import { api } from './services/api';
+import { useMQTT } from './hooks/useMQTT';
 import useMobile from './hooks/useMobile';
 import MobileLayout from './components/MobileLayout';
 import ConfirmDialog from './components/ConfirmDialog';
@@ -31,7 +32,8 @@ class ErrorBoundary extends React.Component {
 function App() {
   const [screenshots, setScreenshots] = useState([]);
   const [activeIndex, setActiveIndex] = useState(null);
-  const [mode, setMode] = useState('LAND'); 
+  const [mode, setMode] = useState('LAND');
+  const { telemetry, sendMoveCommand } = useMQTT();
   const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'dark');
   const [isPurging, setIsPurging] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -68,7 +70,7 @@ function App() {
     try {
       const res = await api.upload(imageSrc);
       await loadScreenshots();
-      setActiveIndex(0); 
+      setActiveIndex(0);
     } catch (err) {
       console.error("Upload failed", err);
       alert(`Capture failed: ${err.message}`);
@@ -103,10 +105,10 @@ function App() {
       console.log("Initiating Delete All...");
       const result = await api.deleteAllScreenshots();
       console.log("Delete Result:", result);
-      
+
       setScreenshots([]);
       setActiveIndex(null);
-      
+
       if (result.errors) {
         console.warn("Some files could not be deleted:", result.errors);
       }
@@ -140,12 +142,13 @@ function App() {
   return (
     <ErrorBoundary>
       <div className={`dashboard theme-${theme} mode-${mode.toLowerCase()}`}>
-        <VisionZone 
-          onCapture={handleCapture} 
-          mode={mode} 
+        <VisionZone
+          onCapture={handleCapture}
+          mode={mode}
           onModeChange={setMode}
           theme={theme}
           onToggleTheme={toggleTheme}
+          sendMoveCommand={sendMoveCommand}
         />
 
         <div className="content-panel">
@@ -164,9 +167,10 @@ function App() {
             currentMode={mode}
             onModeChange={setMode}
             theme={theme}
+            telemetry={telemetry}
           />
         </div>
-        
+
         <ConfirmDialog
           open={showConfirm}
           onClose={() => setShowConfirm(false)}
