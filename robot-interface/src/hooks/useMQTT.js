@@ -85,9 +85,8 @@ export const useMQTT = () => {
             return;
         }
 
-        const msg = JSON.stringify({
-            move: direction
-        });
+        // Sending raw text directly
+        const msg = String(direction);
 
         client.publish(
             'robot/control',
