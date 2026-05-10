@@ -127,6 +127,17 @@ const realApi = {
         if (!response.ok) throw new Error('Delete all failed');
 
         return await response.json();
+    },
+
+    getTelemetryHistory: async (limit = 100) => {
+        try {
+            const response = await fetch(`${REAL_API_URL}/telemetry/history?limit=${limit}`);
+            if (!response.ok) throw new Error('Failed to fetch telemetry history');
+            return await response.json();
+        } catch (err) {
+            console.error("GET TELEMETRY HISTORY ERROR:", err);
+            throw err;
+        }
     }
 };
 

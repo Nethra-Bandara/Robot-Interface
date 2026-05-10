@@ -9,6 +9,10 @@ import shutil
 import google.generativeai as genai
 from dotenv import load_dotenv
 from typing import Optional
+import sqlite3
+import json
+import threading
+import paho.mqtt.client as mqtt
 
 # Load environment variables from .env (for local dev)
 load_dotenv()
@@ -34,6 +38,82 @@ UPLOADS_DIR = "uploads"
 KNOWLEDGE_DIR = "knowledge"
 os.makedirs(UPLOADS_DIR, exist_ok=True)
 os.makedirs(KNOWLEDGE_DIR, exist_ok=True)
+
+# Database Setup
+DB_FILE = "data.db"
+def init_db():
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS telemetry_history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+            battery REAL,
+            temperature REAL,
+            humidity REAL,
+            speed REAL,
+            signal REAL,
+            status TEXT
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
+init_db()
+
+# Background MQTT Subscriber
+MQTT_BROKER = "002277b56cde45b29a96d3dd3ef81785.s1.eu.hivemq.cloud"
+MQTT_PORT = 8883
+MQTT_USER = "robot_interface"
+MQTT_PASS = "Pwd12345"
+MQTT_TOPIC = "robot/telemetry"
+
+def on_mqtt_connect(client, userdata, flags, reason_code, properties):
+    if reason_code == 0:
+        print("Backend connected to MQTT Broker!")
+        client.subscribe(MQTT_TOPIC)
+    else:
+        print(f"Backend MQTT connection failed with code: {reason_code}")
+
+def on_mqtt_message(client, userdata, message):
+    try:
+        payload = json.loads(message.payload.decode("utf-8"))
+        battery = payload.get("battery", None)
+        temperature = payload.get("temp", None)  # RPi script currently sends 'temp'
+        if temperature is None:
+            temperature = payload.get("temperature", None)
+        humidity = payload.get("humidity", None)
+        speed = payload.get("speed", None)
+        signal = payload.get("signal", None)
+        status = payload.get("status", None)
+        
+        conn = sqlite3.connect(DB_FILE)
+        cursor = conn.cursor()
+        cursor.execute('''
+            INSERT INTO telemetry_history (battery, temperature, humidity, speed, signal, status)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', (battery, temperature, humidity, speed, signal, status))
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"Error processing MQTT message: {e}")
+
+def start_mqtt_listener():
+    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+    client.username_pw_set(MQTT_USER, MQTT_PASS)
+    client.tls_set()
+    client.on_connect = on_mqtt_connect
+    client.on_message = on_mqtt_message
+    
+    try:
+        client.connect(MQTT_BROKER, MQTT_PORT)
+        client.loop_forever()
+    except Exception as e:
+        print(f"Failed to start MQTT listener: {e}")
+
+# Run MQTT in a background thread
+mqtt_thread = threading.Thread(target=start_mqtt_listener, daemon=True)
+mqtt_thread.start()
 
 def get_knowledge_context():
     """Simple RAG helper: read .md and .txt files from knowledge dir."""
@@ -186,6 +266,27 @@ def delete_screenshot(filename: str):
         return {"message": "Deleted"}
     else:
         raise HTTPException(status_code=404, detail="File not found")
+
+@app.get("/telemetry/history")
+def get_telemetry_history(limit: int = 100):
+    try:
+        conn = sqlite3.connect(DB_FILE)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT * FROM telemetry_history 
+            ORDER BY timestamp DESC 
+            LIMIT ?
+        ''', (limit,))
+        rows = cursor.fetchall()
+        conn.close()
+        
+        history = []
+        for row in rows:
+            history.append(dict(row))
+        return history
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == '__main__':
     import uvicorn
