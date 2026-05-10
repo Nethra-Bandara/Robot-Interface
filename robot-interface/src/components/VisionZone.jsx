@@ -3,7 +3,7 @@ import { IconButton, Box, Typography, ToggleButton, ToggleButtonGroup, Slider } 
 import { ArrowUpward, ArrowDownward, ArrowBack, ArrowForward, PhotoCamera, Terrain, Water, Videocam, VideocamOff, Mic, MicOff, Lightbulb, LightbulbOutline, Brightness4, Brightness7 } from '@mui/icons-material';
 import CameraFeed from './CameraFeed';
 
-const VisionZone = ({ onCapture, mode, onModeChange, theme, onToggleTheme, sendMoveCommand }) => {
+const VisionZone = ({ onCapture, mode, onModeChange, theme, onToggleTheme, sendMoveCommand, telemetry }) => {
     const [activeDirection, setActiveDirection] = useState(null);
     const cameraFeedRef = useRef(null);
 
@@ -20,6 +20,46 @@ const VisionZone = ({ onCapture, mode, onModeChange, theme, onToggleTheme, sendM
         }
         setTimeout(() => setActiveDirection(null), 200);
     };
+
+    // Add keyboard support for arrow keys
+    React.useEffect(() => {
+        const handleKeyDown = (e) => {
+            // Prevent default scrolling for arrow keys
+            if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
+                e.preventDefault();
+            }
+            
+            switch (e.key) {
+                case 'ArrowUp':
+                case 'w':
+                case 'W':
+                    handleControl('UP');
+                    break;
+                case 'ArrowDown':
+                case 's':
+                case 'S':
+                    handleControl('DOWN');
+                    break;
+                case 'ArrowLeft':
+                case 'a':
+                case 'A':
+                    handleControl('LEFT');
+                    break;
+                case 'ArrowRight':
+                case 'd':
+                case 'D':
+                    handleControl('RIGHT');
+                    break;
+                default:
+                    break;
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [sendMoveCommand]);
 
     const handleModeChange = (event, newMode) => {
         if (newMode !== null && onModeChange) {
@@ -110,9 +150,10 @@ const VisionZone = ({ onCapture, mode, onModeChange, theme, onToggleTheme, sendM
 
                     <div className="hud-overlay">
                         <span>MODE: <strong style={{ color: theme === 'dark' ? '#fff' : '#2e7d32' }}>{mode}</strong></span>
-                        <span>SPEED: <strong>{speed}%</strong></span>
-                        <span>SIGNAL: <strong>92% (RF MESH)</strong></span>
-                        <span>POWER: <strong>88%</strong></span>
+                        <span>SPEED: <strong>{telemetry && telemetry.speed !== undefined ? `${telemetry.speed} m/s` : `${speed}%`}</strong></span>
+                        <span>SIGNAL: <strong>{telemetry && telemetry.signal !== undefined ? `${telemetry.signal}%` : '92% (RF MESH)'}</strong></span>
+                        <span>POWER: <strong>{telemetry && telemetry.battery !== undefined ? `${telemetry.battery}%` : '88%'}</strong></span>
+                        {telemetry && telemetry.status && <span>STATUS: <strong>{telemetry.status.toUpperCase()}</strong></span>}
                     </div>
                 </div>
             </Box>

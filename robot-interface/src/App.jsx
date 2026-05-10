@@ -149,6 +149,7 @@ function App() {
           theme={theme}
           onToggleTheme={toggleTheme}
           sendMoveCommand={sendMoveCommand}
+          telemetry={telemetry}
         />
 
         <div className="content-panel">
