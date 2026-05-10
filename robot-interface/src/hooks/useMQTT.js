@@ -48,5 +48,15 @@ export const useMQTT = () => {
         }
     };
 
-    return { telemetry, sendMoveCommand };
+    // Helper function to publish command results or custom messages
+    const publishResult = (topic, payload) => {
+        if (client) {
+            const msg = typeof payload === 'string' ? payload : JSON.stringify(payload);
+            client.publish(topic, msg);
+        } else {
+            console.warn('MQTT client not connected');
+        }
+    };
+
+    return { client, telemetry, sendMoveCommand, publishResult };
 };
