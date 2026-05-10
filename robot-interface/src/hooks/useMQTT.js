@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import mqtt from 'mqtt';
 
 const MQTT_URL = 'wss://002277b56cde45b29a96d3dd3ef81785.s1.eu.hivemq.cloud:8883/mqtt';
-const options = { username: 'Robot_Interface', password: 'PasswordMy1' };
+const options = { username: 'robot_interface', password: 'Pwd12345' };
 
 export const useMQTT = () => {
     const [client, setClient] = useState(null);
