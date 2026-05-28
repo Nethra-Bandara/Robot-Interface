@@ -44,6 +44,15 @@ DB_FILE = "data.db"
 def init_db():
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
+    
+    # Automatic migration: drop old table if it has the "status" column
+    try:
+        cursor.execute("SELECT status FROM telemetry_history LIMIT 1")
+        print("Migrating schema: dropping old telemetry_history table...")
+        cursor.execute("DROP TABLE telemetry_history")
+    except sqlite3.OperationalError:
+        pass
+
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS telemetry_history (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -53,7 +62,7 @@ def init_db():
             humidity REAL,
             speed REAL,
             signal REAL,
-            status TEXT
+            pressure REAL
         )
     ''')
     conn.commit()
@@ -85,16 +94,16 @@ def on_mqtt_message(client, userdata, message):
         humidity = payload.get("humidity", None)
         speed = payload.get("speed", None)
         signal = payload.get("signal", None)
-        status = payload.get("status", None)
+        pressure = payload.get("pressure", None)
         
         conn = sqlite3.connect(DB_FILE)
         cursor = conn.cursor()
         
         # Insert the new record
         cursor.execute('''
-            INSERT INTO telemetry_history (battery, temperature, humidity, speed, signal, status)
+            INSERT INTO telemetry_history (battery, temperature, humidity, speed, signal, pressure)
             VALUES (?, ?, ?, ?, ?, ?)
-        ''', (battery, temperature, humidity, speed, signal, status))
+        ''', (battery, temperature, humidity, speed, signal, pressure))
         
         # Delete any records older than 7 days
         cursor.execute('''

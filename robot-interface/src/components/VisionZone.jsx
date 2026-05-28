@@ -1,9 +1,19 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { IconButton, Box, Typography, ToggleButton, ToggleButtonGroup, Slider } from '@mui/material';
-import { ArrowUpward, ArrowDownward, ArrowBack, ArrowForward, PhotoCamera, Terrain, Water, Videocam, VideocamOff, Mic, MicOff, Lightbulb, LightbulbOutline, Brightness4, Brightness7 } from '@mui/icons-material';
+import { 
+    ArrowUpward, ArrowDownward, ArrowBack, ArrowForward, PhotoCamera, 
+    Terrain, Water, Videocam, VideocamOff, Mic, MicOff, 
+    Lightbulb, LightbulbOutline, Brightness4, Brightness7,
+    KeyboardArrowUp, KeyboardArrowDown, KeyboardArrowLeft, KeyboardArrowRight,
+    FilterCenterFocus
+} from '@mui/icons-material';
 import CameraFeed from './CameraFeed';
 
-const VisionZone = ({ onCapture, mode, onModeChange, theme, onToggleTheme, sendMoveCommand, telemetry }) => {
+const VisionZone = ({ 
+    onCapture, mode, onModeChange, theme, onToggleTheme, 
+    sendMoveCommand, sendSpeedCommand, sendCameraToggle, 
+    sendMicToggle, sendLightsToggle, sendCameraCommand, telemetry 
+}) => {
     const [activeDirection, setActiveDirection] = useState(null);
     const cameraFeedRef = useRef(null);
 
@@ -12,43 +22,92 @@ const VisionZone = ({ onCapture, mode, onModeChange, theme, onToggleTheme, sendM
     const [micOn, setMicOn] = useState(true);
     const [lightsOn, setLightsOn] = useState(false);
 
-    const handleControl = (direction) => {
-        console.log(`Camera moving: ${direction}`);
-        setActiveDirection(direction);
-        if (sendMoveCommand) {
-            sendMoveCommand(direction.toLowerCase());
+    // Track active movement keys to prevent OS repeat rate spamming
+    const activeKeysRef = useRef({
+        up: false,
+        down: false,
+        left: false,
+        right: false
+    });
+
+    const startMoving = (direction) => {
+        const dirKey = direction.toLowerCase();
+        if (!activeKeysRef.current[dirKey]) {
+            activeKeysRef.current[dirKey] = true;
+            setActiveDirection(direction.toUpperCase());
+            if (sendMoveCommand) {
+                sendMoveCommand(dirKey);
+            }
         }
-        setTimeout(() => setActiveDirection(null), 200);
     };
 
-    // Add keyboard support for arrow keys
-    React.useEffect(() => {
+    const stopMoving = (direction) => {
+        const dirKey = direction.toLowerCase();
+        if (activeKeysRef.current[dirKey]) {
+            activeKeysRef.current[dirKey] = false;
+            setActiveDirection(null);
+            if (sendMoveCommand) {
+                sendMoveCommand('stop');
+            }
+        }
+    };
+
+    // Add keyboard support for arrow keys (Hold to Move, Release to Stop)
+    useEffect(() => {
         const handleKeyDown = (e) => {
-            // Prevent default scrolling for arrow keys
-            if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
+            if (e.repeat) return;
+
+            if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "w", "s", "a", "d"].includes(e.key)) {
                 e.preventDefault();
             }
-            
+
             switch (e.key) {
                 case 'ArrowUp':
                 case 'w':
                 case 'W':
-                    handleControl('UP');
+                    startMoving('up');
                     break;
                 case 'ArrowDown':
                 case 's':
                 case 'S':
-                    handleControl('DOWN');
+                    startMoving('down');
                     break;
                 case 'ArrowLeft':
                 case 'a':
                 case 'A':
-                    handleControl('LEFT');
+                    startMoving('left');
                     break;
                 case 'ArrowRight':
                 case 'd':
                 case 'D':
-                    handleControl('RIGHT');
+                    startMoving('right');
+                    break;
+                default:
+                    break;
+            }
+        };
+
+        const handleKeyUp = (e) => {
+            switch (e.key) {
+                case 'ArrowUp':
+                case 'w':
+                case 'W':
+                    stopMoving('up');
+                    break;
+                case 'ArrowDown':
+                case 's':
+                case 'S':
+                    stopMoving('down');
+                    break;
+                case 'ArrowLeft':
+                case 'a':
+                case 'A':
+                    stopMoving('left');
+                    break;
+                case 'ArrowRight':
+                case 'd':
+                case 'D':
+                    stopMoving('right');
                     break;
                 default:
                     break;
@@ -56,8 +115,10 @@ const VisionZone = ({ onCapture, mode, onModeChange, theme, onToggleTheme, sendM
         };
 
         window.addEventListener('keydown', handleKeyDown);
+        window.addEventListener('keyup', handleKeyUp);
         return () => {
             window.removeEventListener('keydown', handleKeyDown);
+            window.removeEventListener('keyup', handleKeyUp);
         };
     }, [sendMoveCommand]);
 
@@ -69,6 +130,33 @@ const VisionZone = ({ onCapture, mode, onModeChange, theme, onToggleTheme, sendM
 
     const handleSpeedChange = (event, newValue) => {
         setSpeed(newValue);
+        if (sendSpeedCommand) {
+            sendSpeedCommand(Math.round(newValue));
+        }
+    };
+
+    const handleCameraToggle = () => {
+        const nextState = !cameraOn;
+        setCameraOn(nextState);
+        if (sendCameraToggle) {
+            sendCameraToggle(nextState);
+        }
+    };
+
+    const handleMicToggle = () => {
+        const nextState = !micOn;
+        setMicOn(nextState);
+        if (sendMicToggle) {
+            sendMicToggle(nextState);
+        }
+    };
+
+    const handleLightsToggle = () => {
+        const nextState = !lightsOn;
+        setLightsOn(nextState);
+        if (sendLightsToggle) {
+            sendLightsToggle(nextState);
+        }
     };
 
     const handleCaptureInternal = () => {
@@ -91,6 +179,7 @@ const VisionZone = ({ onCapture, mode, onModeChange, theme, onToggleTheme, sendM
         boxShadow: theme === 'dark' 
             ? 'inset 2px 2px 5px rgba(255, 255, 255, 0.1), inset -2px -2px 5px rgba(0, 0, 0, 0.7), 0 4px 6px rgba(0,0,0,0.5)'
             : 'inset 2px 2px 5px rgba(255, 255, 255, 1), inset -2px -2px 5px rgba(0, 0, 0, 0.05), 0 4px 10px rgba(0, 0, 0, 0.08)',
+        transition: 'all 0.15s ease',
         '&:hover': {
             backgroundColor: '#00ff88',
             color: '#000',
@@ -122,17 +211,38 @@ const VisionZone = ({ onCapture, mode, onModeChange, theme, onToggleTheme, sendM
         }
     };
 
+    const cameraOverlayButtonStyle = {
+        position: 'absolute',
+        color: 'rgba(255, 255, 255, 0.55)',
+        backgroundColor: 'rgba(0, 0, 0, 0.45)',
+        backdropFilter: 'blur(6px)',
+        border: '1px solid rgba(255, 255, 255, 0.15)',
+        zIndex: 15,
+        width: 42,
+        height: 42,
+        transition: 'all 0.2s',
+        '&:hover': {
+            color: '#00ff88',
+            backgroundColor: 'rgba(0, 0, 0, 0.75)',
+            borderColor: '#00ff88',
+            boxShadow: '0 0 12px rgba(0, 255, 136, 0.6)',
+        },
+        '&:active': {
+            transform: 'scale(0.92)'
+        }
+    };
+
     return (
         <main className="vision-zone">
             <Box sx={{ position: 'relative', width: '90%', maxWidth: 850 }}>
-                {/* Theme Toggle - Upper Left corner of the section, aligned with feed edge */}
+                {/* Theme Toggle */}
                 <IconButton 
                     onClick={onToggleTheme} 
                     className="theme-toggle-btn"
                     sx={{ 
                         position: 'absolute', 
                         top: 0, 
-                        left: -60, // Positioned to the left of the feed
+                        left: -60,
                         color: 'var(--text-main)' 
                     }}
                     title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
@@ -148,13 +258,55 @@ const VisionZone = ({ onCapture, mode, onModeChange, theme, onToggleTheme, sendM
                         style={{ opacity: cameraOn ? 1 : 0.1 }}
                     />
 
+                    {/* HUD Overlay (Removed Speed & Status, Added Pressure) */}
                     <div className="hud-overlay">
                         <span>MODE: <strong style={{ color: theme === 'dark' ? '#fff' : '#2e7d32' }}>{mode}</strong></span>
-                        <span>SPEED: <strong>{telemetry && telemetry.speed !== undefined ? `${telemetry.speed} m/s` : `${speed}%`}</strong></span>
                         <span>SIGNAL: <strong>{telemetry && telemetry.signal !== undefined ? `${telemetry.signal}%` : '92% (RF MESH)'}</strong></span>
                         <span>POWER: <strong>{telemetry && telemetry.battery !== undefined ? `${telemetry.battery}%` : '88%'}</strong></span>
-                        {telemetry && telemetry.status && <span>STATUS: <strong>{telemetry.status.toUpperCase()}</strong></span>}
+                        <span>PRESSURE: <strong>{telemetry && telemetry.pressure !== undefined ? `${telemetry.pressure} hPa` : '1013 hPa'}</strong></span>
                     </div>
+
+                    {/* 4 Transparent Camera Direction Overlay Buttons */}
+                    <IconButton 
+                        onClick={() => sendCameraCommand && sendCameraCommand('cam_up')}
+                        sx={{ ...cameraOverlayButtonStyle, top: 65, left: '50%', transform: 'translateX(-50%)' }}
+                        title="Camera Tilt Up"
+                    >
+                        <KeyboardArrowUp />
+                    </IconButton>
+
+                    <IconButton 
+                        onClick={() => sendCameraCommand && sendCameraCommand('cam_down')}
+                        sx={{ ...cameraOverlayButtonStyle, bottom: 15, left: '50%', transform: 'translateX(-50%)' }}
+                        title="Camera Tilt Down"
+                    >
+                        <KeyboardArrowDown />
+                    </IconButton>
+
+                    <IconButton 
+                        onClick={() => sendCameraCommand && sendCameraCommand('cam_left')}
+                        sx={{ ...cameraOverlayButtonStyle, left: 15, top: '50%', transform: 'translateY(-50%)' }}
+                        title="Camera Pan Left"
+                    >
+                        <KeyboardArrowLeft />
+                    </IconButton>
+
+                    <IconButton 
+                        onClick={() => sendCameraCommand && sendCameraCommand('cam_right')}
+                        sx={{ ...cameraOverlayButtonStyle, right: 15, top: '50%', transform: 'translateY(-50%)' }}
+                        title="Camera Pan Right"
+                    >
+                        <KeyboardArrowRight />
+                    </IconButton>
+
+                    {/* Center Camera Overlay Button */}
+                    <IconButton 
+                        onClick={() => sendCameraCommand && sendCameraCommand('cam_center')}
+                        sx={{ ...cameraOverlayButtonStyle, bottom: 15, right: 15 }}
+                        title="Recenter Camera View"
+                    >
+                        <FilterCenterFocus />
+                    </IconButton>
                 </div>
             </Box>
 
@@ -215,19 +367,91 @@ const VisionZone = ({ onCapture, mode, onModeChange, theme, onToggleTheme, sendM
                         <Typography variant="caption" sx={{ color: '#aaa', mt: 1, fontSize: '0.7rem' }}>SPEED</Typography>
                     </Box>
 
+                    {/* Robot movement controls with MouseDown/MouseUp hold & release binds */}
                     <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1 }}>
                         <Box />
-                        <IconButton onClick={() => handleControl('UP')} sx={controlButtonStyle} className="control-btn">
+                        <IconButton 
+                            onMouseDown={() => startMoving('up')}
+                            onMouseUp={() => stopMoving('up')}
+                            onMouseLeave={() => stopMoving('up')}
+                            onTouchStart={(e) => { e.preventDefault(); startMoving('up'); }}
+                            onTouchEnd={(e) => { e.preventDefault(); stopMoving('up'); }}
+                            onTouchCancel={(e) => { e.preventDefault(); stopMoving('up'); }}
+                            sx={{
+                                ...controlButtonStyle,
+                                ...(activeDirection === 'UP' && {
+                                    backgroundColor: '#00ff88 !important',
+                                    color: '#000 !important',
+                                    borderColor: '#00ff88 !important',
+                                    boxShadow: '0 0 10px rgba(0, 255, 136, 0.4) !important',
+                                })
+                            }} 
+                            className="control-btn"
+                        >
                             <ArrowUpward fontSize="large" />
                         </IconButton>
                         <Box />
-                        <IconButton onClick={() => handleControl('LEFT')} sx={controlButtonStyle} className="control-btn">
+                        
+                        <IconButton 
+                            onMouseDown={() => startMoving('left')}
+                            onMouseUp={() => stopMoving('left')}
+                            onMouseLeave={() => stopMoving('left')}
+                            onTouchStart={(e) => { e.preventDefault(); startMoving('left'); }}
+                            onTouchEnd={(e) => { e.preventDefault(); stopMoving('left'); }}
+                            onTouchCancel={(e) => { e.preventDefault(); stopMoving('left'); }}
+                            sx={{
+                                ...controlButtonStyle,
+                                ...(activeDirection === 'LEFT' && {
+                                    backgroundColor: '#00ff88 !important',
+                                    color: '#000 !important',
+                                    borderColor: '#00ff88 !important',
+                                    boxShadow: '0 0 10px rgba(0, 255, 136, 0.4) !important',
+                                })
+                            }} 
+                            className="control-btn"
+                        >
                             <ArrowBack fontSize="large" />
                         </IconButton>
-                        <IconButton onClick={() => handleControl('DOWN')} sx={controlButtonStyle} className="control-btn">
+                        
+                        <IconButton 
+                            onMouseDown={() => startMoving('down')}
+                            onMouseUp={() => stopMoving('down')}
+                            onMouseLeave={() => stopMoving('down')}
+                            onTouchStart={(e) => { e.preventDefault(); startMoving('down'); }}
+                            onTouchEnd={(e) => { e.preventDefault(); stopMoving('down'); }}
+                            onTouchCancel={(e) => { e.preventDefault(); stopMoving('down'); }}
+                            sx={{
+                                ...controlButtonStyle,
+                                ...(activeDirection === 'DOWN' && {
+                                    backgroundColor: '#00ff88 !important',
+                                    color: '#000 !important',
+                                    borderColor: '#00ff88 !important',
+                                    boxShadow: '0 0 10px rgba(0, 255, 136, 0.4) !important',
+                                })
+                            }} 
+                            className="control-btn"
+                        >
                             <ArrowDownward fontSize="large" />
                         </IconButton>
-                        <IconButton onClick={() => handleControl('RIGHT')} sx={controlButtonStyle} className="control-btn">
+                        
+                        <IconButton 
+                            onMouseDown={() => startMoving('right')}
+                            onMouseUp={() => stopMoving('right')}
+                            onMouseLeave={() => stopMoving('right')}
+                            onTouchStart={(e) => { e.preventDefault(); startMoving('right'); }}
+                            onTouchEnd={(e) => { e.preventDefault(); stopMoving('right'); }}
+                            onTouchCancel={(e) => { e.preventDefault(); stopMoving('right'); }}
+                            sx={{
+                                ...controlButtonStyle,
+                                ...(activeDirection === 'RIGHT' && {
+                                    backgroundColor: '#00ff88 !important',
+                                    color: '#000 !important',
+                                    borderColor: '#00ff88 !important',
+                                    boxShadow: '0 0 10px rgba(0, 255, 136, 0.4) !important',
+                                })
+                            }} 
+                            className="control-btn"
+                        >
                             <ArrowForward fontSize="large" />
                         </IconButton>
                     </Box>
@@ -238,21 +462,21 @@ const VisionZone = ({ onCapture, mode, onModeChange, theme, onToggleTheme, sendM
                         gap: 1
                     }}>
                         <IconButton
-                            onClick={() => setCameraOn(!cameraOn)}
+                            onClick={handleCameraToggle}
                             sx={{ ...toggleButtonStyle, backgroundColor: cameraOn ? '#00ff88' : (theme === 'dark' ? '#1b1b1b' : '#eee'), color: cameraOn ? '#000' : (theme === 'dark' ? '#888' : '#666') }}
                             title="Toggle Camera"
                         >
                             {cameraOn ? <Videocam /> : <VideocamOff />}
                         </IconButton>
                         <IconButton
-                            onClick={() => setMicOn(!micOn)}
+                            onClick={handleMicToggle}
                             sx={{ ...toggleButtonStyle, backgroundColor: micOn ? '#00ff88' : (theme === 'dark' ? '#1b1b1b' : '#eee'), color: micOn ? '#000' : (theme === 'dark' ? '#888' : '#666') }}
                             title="Toggle Mic"
                         >
                             {micOn ? <Mic /> : <MicOff />}
                         </IconButton>
                         <IconButton
-                            onClick={() => setLightsOn(!lightsOn)}
+                            onClick={handleLightsToggle}
                             sx={{ ...toggleButtonStyle, backgroundColor: lightsOn ? '#00ff88' : (theme === 'dark' ? '#1b1b1b' : '#eee'), color: lightsOn ? '#000' : (theme === 'dark' ? '#888' : '#666') }}
                             title="Toggle Lights"
                         >

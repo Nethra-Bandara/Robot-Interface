@@ -78,7 +78,7 @@ const TelemetryHistory = ({ open, onClose, theme }) => {
                                     <TableCell sx={{ color: isDark ? '#fff' : '#000', fontWeight: 'bold' }}>Temp</TableCell>
                                     <TableCell sx={{ color: isDark ? '#fff' : '#000', fontWeight: 'bold' }}>Humidity</TableCell>
                                     <TableCell sx={{ color: isDark ? '#fff' : '#000', fontWeight: 'bold' }}>Speed</TableCell>
-                                    <TableCell sx={{ color: isDark ? '#fff' : '#000', fontWeight: 'bold' }}>Status</TableCell>
+                                    <TableCell sx={{ color: isDark ? '#fff' : '#000', fontWeight: 'bold' }}>Pressure</TableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>
@@ -91,7 +91,7 @@ const TelemetryHistory = ({ open, onClose, theme }) => {
                                         <TableCell sx={{ color: isDark ? '#aaa' : '#333' }}>{row.temperature != null ? `${row.temperature}°C` : '-'}</TableCell>
                                         <TableCell sx={{ color: isDark ? '#aaa' : '#333' }}>{row.humidity != null ? `${row.humidity}%` : '-'}</TableCell>
                                         <TableCell sx={{ color: isDark ? '#aaa' : '#333' }}>{row.speed != null ? `${row.speed} m/s` : '-'}</TableCell>
-                                        <TableCell sx={{ color: isDark ? '#aaa' : '#333' }}>{row.status || '-'}</TableCell>
+                                        <TableCell sx={{ color: isDark ? '#aaa' : '#333' }}>{row.pressure != null ? `${row.pressure} hPa` : '-'}</TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>

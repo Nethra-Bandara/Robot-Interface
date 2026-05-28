@@ -79,27 +79,57 @@ export const useMQTT = () => {
     }, []);
 
     const sendMoveCommand = (direction) => {
-
         if (!client) {
             console.warn('MQTT not connected');
             return;
         }
 
-        // Sending raw text directly
         const msg = String(direction);
+        client.publish('robot/control', msg, { qos: 1 });
+        console.log('Movement command sent:', msg);
+    };
 
-        client.publish(
-            'robot/control',
-            msg,
-            { qos: 1 }
-        );
+    const sendSpeedCommand = (value) => {
+        if (!client) return;
+        client.publish('robot/speed', String(value), { qos: 1 });
+        console.log('Speed command sent:', value);
+    };
 
-        console.log('Command sent:', msg);
+    const sendCameraToggle = (state) => {
+        if (!client) return;
+        const msg = state ? 'camera_on' : 'camera_off';
+        client.publish('robot/camera', msg, { qos: 1 });
+        console.log('Camera toggle sent:', msg);
+    };
+
+    const sendMicToggle = (state) => {
+        if (!client) return;
+        const msg = state ? 'mic_on' : 'mic_off';
+        client.publish('robot/mic', msg, { qos: 1 });
+        console.log('Mic toggle sent:', msg);
+    };
+
+    const sendLightsToggle = (state) => {
+        if (!client) return;
+        const msg = state ? 'lights_on' : 'lights_off';
+        client.publish('robot/lights', msg, { qos: 1 });
+        console.log('Lights toggle sent:', msg);
+    };
+
+    const sendCameraCommand = (direction) => {
+        if (!client) return;
+        client.publish('robot/camera_control', String(direction), { qos: 1 });
+        console.log('Camera direction command sent:', direction);
     };
 
     return {
         client,
         telemetry,
-        sendMoveCommand
+        sendMoveCommand,
+        sendSpeedCommand,
+        sendCameraToggle,
+        sendMicToggle,
+        sendLightsToggle,
+        sendCameraCommand
     };
 };

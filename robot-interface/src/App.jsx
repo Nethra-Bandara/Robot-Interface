@@ -33,7 +33,15 @@ function App() {
   const [screenshots, setScreenshots] = useState([]);
   const [activeIndex, setActiveIndex] = useState(null);
   const [mode, setMode] = useState('LAND');
-  const { telemetry, sendMoveCommand } = useMQTT();
+  const { 
+    telemetry, 
+    sendMoveCommand, 
+    sendSpeedCommand, 
+    sendCameraToggle, 
+    sendMicToggle, 
+    sendLightsToggle, 
+    sendCameraCommand 
+  } = useMQTT();
   const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'dark');
   const [isPurging, setIsPurging] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -149,6 +157,11 @@ function App() {
           theme={theme}
           onToggleTheme={toggleTheme}
           sendMoveCommand={sendMoveCommand}
+          sendSpeedCommand={sendSpeedCommand}
+          sendCameraToggle={sendCameraToggle}
+          sendMicToggle={sendMicToggle}
+          sendLightsToggle={sendLightsToggle}
+          sendCameraCommand={sendCameraCommand}
           telemetry={telemetry}
         />
 
