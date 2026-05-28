@@ -206,6 +206,12 @@ const VisionZone = ({
             backgroundColor: '#00ff88',
             color: '#000',
             '&:hover': {
+                backgroundColor: '#00ff88',
+                color: '#000',
+            },
+        },
+    };
+
     const edgeButtonStyle = {
         position: 'absolute',
         color: 'rgba(255, 255, 255, 0.55)',
