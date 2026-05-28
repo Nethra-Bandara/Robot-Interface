@@ -7,13 +7,15 @@ import {
     KeyboardArrowUp, KeyboardArrowDown, KeyboardArrowLeft, KeyboardArrowRight,
     FilterCenterFocus
 } from '@mui/icons-material';
+import { useMQTT } from '../hooks/useMQTT';
 import CameraFeed from './CameraFeed';
 
-const VisionZone = ({ 
-    onCapture, mode, onModeChange, theme, onToggleTheme, 
-    sendMoveCommand, sendSpeedCommand, sendCameraToggle, 
-    sendMicToggle, sendLightsToggle, sendCameraCommand, telemetry 
+const VisionZone = ({
+    onCapture, mode, onModeChange, theme, onToggleTheme,
+    sendMoveCommand, sendSpeedCommand, sendCameraToggle,
+    sendMicToggle, sendLightsToggle, sendCameraCommand, sendModeCommand, telemetry
 }) => {
+
     const [activeDirection, setActiveDirection] = useState(null);
     const cameraFeedRef = useRef(null);
 
@@ -21,6 +23,7 @@ const VisionZone = ({
     const [cameraOn, setCameraOn] = useState(true);
     const [micOn, setMicOn] = useState(true);
     const [lightsOn, setLightsOn] = useState(false);
+    const [subMode, setSubMode] = useState('1');
 
     // Track active movement keys to prevent OS repeat rate spamming
     const activeKeysRef = useRef({
@@ -125,13 +128,30 @@ const VisionZone = ({
     const handleModeChange = (event, newMode) => {
         if (newMode !== null && onModeChange) {
             onModeChange(newMode);
+            // Reset subMode to '1' when switching to LAND mode
+            if (newMode === 'LAND') {
+                setSubMode('1');
+            }
+            // Send mode change via MQTT, include appropriate subMode
+            if (sendModeCommand) {
+                if (newMode === 'WATER') {
+                    // In WATER mode, subMode is irrelevant; send null
+                    sendModeCommand(newMode, null);
+                } else {
+                    // LAND mode, default subMode is '1'
+                    const currentSub = subMode || '1';
+                    sendModeCommand(newMode, currentSub);
+                }
+            }
         }
     };
-
-    const handleSpeedChange = (event, newValue) => {
-        setSpeed(newValue);
-        if (sendSpeedCommand) {
-            sendSpeedCommand(Math.round(newValue));
+    // Sub-mode change handler
+    const handleSubModeChange = (event, newSub) => {
+        if (newSub !== null) {
+            setSubMode(newSub);
+            if (sendModeCommand) {
+                sendModeCommand(mode, newSub);
+            }
         }
     };
 
@@ -349,6 +369,29 @@ const VisionZone = ({
                         <ToggleButton value="WATER" sx={{ color: theme === 'dark' ? '#aaa' : '#555', '&.Mui-selected': { color: '#2979ff', borderColor: '#2979ff', boxShadow: 'inset 2px 2px 4px rgba(0,0,0,0.1)' } }}>
                             <Water />
                         </ToggleButton>
+                    </ToggleButtonGroup>
+                    {/* Sub-mode selector, enabled only in LAND mode */}
+                    <ToggleButtonGroup
+                        value={subMode}
+                        exclusive
+                        onChange={handleSubModeChange}
+                        aria-label="sub-mode selector"
+                        disabled={mode === 'WATER'}
+                        orientation="horizontal"
+                        className="submode-selector-group"
+                        sx={{
+                            mt: 1,
+                            bgcolor: mode === 'WATER' ? 'rgba(255,255,255,0.02)' : (theme === 'dark' ? 'rgba(255,255,255,0.05)' : '#fff'),
+                            border: `1px solid ${theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : '#1a3324'}`,
+                            borderRadius: 2,
+                            boxShadow: theme === 'dark'
+                                ? 'inset 2px 2px 5px rgba(255, 255, 255, 0.05), inset -2px -2px 5px rgba(0, 0, 0, 0.5)'
+                                : 'inset 2px 2px 5px rgba(255, 255, 255, 1), inset -2px -2px 5px rgba(0, 0, 0, 0.05), 0 2px 6px rgba(0,0,0,0.1)'
+                        }}
+                    >
+                        <ToggleButton value="1" sx={{ color: theme === 'dark' ? '#aaa' : '#555', '&.Mui-selected': { color: '#4caf50', borderColor: '#4caf50', boxShadow: 'inset 2px 2px 4px rgba(0,0,0,0.1)' } }}>1</ToggleButton>
+                        <ToggleButton value="2" sx={{ color: theme === 'dark' ? '#aaa' : '#555', '&.Mui-selected': { color: '#4caf50', borderColor: '#4caf50', boxShadow: 'inset 2px 2px 4px rgba(0,0,0,0.1)' } }}>2</ToggleButton>
+                        <ToggleButton value="3" sx={{ color: theme === 'dark' ? '#aaa' : '#555', '&.Mui-selected': { color: '#4caf50', borderColor: '#4caf50', boxShadow: 'inset 2px 2px 4px rgba(0,0,0,0.1)' } }}>3</ToggleButton>
                     </ToggleButtonGroup>
 
                     <Box sx={{ height: { xs: 80, md: 120 }, display: 'flex', flexDirection: 'column', alignItems: 'center', mx: 1 }}>

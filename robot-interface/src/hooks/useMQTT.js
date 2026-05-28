@@ -116,6 +116,12 @@ export const useMQTT = () => {
         console.log('Lights toggle sent:', msg);
     };
 
+    const sendModeCommand = (mode, subMode) => {
+        if (!client) return;
+        const payload = JSON.stringify({ mode, subMode });
+        client.publish('robot/mode', payload, { qos: 1 });
+        console.log('Mode command sent:', payload);
+    };
     const sendCameraCommand = (direction) => {
         if (!client) return;
         client.publish('robot/camera_control', String(direction), { qos: 1 });
@@ -130,6 +136,7 @@ export const useMQTT = () => {
         sendCameraToggle,
         sendMicToggle,
         sendLightsToggle,
+        sendModeCommand,
         sendCameraCommand
     };
 };
