@@ -155,6 +155,14 @@ const VisionZone = ({
         }
     };
 
+    // Speed change handler
+    const handleSpeedChange = (event, newValue) => {
+        setSpeed(newValue);
+        if (sendSpeedCommand) {
+            sendSpeedCommand(Math.round(newValue));
+        }
+    };
+
     const handleCameraToggle = () => {
         const nextState = !cameraOn;
         setCameraOn(nextState);
