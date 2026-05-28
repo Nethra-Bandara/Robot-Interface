@@ -206,8 +206,17 @@ const VisionZone = ({
             backgroundColor: '#00ff88',
             color: '#000',
             '&:hover': {
-                backgroundColor: '#00e676',
-            }
+    const edgeButtonStyle = {
+        position: 'absolute',
+        color: 'rgba(255, 255, 255, 0.55)',
+        backgroundColor: 'transparent',
+        zIndex: 15,
+        transition: 'all 0.2s',
+        '&:hover': {
+            color: '#00ff88',
+        },
+        '&:active': {
+            transform: 'scale(0.92)'
         }
     };
 
@@ -269,7 +278,7 @@ const VisionZone = ({
                     {/* 4 Transparent Camera Direction Overlay Buttons */}
                     <IconButton 
                         onClick={() => sendCameraCommand && sendCameraCommand('cam_up')}
-                        sx={{ ...cameraOverlayButtonStyle, top: 65, left: '50%', transform: 'translateX(-50%)' }}
+                        sx={{ ...edgeButtonStyle, top: 65, left: '50%', transform: 'translateX(-50%)' }}
                         title="Camera Tilt Up"
                     >
                         <KeyboardArrowUp />
@@ -277,7 +286,7 @@ const VisionZone = ({
 
                     <IconButton 
                         onClick={() => sendCameraCommand && sendCameraCommand('cam_down')}
-                        sx={{ ...cameraOverlayButtonStyle, bottom: 15, left: '50%', transform: 'translateX(-50%)' }}
+                        sx={{ ...edgeButtonStyle, bottom: 15, left: '50%', transform: 'translateX(-50%)' }}
                         title="Camera Tilt Down"
                     >
                         <KeyboardArrowDown />
@@ -285,7 +294,7 @@ const VisionZone = ({
 
                     <IconButton 
                         onClick={() => sendCameraCommand && sendCameraCommand('cam_left')}
-                        sx={{ ...cameraOverlayButtonStyle, left: 15, top: '50%', transform: 'translateY(-50%)' }}
+                        sx={{ ...edgeButtonStyle, left: 15, top: '50%', transform: 'translateY(-50%)' }}
                         title="Camera Pan Left"
                     >
                         <KeyboardArrowLeft />
@@ -293,7 +302,7 @@ const VisionZone = ({
 
                     <IconButton 
                         onClick={() => sendCameraCommand && sendCameraCommand('cam_right')}
-                        sx={{ ...cameraOverlayButtonStyle, right: 15, top: '50%', transform: 'translateY(-50%)' }}
+                        sx={{ ...edgeButtonStyle, right: 15, top: '50%', transform: 'translateY(-50%)' }}
                         title="Camera Pan Right"
                     >
                         <KeyboardArrowRight />
