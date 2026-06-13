@@ -26,17 +26,17 @@ const VisionZone = ({
     const [subMode, setSubMode] = useState('1');
 
     // Track active movement keys to prevent OS repeat rate spamming
-    const activeKeysRef = useRef({
-        up: false,
-        down: false,
-        left: false,
-        right: false
-    });
+const [keys, setKeys] = useState({
+  up: false,
+  down: false,
+  left: false,
+  right: false
+});
 
     const startMoving = (direction) => {
         const dirKey = direction.toLowerCase();
-        if (!activeKeysRef.current[dirKey]) {
-            activeKeysRef.current[dirKey] = true;
+        if (!keys[dirKey]) {
+            setKeys(prev => ({ ...prev, [dirKey]: true }));
             setActiveDirection(direction.toUpperCase());
             if (sendMoveCommand) {
                 sendMoveCommand(dirKey);
@@ -46,8 +46,8 @@ const VisionZone = ({
 
     const stopMoving = (direction) => {
         const dirKey = direction.toLowerCase();
-        if (activeKeysRef.current[dirKey]) {
-            activeKeysRef.current[dirKey] = false;
+        if (keys[dirKey]) {
+            setKeys(prev => ({ ...prev, [dirKey]: false }));
             setActiveDirection(null);
             if (sendMoveCommand) {
                 sendMoveCommand('stop');
@@ -68,21 +68,25 @@ const VisionZone = ({
                 case 'ArrowUp':
                 case 'w':
                 case 'W':
+                    setKeys(prev => ({ ...prev, up: true }));
                     startMoving('up');
                     break;
                 case 'ArrowDown':
                 case 's':
                 case 'S':
+                    setKeys(prev => ({ ...prev, down: true }));
                     startMoving('down');
                     break;
                 case 'ArrowLeft':
                 case 'a':
                 case 'A':
+                    setKeys(prev => ({ ...prev, left: true }));
                     startMoving('left');
                     break;
                 case 'ArrowRight':
                 case 'd':
                 case 'D':
+                    setKeys(prev => ({ ...prev, right: true }));
                     startMoving('right');
                     break;
                 default:
@@ -95,21 +99,25 @@ const VisionZone = ({
                 case 'ArrowUp':
                 case 'w':
                 case 'W':
+                    setKeys(prev => ({ ...prev, up: false }));
                     stopMoving('up');
                     break;
                 case 'ArrowDown':
                 case 's':
                 case 'S':
+                    setKeys(prev => ({ ...prev, down: false }));
                     stopMoving('down');
                     break;
                 case 'ArrowLeft':
                 case 'a':
                 case 'A':
+                    setKeys(prev => ({ ...prev, left: false }));
                     stopMoving('left');
                     break;
                 case 'ArrowRight':
                 case 'd':
                 case 'D':
+                    setKeys(prev => ({ ...prev, right: false }));
                     stopMoving('right');
                     break;
                 default:
