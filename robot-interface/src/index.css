@@ -14,6 +14,12 @@
   --panel-border: rgba(255, 255, 255, 0.08);
   --card-bg: #0d2117;
   --input-bg: rgba(0, 0, 0, 0.4);
+
+  --border-width: 1px;
+  --border-style: solid;
+  --border-color: var(--panel-border);
+  --border: var(--border-width) var(--border-style) var(--border-color);
+
 }
 
 .theme-light {
@@ -23,7 +29,7 @@
   --panel-bg: rgba(255, 255, 255, 0.85); /* Frosty white */
   --text-main: #0a1c12; 
   --text-dim: #2e3d34;
-  --panel-border: #1a3324; /* Solid, dark forest green border */
+  --panel-border: rgba(26, 51, 36, 0.8);
   --card-bg: #ffffff;
   --input-bg: #ffffff;
 }
@@ -71,7 +77,7 @@ body {
   height: 100%;
   min-height: 0;
   overflow: hidden;
-  border-left: 2px solid var(--panel-border);
+  border-left: var(--border);
   background: var(--panel-bg);
   backdrop-filter: blur(10px);
 }
@@ -93,7 +99,7 @@ body {
   aspect-ratio: 16 / 9;
   display: flex;
   justify-content: center;
-  border: 1px solid var(--panel-border);
+  border: var(--border);
   border-radius: 16px;
   overflow: hidden;
   background: #000;
@@ -130,7 +136,7 @@ body {
   backdrop-filter: blur(5px);
   font-size: 0.8rem;
   z-index: 10;
-  border: 1px solid var(--panel-border);
+  border: var(--border);
   box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 
@@ -171,7 +177,7 @@ body {
   min-height: 200px;
   border-radius: 12px;
   margin-bottom: 15px;
-  border: 1px solid var(--panel-border);
+  border: var(--border);
   overflow: hidden;
 }
 
@@ -183,7 +189,7 @@ body {
   border-radius: 12px;
   padding: 10px;
   min-height: 0;
-  border: 1px solid var(--panel-border);
+  border: var(--border);
 }
 
 .bot-msg {
@@ -209,14 +215,14 @@ input {
 .screenshot-gallery {
   padding: 15px;
   overflow-y: auto;
-  border-right: 2px solid var(--panel-border);
+  border-right: var(--border);
   background: transparent;
 }
 
 .screenshot-card {
   border-radius: 8px;
   margin-bottom: 10px;
-  border: 2px solid transparent;
+  border: var(--border);
   cursor: pointer;
   background: var(--card-bg);
   box-shadow: 0 2px 8px rgba(0,0,0,0.15);
@@ -230,6 +236,10 @@ input {
 
 .screenshot-card.active {
   border-color: var(--accent-primary);
+}
+
+input {
+  border: var(--border);
 }
 
 @media (max-width: 900px) {
