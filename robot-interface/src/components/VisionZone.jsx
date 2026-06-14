@@ -448,6 +448,7 @@ const [keys, setKeys] = useState({
                         className="submode-selector-group"
                         sx={{
                             mt: 1,
+                            overflow: 'hidden',
                             bgcolor: mode === 'WATER' ? 'rgba(255,255,255,0.02)' : (theme === 'dark' ? 'rgba(255,255,255,0.05)' : '#fff'),
                             border: `1px solid ${theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : '#1a3324'}`,
                             borderRadius: 2,
@@ -456,9 +457,17 @@ const [keys, setKeys] = useState({
                                 : 'inset 2px 2px 5px rgba(255, 255, 255, 1), inset -2px -2px 5px rgba(0, 0, 0, 0.05), 0 2px 6px rgba(0,0,0,0.1)'
                         }}
                     >
-                        <ToggleButton value="1" sx={{ color: theme === 'dark' ? '#aaa' : '#555', '&.Mui-selected': { color: '#4caf50', borderColor: '#4caf50', boxShadow: 'inset 2px 2px 4px rgba(0,0,0,0.1)' } }}>1</ToggleButton>
-                        <ToggleButton value="2" sx={{ color: theme === 'dark' ? '#aaa' : '#555', '&.Mui-selected': { color: '#4caf50', borderColor: '#4caf50', boxShadow: 'inset 2px 2px 4px rgba(0,0,0,0.1)' } }}>2</ToggleButton>
-                        <ToggleButton value="3" sx={{ color: theme === 'dark' ? '#aaa' : '#555', '&.Mui-selected': { color: '#4caf50', borderColor: '#4caf50', boxShadow: 'inset 2px 2px 4px rgba(0,0,0,0.1)' } }}>3</ToggleButton>
+                        {['1','2','3'].map(val => (
+                            <ToggleButton key={val} value={val} sx={{
+                                color: theme === 'dark' ? '#aaa' : '#555',
+                                border: 'none',
+                                '&.Mui-selected': {
+                                    color: '#4caf50',
+                                    backgroundColor: theme === 'dark' ? 'rgba(76, 175, 80, 0.18)' : 'rgba(76, 175, 80, 0.12)',
+                                    '&:hover': { backgroundColor: theme === 'dark' ? 'rgba(76, 175, 80, 0.25)' : 'rgba(76, 175, 80, 0.2)' },
+                                },
+                            }}>{val}</ToggleButton>
+                        ))}
                     </ToggleButtonGroup>
 
                     <Box sx={{ height: { xs: 80, md: 120 }, display: 'flex', flexDirection: 'column', alignItems: 'center', mx: 1 }}>

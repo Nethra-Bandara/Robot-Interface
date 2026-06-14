@@ -123,21 +123,24 @@ function App() {
   };
 
   const handleDelete = async (id) => {
-    try {
-      // If it's a local-only screenshot, remove from localStorage
-      if (String(id).startsWith('local_')) {
-        const stored = loadLocalScreenshots().filter(s => s.id !== id);
-        localStorage.setItem('local_screenshots', JSON.stringify(stored));
-      } else {
+    // Optimistically remove from UI immediately
+    const newScreenshots = screenshots.filter(shot => shot.id !== id);
+    setScreenshots(newScreenshots);
+    if (activeIndex !== null && screenshots[activeIndex]?.id === id) {
+      setActiveIndex(null);
+    }
+
+    // Always remove from localStorage (covers local-only shots)
+    const stored = loadLocalScreenshots().filter(s => s.id !== id);
+    localStorage.setItem('local_screenshots', JSON.stringify(stored));
+
+    // Try to delete from backend too (non-blocking)
+    if (!String(id).startsWith('local_')) {
+      try {
         await api.deleteScreenshot(id);
+      } catch (err) {
+        console.warn("Backend delete failed (already removed from UI)", err);
       }
-      const newScreenshots = screenshots.filter(shot => shot.id !== id);
-      setScreenshots(newScreenshots);
-      if (activeIndex !== null && screenshots[activeIndex]?.id === id) {
-        setActiveIndex(null);
-      }
-    } catch (err) {
-      console.error("Delete failed", err);
     }
   };
 
@@ -148,20 +151,17 @@ function App() {
 
   const confirmDelete = async () => {
     setIsPurging(true);
+    // Optimistically clear UI and localStorage immediately
+    localStorage.removeItem('local_screenshots');
+    setScreenshots([]);
+    setActiveIndex(null);
+    setShowConfirm(false);
+
+    // Try backend delete (non-blocking)
     try {
-      console.log("Initiating Delete All...");
-      const result = await api.deleteAllScreenshots();
-      console.log("Delete Result:", result);
-
-      setScreenshots([]);
-      setActiveIndex(null);
-
-      if (result.errors) {
-        console.warn("Some files could not be deleted:", result.errors);
-      }
+      await api.deleteAllScreenshots();
     } catch (err) {
-      console.error("Delete all failed", err);
-      alert(`Failed to delete all screenshots: ${err.message}`);
+      console.warn("Backend delete-all failed (UI already cleared)", err);
     } finally {
       setIsPurging(false);
     }
