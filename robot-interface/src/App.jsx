@@ -40,7 +40,8 @@ function App() {
     sendCameraToggle, 
     sendMicToggle, 
     sendLightsToggle, 
-    sendCameraCommand 
+    sendCameraCommand,
+    sendModeCommand
   } = useMQTT();
   const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'dark');
   const [isPurging, setIsPurging] = useState(false);
@@ -142,6 +143,15 @@ function App() {
           handleDeleteAll={handleDeleteAll}
           theme={theme}
           isPurging={isPurging}
+          onToggleTheme={toggleTheme}
+          sendMoveCommand={sendMoveCommand}
+          sendSpeedCommand={sendSpeedCommand}
+          sendCameraToggle={sendCameraToggle}
+          sendMicToggle={sendMicToggle}
+          sendLightsToggle={sendLightsToggle}
+          sendCameraCommand={sendCameraCommand}
+          sendModeCommand={sendModeCommand}
+          telemetry={telemetry}
         />
       </ErrorBoundary>
     );
@@ -162,6 +172,7 @@ function App() {
           sendMicToggle={sendMicToggle}
           sendLightsToggle={sendLightsToggle}
           sendCameraCommand={sendCameraCommand}
+          sendModeCommand={sendModeCommand}
           telemetry={telemetry}
         />
 

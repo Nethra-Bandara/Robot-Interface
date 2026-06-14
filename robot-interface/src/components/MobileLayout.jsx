@@ -15,28 +15,50 @@ const MobileLayout = ({
     handleDelete,
     handleDeleteAll,
     theme,
-    isPurging
+    isPurging,
+    onToggleTheme,
+    sendMoveCommand,
+    sendSpeedCommand,
+    sendCameraToggle,
+    sendMicToggle,
+    sendLightsToggle,
+    sendCameraCommand,
+    sendModeCommand,
+    telemetry
 }) => {
     const [tab, setTab] = useState(0);
 
     return (
-        <Box sx={{
-            height: '100dvh',
-            display: 'flex',
-            flexDirection: 'column',
-            bgcolor: '#0b0f0c',
-            overflow: 'hidden'
-        }}>
+        <Box 
+            className={`mobile-layout theme-${theme} mode-${mode.toLowerCase()}`}
+            sx={{
+                height: '100dvh',
+                display: 'flex',
+                flexDirection: 'column',
+                bgcolor: 'var(--bg-page)',
+                overflow: 'hidden'
+            }}
+        >
             {/* Content Area */}
             <Box sx={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
 
                 {/* 1. VISION TAB */}
                 {tab === 0 && (
-                    <Box sx={{ height: '100%', overflow: 'hidden' }}>
+                    <Box sx={{ height: '100%', overflowY: 'auto', p: 1 }}>
                         <VisionZone
                             onCapture={handleCapture}
                             mode={mode}
                             onModeChange={setMode}
+                            theme={theme}
+                            onToggleTheme={onToggleTheme}
+                            sendMoveCommand={sendMoveCommand}
+                            sendSpeedCommand={sendSpeedCommand}
+                            sendCameraToggle={sendCameraToggle}
+                            sendMicToggle={sendMicToggle}
+                            sendLightsToggle={sendLightsToggle}
+                            sendCameraCommand={sendCameraCommand}
+                            sendModeCommand={sendModeCommand}
+                            telemetry={telemetry}
                         />
                     </Box>
                 )}
@@ -64,6 +86,7 @@ const MobileLayout = ({
                             currentMode={mode}
                             onModeChange={setMode}
                             theme={theme}
+                            telemetry={telemetry}
                         />
                     </Box>
                 )}

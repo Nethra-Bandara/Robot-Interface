@@ -18,6 +18,7 @@ const VisionZone = ({
 
     const [activeDirection, setActiveDirection] = useState(null);
     const cameraFeedRef = useRef(null);
+    const activeTouchDirectionRef = useRef(null);
 
     const [speed, setSpeed] = useState(30);
     const [cameraOn, setCameraOn] = useState(true);
@@ -52,6 +53,50 @@ const [keys, setKeys] = useState({
             if (sendMoveCommand) {
                 sendMoveCommand('stop');
             }
+        }
+    };
+
+    const handleDpadTouch = (e) => {
+        e.preventDefault();
+        if (e.touches.length === 0) return;
+        
+        const touch = e.touches[0];
+        const element = document.elementFromPoint(touch.clientX, touch.clientY);
+        
+        let targetButton = null;
+        let curr = element;
+        while (curr && curr !== e.currentTarget) {
+            if (curr.dataset && curr.dataset.direction) {
+                targetButton = curr;
+                break;
+            }
+            curr = curr.parentElement;
+        }
+        
+        const currentActive = activeTouchDirectionRef.current;
+        if (targetButton) {
+            const direction = targetButton.dataset.direction;
+            if (currentActive !== direction) {
+                if (currentActive) {
+                    stopMoving(currentActive);
+                }
+                startMoving(direction);
+                activeTouchDirectionRef.current = direction;
+            }
+        } else {
+            if (currentActive) {
+                stopMoving(currentActive);
+                activeTouchDirectionRef.current = null;
+            }
+        }
+    };
+
+    const handleDpadTouchEnd = (e) => {
+        e.preventDefault();
+        const currentActive = activeTouchDirectionRef.current;
+        if (currentActive) {
+            stopMoving(currentActive);
+            activeTouchDirectionRef.current = null;
         }
     };
 
@@ -289,6 +334,7 @@ const [keys, setKeys] = useState({
                 {/* Theme Toggle */}
                 <IconButton 
                     onClick={onToggleTheme} 
+                    onTouchStart={(e) => { e.preventDefault(); onToggleTheme && onToggleTheme(); }}
                     className="theme-toggle-btn"
                     sx={{ 
                         position: 'absolute', 
@@ -320,6 +366,7 @@ const [keys, setKeys] = useState({
                     {/* 4 Transparent Camera Direction Overlay Buttons */}
                     <IconButton 
                         onClick={() => sendCameraCommand && sendCameraCommand('cam_up')}
+                        onTouchStart={(e) => { e.preventDefault(); sendCameraCommand && sendCameraCommand('cam_up'); }}
                         sx={{ ...edgeButtonStyle, top: 65, left: '50%', transform: 'translateX(-50%)' }}
                         title="Camera Tilt Up"
                     >
@@ -328,6 +375,7 @@ const [keys, setKeys] = useState({
 
                     <IconButton 
                         onClick={() => sendCameraCommand && sendCameraCommand('cam_down')}
+                        onTouchStart={(e) => { e.preventDefault(); sendCameraCommand && sendCameraCommand('cam_down'); }}
                         sx={{ ...edgeButtonStyle, bottom: 15, left: '50%', transform: 'translateX(-50%)' }}
                         title="Camera Tilt Down"
                     >
@@ -336,6 +384,7 @@ const [keys, setKeys] = useState({
 
                     <IconButton 
                         onClick={() => sendCameraCommand && sendCameraCommand('cam_left')}
+                        onTouchStart={(e) => { e.preventDefault(); sendCameraCommand && sendCameraCommand('cam_left'); }}
                         sx={{ ...edgeButtonStyle, left: 15, top: '50%', transform: 'translateY(-50%)' }}
                         title="Camera Pan Left"
                     >
@@ -344,6 +393,7 @@ const [keys, setKeys] = useState({
 
                     <IconButton 
                         onClick={() => sendCameraCommand && sendCameraCommand('cam_right')}
+                        onTouchStart={(e) => { e.preventDefault(); sendCameraCommand && sendCameraCommand('cam_right'); }}
                         sx={{ ...edgeButtonStyle, right: 15, top: '50%', transform: 'translateY(-50%)' }}
                         title="Camera Pan Right"
                     >
@@ -353,6 +403,7 @@ const [keys, setKeys] = useState({
                     {/* Center Camera Overlay Button */}
                     <IconButton 
                         onClick={() => sendCameraCommand && sendCameraCommand('cam_center')}
+                        onTouchStart={(e) => { e.preventDefault(); sendCameraCommand && sendCameraCommand('cam_center'); }}
                         sx={{ ...cameraOverlayButtonStyle, bottom: 15, right: 15 }}
                         title="Recenter Camera View"
                     >
@@ -442,15 +493,19 @@ const [keys, setKeys] = useState({
                     </Box>
 
                     {/* Robot movement controls with MouseDown/MouseUp hold & release binds */}
-                    <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1 }}>
+                    <Box 
+                        onTouchStart={handleDpadTouch}
+                        onTouchMove={handleDpadTouch}
+                        onTouchEnd={handleDpadTouchEnd}
+                        onTouchCancel={handleDpadTouchEnd}
+                        sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1 }}
+                    >
                         <Box />
                         <IconButton 
                             onMouseDown={() => startMoving('up')}
                             onMouseUp={() => stopMoving('up')}
                             onMouseLeave={() => stopMoving('up')}
-                            onTouchStart={(e) => { e.preventDefault(); startMoving('up'); }}
-                            onTouchEnd={(e) => { e.preventDefault(); stopMoving('up'); }}
-                            onTouchCancel={(e) => { e.preventDefault(); stopMoving('up'); }}
+                            data-direction="up"
                             sx={{
                                 ...controlButtonStyle,
                                 ...(activeDirection === 'UP' && {
@@ -470,9 +525,7 @@ const [keys, setKeys] = useState({
                             onMouseDown={() => startMoving('left')}
                             onMouseUp={() => stopMoving('left')}
                             onMouseLeave={() => stopMoving('left')}
-                            onTouchStart={(e) => { e.preventDefault(); startMoving('left'); }}
-                            onTouchEnd={(e) => { e.preventDefault(); stopMoving('left'); }}
-                            onTouchCancel={(e) => { e.preventDefault(); stopMoving('left'); }}
+                            data-direction="left"
                             sx={{
                                 ...controlButtonStyle,
                                 ...(activeDirection === 'LEFT' && {
@@ -491,9 +544,7 @@ const [keys, setKeys] = useState({
                             onMouseDown={() => startMoving('down')}
                             onMouseUp={() => stopMoving('down')}
                             onMouseLeave={() => stopMoving('down')}
-                            onTouchStart={(e) => { e.preventDefault(); startMoving('down'); }}
-                            onTouchEnd={(e) => { e.preventDefault(); stopMoving('down'); }}
-                            onTouchCancel={(e) => { e.preventDefault(); stopMoving('down'); }}
+                            data-direction="down"
                             sx={{
                                 ...controlButtonStyle,
                                 ...(activeDirection === 'DOWN' && {
@@ -512,9 +563,7 @@ const [keys, setKeys] = useState({
                             onMouseDown={() => startMoving('right')}
                             onMouseUp={() => stopMoving('right')}
                             onMouseLeave={() => stopMoving('right')}
-                            onTouchStart={(e) => { e.preventDefault(); startMoving('right'); }}
-                            onTouchEnd={(e) => { e.preventDefault(); stopMoving('right'); }}
-                            onTouchCancel={(e) => { e.preventDefault(); stopMoving('right'); }}
+                            data-direction="right"
                             sx={{
                                 ...controlButtonStyle,
                                 ...(activeDirection === 'RIGHT' && {
@@ -537,6 +586,7 @@ const [keys, setKeys] = useState({
                     }}>
                         <IconButton
                             onClick={handleCameraToggle}
+                            onTouchStart={(e) => { e.preventDefault(); handleCameraToggle(); }}
                             sx={{ ...toggleButtonStyle, backgroundColor: cameraOn ? '#00ff88' : (theme === 'dark' ? '#1b1b1b' : '#eee'), color: cameraOn ? '#000' : (theme === 'dark' ? '#888' : '#666') }}
                             title="Toggle Camera"
                         >
@@ -544,6 +594,7 @@ const [keys, setKeys] = useState({
                         </IconButton>
                         <IconButton
                             onClick={handleMicToggle}
+                            onTouchStart={(e) => { e.preventDefault(); handleMicToggle(); }}
                             sx={{ ...toggleButtonStyle, backgroundColor: micOn ? '#00ff88' : (theme === 'dark' ? '#1b1b1b' : '#eee'), color: micOn ? '#000' : (theme === 'dark' ? '#888' : '#666') }}
                             title="Toggle Mic"
                         >
@@ -551,6 +602,7 @@ const [keys, setKeys] = useState({
                         </IconButton>
                         <IconButton
                             onClick={handleLightsToggle}
+                            onTouchStart={(e) => { e.preventDefault(); handleLightsToggle(); }}
                             sx={{ ...toggleButtonStyle, backgroundColor: lightsOn ? '#00ff88' : (theme === 'dark' ? '#1b1b1b' : '#eee'), color: lightsOn ? '#000' : (theme === 'dark' ? '#888' : '#666') }}
                             title="Toggle Lights"
                         >
@@ -558,6 +610,7 @@ const [keys, setKeys] = useState({
                         </IconButton>
                         <IconButton
                             onClick={handleCaptureInternal}
+                            onTouchStart={(e) => { e.preventDefault(); handleCaptureInternal(); }}
                             sx={{ 
                                 ...controlButtonStyle, 
                                 borderColor: theme === 'dark' ? 'rgba(255, 255, 255, 0.3)' : '#1a3324', 
