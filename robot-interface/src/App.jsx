@@ -33,6 +33,30 @@ function App() {
   const [screenshots, setScreenshots] = useState([]);
   const [activeIndex, setActiveIndex] = useState(null);
   const [mode, setMode] = useState('LAND');
+
+  // Load locally-saved screenshots from localStorage
+  const loadLocalScreenshots = () => {
+    try {
+      const stored = JSON.parse(localStorage.getItem('local_screenshots') || '[]');
+      return stored;
+    } catch {
+      return [];
+    }
+  };
+
+  const saveLocalScreenshot = (imageSrc) => {
+    const stored = loadLocalScreenshots();
+    const entry = {
+      id: `local_${Date.now()}`,
+      filename: `local_${Date.now()}`,
+      url: imageSrc,
+      timestamp: new Date().toLocaleTimeString(),
+      isLocal: true,
+    };
+    const updated = [entry, ...stored].slice(0, 50); // keep max 50 local
+    localStorage.setItem('local_screenshots', JSON.stringify(updated));
+    return entry;
+  };
   const { 
     telemetry, 
     sendMoveCommand, 
@@ -62,27 +86,35 @@ function App() {
   }, []);
 
   const loadScreenshots = async () => {
+    const localShots = loadLocalScreenshots();
     try {
       const data = await api.getScreenshots();
-      const formatted = data.map(item => ({
+      const remoteFormatted = data.map(item => ({
         ...item,
         id: item.filename,
         timestamp: new Date(item.timestamp * 1000).toLocaleTimeString()
       }));
-      setScreenshots(formatted);
+      // Merge: remote first, then local-only ones not on remote
+      const remoteIds = new Set(remoteFormatted.map(s => s.id));
+      const localOnly = localShots.filter(s => !remoteIds.has(s.id));
+      setScreenshots([...remoteFormatted, ...localOnly]);
     } catch (err) {
-      console.error("Failed to load screenshots", err);
+      console.error("Failed to load remote screenshots, using local only", err);
+      setScreenshots(localShots);
     }
   };
 
   const handleCapture = async (imageSrc) => {
     try {
-      const res = await api.upload(imageSrc);
+      await api.upload(imageSrc);
       await loadScreenshots();
       setActiveIndex(0);
     } catch (err) {
-      console.error("Upload failed", err);
-      alert(`Capture failed: ${err.message}`);
+      console.warn("Backend unreachable, saving screenshot locally", err);
+      // Fallback: save to localStorage
+      const entry = saveLocalScreenshot(imageSrc);
+      setScreenshots(prev => [entry, ...prev]);
+      setActiveIndex(0);
     }
   };
 
@@ -92,7 +124,13 @@ function App() {
 
   const handleDelete = async (id) => {
     try {
-      await api.deleteScreenshot(id);
+      // If it's a local-only screenshot, remove from localStorage
+      if (String(id).startsWith('local_')) {
+        const stored = loadLocalScreenshots().filter(s => s.id !== id);
+        localStorage.setItem('local_screenshots', JSON.stringify(stored));
+      } else {
+        await api.deleteScreenshot(id);
+      }
       const newScreenshots = screenshots.filter(shot => shot.id !== id);
       setScreenshots(newScreenshots);
       if (activeIndex !== null && screenshots[activeIndex]?.id === id) {
