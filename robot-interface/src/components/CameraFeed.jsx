@@ -36,7 +36,7 @@ const CameraFeed = forwardRef(({ className, style }, ref) => {
 
     ws.onclose = () => {
     setStatus('connecting');
-    reconnectRef.current = setTimeout(connect, 3000);
+    reconnectRef.current = setTimeout(connect, 3000);}
 
     const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
     pcRef.current = pc;
@@ -127,6 +127,6 @@ const CameraFeed = forwardRef(({ className, style }, ref) => {
       style={{ ...style, objectFit: 'cover' }}
     />
   );
-};
+});
 
 export default CameraFeed;
