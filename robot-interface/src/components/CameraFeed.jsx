@@ -21,6 +21,7 @@ const CameraFeed = forwardRef(({ enabled, className, style }, ref) => {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ 
                 video: { 
+                    facingMode: { ideal: 'environment' },
                     width: { ideal: 1280 },
                     height: { ideal: 720 }
                 }, 

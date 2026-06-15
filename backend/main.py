@@ -182,11 +182,13 @@ class ChatRequest(BaseModel):
 
 @app.post("/command")
 async def send_command(command: dict):
-    if mqtt_client is None:
+    if client is None:
         raise HTTPException(status_code=500, detail="MQTT Client not initialized")
-    # Example: {"action": "move", "value": "forward"} or {"action": "mode", "value": "aquatic"}
+    {"action": "move", "value": "forward"} 
+    {"action": "mode", "value": "aquatic"}
+    {"action": "mode", "value": "land"}
     payload = json.dumps(command)
-    mqtt_client.publish(MQTT_TOPIC_COMMAND, payload)
+    client.publish(MQTT_TOPIC_COMMAND, payload)
     return {"status": "sent", "command": command}
 
 @app.get("/")

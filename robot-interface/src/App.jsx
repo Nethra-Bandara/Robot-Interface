@@ -10,6 +10,7 @@ import ConfirmDialog from './components/ConfirmDialog';
 
 import './App.css';
 
+
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
