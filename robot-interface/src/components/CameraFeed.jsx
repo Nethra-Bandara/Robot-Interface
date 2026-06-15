@@ -2,66 +2,87 @@ import React, { useRef, useEffect, useState, forwardRef, useImperativeHandle } f
 import { Typography, Box } from '@mui/material';
 import { Warning, SignalWifiOff } from '@mui/icons-material';
 
-// ─── CONFIG ───────────────────────────────────────────────────────────────────
-// In production, change to wss://your-backend-domain/ws/viewer
 const raw = import.meta.env.VITE_WS_URL || 'ws://localhost:8000/ws/viewer';
-const WS_URL = raw.replace(/^ws:\/\//, 'wss://');
+const WS_URL = raw.startsWith('ws://') && !raw.includes('localhost')
+  ? raw.replace('ws://', 'wss://')
+  : raw;
+
 const ICE_SERVERS = [{ urls: 'stun:stun.l.google.com:19302' }];
-// ──────────────────────────────────────────────────────────────────────────────
 
 const CameraFeed = forwardRef(({ className, style }, ref) => {
   const videoRef = useRef(null);
   const pcRef = useRef(null);
   const wsRef = useRef(null);
-  const [status, setStatus] = useState('connecting'); // connecting | live | error
+  const reconnectRef = useRef(null);
+  const mountedRef = useRef(false);  // guard against StrictMode double-mount
+  const [status, setStatus] = useState('connecting');
   const [errorMsg, setErrorMsg] = useState('');
 
   useEffect(() => {
+    // StrictMode calls useEffect twice — only run once
+    if (mountedRef.current) return;
+    mountedRef.current = true;
+
     connect();
-    return () => cleanup();
+    return () => {
+      mountedRef.current = false;
+      cleanup();
+    };
   }, []);
 
-  
   const cleanup = () => {
     clearTimeout(reconnectRef.current);
-    if (pcRef.current) { pcRef.current.close(); pcRef.current = null; }
-    if (wsRef.current) { wsRef.current.close(); wsRef.current = null; }
+    if (pcRef.current) {
+      pcRef.current.close();
+      pcRef.current = null;
+    }
+    if (wsRef.current) {
+      wsRef.current.onclose = null; // prevent reconnect firing on intentional close
+      wsRef.current.close();
+      wsRef.current = null;
+    }
   };
 
-  const reconnectRef = useRef(null);
-
   const connect = () => {
+    if (!mountedRef.current) return;
+
+    // Don't open a second connection if one is already open
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) return;
+
+    cleanup();  // clean up any previous connection first
+
     const ws = new WebSocket(WS_URL);
     wsRef.current = ws;
-
-    ws.onclose = () => {
-    setStatus('connecting');
-    reconnectRef.current = setTimeout(connect, 3000);}
 
     const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
     pcRef.current = pc;
 
-    // When remote track arrives — this is the laptop's webcam feed
     pc.ontrack = (event) => {
-      if (videoRef.current) {
+      if (videoRef.current && mountedRef.current) {
         videoRef.current.srcObject = event.streams[0];
         setStatus('live');
       }
     };
 
-    // Send our ICE candidates to the broadcaster via server
     pc.onicecandidate = (e) => {
       if (e.candidate && ws.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify({ type: 'ice-viewer', candidate: e.candidate }));
       }
     };
 
+    pc.onconnectionstatechange = () => {
+      console.log('PC state:', pc.connectionState);
+      if (pc.connectionState === 'failed') {
+        // ICE failed — trigger a full reconnect
+        scheduleReconnect();
+      }
+    };
+
     ws.onmessage = async (event) => {
       const data = JSON.parse(event.data);
+      if (data.type === 'ping') return;  // ignore keepalive pings
 
       if (data.type === 'offer') {
-        // Received broadcaster's offer → answer it
         await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
@@ -69,25 +90,40 @@ const CameraFeed = forwardRef(({ className, style }, ref) => {
       }
 
       else if (data.type === 'ice-broadcaster') {
-        // Received broadcaster's ICE candidate
         if (data.candidate) {
-          await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+          try {
+            await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+          } catch (e) {
+            console.warn('ICE candidate error:', e);
+          }
         }
       }
     };
 
-    ws.onclose = () => {
-      if (status !== 'live') setStatus('error');
-      setErrorMsg('Signaling server disconnected. Is the backend running?');
+    ws.onopen = () => {
+      console.log('Viewer WS connected');
+    };
+
+    ws.onclose = (e) => {
+      console.log('Viewer WS closed:', e.code);
+      if (mountedRef.current) {
+        setStatus('connecting');
+        scheduleReconnect();
+      }
     };
 
     ws.onerror = () => {
-      setStatus('error');
-      setErrorMsg('Cannot connect to signaling server.');
+      console.log('Viewer WS error');
     };
   };
 
-  // Capture frame for screenshot feature (unchanged)
+  const scheduleReconnect = () => {
+    clearTimeout(reconnectRef.current);
+    reconnectRef.current = setTimeout(() => {
+      if (mountedRef.current) connect();
+    }, 3000);
+  };
+
   useImperativeHandle(ref, () => ({
     capture: () => {
       if (!videoRef.current) return null;
