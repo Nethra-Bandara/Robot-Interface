@@ -60,9 +60,12 @@ def init_db():
             battery REAL,
             temperature REAL,
             humidity REAL,
-            speed REAL,
             signal REAL,
-            pressure REAL
+            pressure REAL,
+            gps_lat REAL, gps_lon REAL,
+            roll REAL,
+            pitch REAL,
+            yaw REAL
         )
     ''')
     conn.commit()
@@ -76,6 +79,9 @@ MQTT_PORT = 8883
 MQTT_USER = "robot_interface"
 MQTT_PASS = "Pwd12345"
 MQTT_TOPIC = "robot/telemetry"
+MQTT_TOPIC_COMMAND = "robot/commands"
+
+client = None
 
 def on_mqtt_connect(client, userdata, flags, reason_code, properties):
     if reason_code == 0:
@@ -117,6 +123,7 @@ def on_mqtt_message(client, userdata, message):
         print(f"Error processing MQTT message: {e}")
 
 def start_mqtt_listener():
+    global client
     client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
     client.username_pw_set(MQTT_USER, MQTT_PASS)
     client.tls_set()
@@ -172,6 +179,15 @@ SYSTEM_INSTRUCTION = (
 class ChatRequest(BaseModel):
     message: str
     image_url: Optional[str] = None
+
+@app.post("/command")
+async def send_command(command: dict):
+    if mqtt_client is None:
+        raise HTTPException(status_code=500, detail="MQTT Client not initialized")
+    # Example: {"action": "move", "value": "forward"} or {"action": "mode", "value": "aquatic"}
+    payload = json.dumps(command)
+    mqtt_client.publish(MQTT_TOPIC_COMMAND, payload)
+    return {"status": "sent", "command": command}
 
 @app.get("/")
 def read_root():
