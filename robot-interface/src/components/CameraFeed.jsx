@@ -26,7 +26,9 @@ const CameraFeed = forwardRef(({ enabled, className, style }, ref) => {
             // 1. Create Peer Connection (viewer side)
             const pc = new RTCPeerConnection({
                 iceServers: [
-                    { urls: "stun:stun.l.google.com:19302" }
+                    { urls: ['stun:stun.l.google.com:19302',
+                        'stun:stun2.l.google.com:19302'],
+                     }
                 ]
             });
 
