@@ -4,7 +4,8 @@ import { Warning, SignalWifiOff } from '@mui/icons-material';
 
 // ─── CONFIG ───────────────────────────────────────────────────────────────────
 // In production, change to wss://your-backend-domain/ws/viewer
-const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:8000/ws/viewer';
+const raw = import.meta.env.VITE_WS_URL || 'ws://localhost:8000/ws/viewer';
+const WS_URL = raw.replace(/^ws:\/\//, 'wss://');
 const ICE_SERVERS = [{ urls: 'stun:stun.l.google.com:19302' }];
 // ──────────────────────────────────────────────────────────────────────────────
 
@@ -20,14 +21,22 @@ const CameraFeed = forwardRef(({ className, style }, ref) => {
     return () => cleanup();
   }, []);
 
+  
   const cleanup = () => {
+    clearTimeout(reconnectRef.current);
     if (pcRef.current) { pcRef.current.close(); pcRef.current = null; }
     if (wsRef.current) { wsRef.current.close(); wsRef.current = null; }
   };
 
+  const reconnectRef = useRef(null);
+
   const connect = () => {
     const ws = new WebSocket(WS_URL);
     wsRef.current = ws;
+
+    ws.onclose = () => {
+    setStatus('connecting');
+    reconnectRef.current = setTimeout(connect, 3000);
 
     const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
     pcRef.current = pc;
