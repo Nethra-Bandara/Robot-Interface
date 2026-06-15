@@ -21,33 +21,41 @@ load_dotenv()
 
 app = FastAPI()
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
 clients = []
 
 
 @app.websocket("/ws")
-async def ws_endpoint(websocket: WebSocket):
+async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
-    clients.append(websocket)
+    clients.add(websocket)
 
     try:
         while True:
             data = await websocket.receive_text()
 
+            # safe JSON parsing
+            try:
+                message = json.loads(data)
+            except:
+                continue
+
             # broadcast to all other clients
+            dead_clients = set()
+
             for client in clients:
-                if client != websocket:
-                    await client.send_text(data)
+                if client == websocket:
+                    continue
+                try:
+                    await client.send_text(json.dumps(message))
+                except:
+                    dead_clients.add(client)
+
+            # cleanup dead connections
+            for dc in dead_clients:
+                clients.discard(dc)
 
     except WebSocketDisconnect:
-        clients.remove(websocket)
+        clients.discard(websocket)
 
 
 
@@ -58,10 +66,13 @@ FRONTEND_ORIGINS = [
 ]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=FRONTEND_ORIGINS,
+    allow_origins=[
+        "http://localhost:5173",
+        "https://robot-interface-rho.vercel.app"
+    ],
     allow_credentials=True,
-    allow_methods=["*"], # Allows GET, POST, DELETE, etc.
-    allow_headers=["*"], # Allows Content-Type, Authorization, etc.
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Directories
@@ -215,9 +226,6 @@ class ChatRequest(BaseModel):
 async def send_command(command: dict):
     if client is None:
         raise HTTPException(status_code=500, detail="MQTT Client not initialized")
-    {"action": "move", "value": "forward"} 
-    {"action": "mode", "value": "aquatic"}
-    {"action": "mode", "value": "land"}
     payload = json.dumps(command)
     client.publish(MQTT_TOPIC_COMMAND, payload)
     return {"status": "sent", "command": command}
@@ -359,3 +367,4 @@ if __name__ == '__main__':
     import uvicorn
     port = int(os.environ.get("PORT", 8000))
     uvicorn.run(app, host="0.0.0.0", port=port)
+
