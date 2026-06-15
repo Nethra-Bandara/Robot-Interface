@@ -1,177 +1,123 @@
-import React, { useRef, useEffect, forwardRef, useState } from 'react';
+import React, { useRef, useEffect, useState, forwardRef, useImperativeHandle } from 'react';
 import { Typography, Box } from '@mui/material';
-import { VideocamOff, Warning } from '@mui/icons-material';
+import { Warning, SignalWifiOff } from '@mui/icons-material';
 
-const CameraFeed = forwardRef(({ enabled, className, style }, ref) => {
-    const videoRef = useRef(null);
-    const pcRef = useRef(null);
-    const wsRef = useRef(null);
-    const [error, setError] = useState(null);
+// ─── CONFIG ───────────────────────────────────────────────────────────────────
+// In production, change to wss://your-backend-domain/ws/viewer
+const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:8000/ws/viewer';
+const ICE_SERVERS = [{ urls: 'stun:stun.l.google.com:19302' }];
+// ──────────────────────────────────────────────────────────────────────────────
 
-    useEffect(() => {
-        if (!enabled) {
-            cleanup();
-            return;
-        }
+const CameraFeed = forwardRef(({ className, style }, ref) => {
+  const videoRef = useRef(null);
+  const pcRef = useRef(null);
+  const wsRef = useRef(null);
+  const [status, setStatus] = useState('connecting'); // connecting | live | error
+  const [errorMsg, setErrorMsg] = useState('');
 
-        startViewer();
+  useEffect(() => {
+    connect();
+    return () => cleanup();
+  }, []);
 
-        return () => cleanup();
-    }, [enabled]);
+  const cleanup = () => {
+    if (pcRef.current) { pcRef.current.close(); pcRef.current = null; }
+    if (wsRef.current) { wsRef.current.close(); wsRef.current = null; }
+  };
 
-    const startViewer = async () => {
-        try {
-            setError(null);
+  const connect = () => {
+    const ws = new WebSocket(WS_URL);
+    wsRef.current = ws;
 
-            // 1. Create Peer Connection (viewer side)
-            const pc = new RTCPeerConnection({
-                iceServers: [
-                    { urls: ['stun:stun.l.google.com:19302',
-                        'stun:stun2.l.google.com:19302'],
-                     }
-                ]
-            });
+    const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
+    pcRef.current = pc;
 
-            pcRef.current = pc;
-
-            // 2. When laptop sends video
-            pc.ontrack = (event) => {
-                if (videoRef.current) {
-                    videoRef.current.srcObject = event.streams[0];
-                }
-            };
-
-            // 3. ICE candidates → send to backend
-            pc.onicecandidate = (event) => {
-                if (event.candidate && wsRef.current) {
-                    wsRef.current.send(JSON.stringify({
-                        type: "candidate",
-                        candidate: event.candidate
-                    }));
-                }
-            };
-
-            // 4. WebSocket signaling server
-            const ws = new WebSocket("wss://robot-interface-production-d0d3.up.railway.app/ws");
-            wsRef.current = ws;
-
-            ws.onopen = () => {
-                console.log("Connected to signaling server (viewer)");
-            };
-
-            // 5. Receive offer/answer/candidates
-            ws.onmessage = async (event) => {
-                const data = JSON.parse(event.data);
-
-                // Laptop sends OFFER
-                if (data.type === "offer") {
-                    await pc.setRemoteDescription(data.offer);
-
-                    const answer = await pc.createAnswer();
-                    await pc.setLocalDescription(answer);
-
-                    ws.send(JSON.stringify({
-                        type: "answer",
-                        answer
-                    }));
-                }
-
-                // ICE candidate from laptop
-                if (data.type === "candidate") {
-                    try {
-                        await pc.addIceCandidate(data.candidate);
-                    } catch (err) {
-                        console.error("ICE error:", err);
-                    }
-                }
-            };
-
-        } catch (err) {
-            console.error(err);
-            setError(err.message || "WebRTC viewer error");
-        }
+    // When remote track arrives — this is the laptop's webcam feed
+    pc.ontrack = (event) => {
+      if (videoRef.current) {
+        videoRef.current.srcObject = event.streams[0];
+        setStatus('live');
+      }
     };
 
-    const cleanup = () => {
-        if (pcRef.current) {
-            pcRef.current.close();
-            pcRef.current = null;
-        }
-
-        if (wsRef.current) {
-            wsRef.current.close();
-            wsRef.current = null;
-        }
-
-        if (videoRef.current) {
-            videoRef.current.srcObject = null;
-        }
+    // Send our ICE candidates to the broadcaster via server
+    pc.onicecandidate = (e) => {
+      if (e.candidate && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'ice-viewer', candidate: e.candidate }));
+      }
     };
 
-    // Optional: no capture in viewer (not needed)
-    React.useImperativeHandle(ref, () => ({
-        capture: () => null
-    }));
+    ws.onmessage = async (event) => {
+      const data = JSON.parse(event.data);
 
-    // ERROR UI
-    if (error) {
-        return (
-            <Box
-                className={className}
-                style={{
-                    ...style,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    backgroundColor: '#1a0000',
-                    color: '#ff5252'
-                }}
-            >
-                <Warning sx={{ fontSize: 60, mb: 1 }} />
-                <Typography variant="h6">WEBSOCKET / WEBRTC ERROR</Typography>
-                <Typography variant="caption" sx={{ mt: 1, textAlign: 'center', px: 2 }}>
-                    {error}
-                </Typography>
-            </Box>
-        );
+      if (data.type === 'offer') {
+        // Received broadcaster's offer → answer it
+        await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
+        const answer = await pc.createAnswer();
+        await pc.setLocalDescription(answer);
+        ws.send(JSON.stringify({ type: 'answer', answer: pc.localDescription }));
+      }
+
+      else if (data.type === 'ice-broadcaster') {
+        // Received broadcaster's ICE candidate
+        if (data.candidate) {
+          await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+        }
+      }
+    };
+
+    ws.onclose = () => {
+      if (status !== 'live') setStatus('error');
+      setErrorMsg('Signaling server disconnected. Is the backend running?');
+    };
+
+    ws.onerror = () => {
+      setStatus('error');
+      setErrorMsg('Cannot connect to signaling server.');
+    };
+  };
+
+  // Capture frame for screenshot feature (unchanged)
+  useImperativeHandle(ref, () => ({
+    capture: () => {
+      if (!videoRef.current) return null;
+      const canvas = document.createElement('canvas');
+      canvas.width = videoRef.current.videoWidth;
+      canvas.height = videoRef.current.videoHeight;
+      canvas.getContext('2d').drawImage(videoRef.current, 0, 0);
+      return canvas.toDataURL('image/jpeg', 0.82);
     }
+  }));
 
-    if (!enabled) {
-        return (
-            <Box
-                className={className}
-                style={{
-                    ...style,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    backgroundColor: '#000',
-                    color: '#555'
-                }}
-            >
-                <VideocamOff sx={{ fontSize: 60, mb: 1 }} />
-                <Typography>OFFLINE</Typography>
-            </Box>
-        );
-    }
-
+  if (status === 'error') {
     return (
-        <video
-            ref={videoRef}
-            autoPlay
-            playsInline
-            controls={false}
-            className={className}
-            style={{
-                ...style,
-                objectFit: 'cover',
-                width: '100%',
-                height: '100%'
-            }}
-        />
+      <Box className={className} style={{ ...style, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: '#1a0000', color: '#ff5252' }}>
+        <Warning sx={{ fontSize: 60, mb: 1 }} />
+        <Typography variant="h6">STREAM ERROR</Typography>
+        <Typography variant="caption" sx={{ mt: 1, textAlign: 'center', px: 2 }}>{errorMsg}</Typography>
+      </Box>
     );
+  }
+
+  if (status === 'connecting') {
+    return (
+      <Box className={className} style={{ ...style, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: '#000', color: '#555' }}>
+        <SignalWifiOff sx={{ fontSize: 60, mb: 1 }} />
+        <Typography>Waiting for broadcaster...</Typography>
+      </Box>
+    );
+  }
+
+  return (
+    <video
+      ref={videoRef}
+      autoPlay
+      playsInline
+      muted
+      className={className}
+      style={{ ...style, objectFit: 'cover' }}
+    />
+  );
 });
 
 export default CameraFeed;

@@ -13,7 +13,7 @@ import sqlite3
 import json
 import threading
 import paho.mqtt.client as mqtt
-
+import asyncio
 
 
 # Load environment variables from .env (for local dev)
@@ -21,41 +21,102 @@ load_dotenv()
 
 app = FastAPI()
 
-clients = []
+# ─── WebRTC Signaling ────────────────────────────────────────────────────────
+
+class SignalingManager:
+    def __init__(self):
+        self.broadcaster: WebSocket | None = None
+        self.viewers: list[WebSocket] = []
+
+    async def connect_broadcaster(self, ws: WebSocket):
+        await ws.accept()
+        self.broadcaster = ws
+        print("Broadcaster connected")
+
+    async def connect_viewer(self, ws: WebSocket):
+        await ws.accept()
+        self.viewers.append(ws)
+        print(f"Viewer connected. Total viewers: {len(self.viewers)}")
+
+    def disconnect_broadcaster(self):
+        self.broadcaster = None
+        print("Broadcaster disconnected")
+
+    def disconnect_viewer(self, ws: WebSocket):
+        if ws in self.viewers:
+            self.viewers.remove(ws)
+        print(f"Viewer disconnected. Total viewers: {len(self.viewers)}")
+
+    async def send_to_broadcaster(self, message: dict):
+        if self.broadcaster:
+            await self.broadcaster.send_json(message)
+
+    async def send_to_viewer(self, ws: WebSocket, message: dict):
+        await ws.send_json(message)
+
+    async def broadcast_to_viewers(self, message: dict):
+        for viewer in self.viewers:
+            try:
+                await viewer.send_json(message)
+            except Exception:
+                pass
+
+signaling = SignalingManager()
 
 
-@app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
-    await websocket.accept()
-    clients.add(websocket)
-
+@app.websocket("/ws/broadcaster")
+async def broadcaster_ws(websocket: WebSocket):
+    await signaling.connect_broadcaster(websocket)
     try:
         while True:
-            data = await websocket.receive_text()
+            data = await websocket.receive_json()
+            msg_type = data.get("type")
 
-            # safe JSON parsing
-            try:
-                message = json.loads(data)
-            except:
-                continue
+            if msg_type == "offer":
+                # Broadcaster sends offer → forward to all viewers
+                await signaling.broadcast_to_viewers(data)
 
-            # broadcast to all other clients
-            dead_clients = set()
-
-            for client in clients:
-                if client == websocket:
-                    continue
-                try:
-                    await client.send_text(json.dumps(message))
-                except:
-                    dead_clients.add(client)
-
-            # cleanup dead connections
-            for dc in dead_clients:
-                clients.discard(dc)
+            elif msg_type == "ice-broadcaster":
+                # Broadcaster's ICE candidates → forward to all viewers
+                await signaling.broadcast_to_viewers({
+                    "type": "ice-broadcaster",
+                    "candidate": data.get("candidate")
+                })
 
     except WebSocketDisconnect:
-        clients.discard(websocket)
+        signaling.disconnect_broadcaster()
+
+
+@app.websocket("/ws/viewer")
+async def viewer_ws(websocket: WebSocket):
+    await signaling.connect_viewer(websocket)
+    try:
+        # If broadcaster is already live, ask it to re-offer to this new viewer
+        if signaling.broadcaster:
+            await signaling.send_to_broadcaster({"type": "new-viewer"})
+
+        while True:
+            data = await websocket.receive_json()
+            msg_type = data.get("type")
+
+            if msg_type == "answer":
+                # Viewer's answer → forward to broadcaster
+                await signaling.send_to_broadcaster({
+                    "type": "answer",
+                    "answer": data.get("answer"),
+                    "viewerId": id(websocket)
+                })
+
+            elif msg_type == "ice-viewer":
+                # Viewer's ICE candidates → forward to broadcaster
+                await signaling.send_to_broadcaster({
+                    "type": "ice-viewer",
+                    "candidate": data.get("candidate"),
+                    "viewerId": id(websocket)
+                })
+
+    except WebSocketDisconnect:
+        signaling.disconnect_viewer(websocket)
 
 
 

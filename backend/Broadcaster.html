@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Broadcaster</title>
+    <style>
+        body {
+            background: #111;
+            color: #eee;
+            font-family: monospace;
+            padding: 20px;
+        }
+
+        video {
+            width: 400px;
+            border: 2px solid #444;
+            border-radius: 8px;
+            display: block;
+            margin: 16px 0;
+        }
+
+        #status {
+            color: #4ade80;
+            margin-bottom: 8px;
+        }
+
+        #log {
+            font-size: 12px;
+            color: #888;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>📡 Broadcaster (Laptop)</h2>
+    <div id="status">Connecting...</div>
+    <video id="localVideo" autoplay muted playsinline></video>
+    <div id="log"></div>
+
+    <script>
+        // ─── CONFIG ───────────────────────────────────────────────────────────────
+        // Change this to your backend URL if deployed
+        const WS_URL = 'ws://localhost:8000/ws/broadcaster';
+        const ICE_SERVERS = [{ urls: 'stun:stun.l.google.com:19302' }];
+        // ──────────────────────────────────────────────────────────────────────────
+
+        const statusEl = document.getElementById('status');
+        const logEl = document.getElementById('log');
+        const localVideo = document.getElementById('localVideo');
+
+        // Map of viewerId → RTCPeerConnection
+        const peerConnections = {};
+        let localStream = null;
+        let ws = null;
+
+        function log(msg) {
+            console.log(msg);
+            logEl.innerHTML += `<div>${new Date().toLocaleTimeString()} ${msg}</div>`;
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        async function init() {
+            // 1. Get webcam
+            localStream = await navigator.mediaDevices.getUserMedia({
+                video: { width: { ideal: 1280 }, height: { ideal: 720 } },
+                audio: false
+            });
+            localVideo.srcObject = localStream;
+            log('Webcam started');
+
+            // 2. Connect to signaling server
+            ws = new WebSocket(WS_URL);
+
+            ws.onopen = () => {
+                statusEl.textContent = '🟢 Connected to signaling server';
+                log('WebSocket connected');
+            };
+
+            ws.onclose = () => {
+                statusEl.textContent = '🔴 Disconnected — refresh to reconnect';
+                log('WebSocket disconnected');
+            };
+
+            ws.onmessage = async (event) => {
+                const data = JSON.parse(event.data);
+
+                if (data.type === 'new-viewer') {
+                    // A new viewer joined — create a peer connection for them
+                    log('New viewer joined, creating offer...');
+                    await createOfferForAllViewers();
+                }
+
+                else if (data.type === 'answer') {
+                    // A viewer answered our offer
+                    const viewerId = data.viewerId;
+                    const pc = peerConnections[viewerId];
+                    if (pc) {
+                        await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
+                        log(`Answer received from viewer ${viewerId}`);
+                    }
+                }
+
+                else if (data.type === 'ice-viewer') {
+                    // ICE candidate from a viewer
+                    const viewerId = data.viewerId;
+                    const pc = peerConnections[viewerId];
+                    if (pc && data.candidate) {
+                        await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+                    }
+                }
+            };
+        }
+
+        async function createOfferForAllViewers() {
+            // For simplicity: create one broadcast PC per viewer
+            // viewerId here is a temporary key — server will map the real id on answer
+            const tempId = Date.now();
+            const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
+            peerConnections[tempId] = pc;
+
+            // Add local stream tracks
+            localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+
+            // Send ICE candidates as they arrive
+            pc.onicecandidate = (e) => {
+                if (e.candidate) {
+                    ws.send(JSON.stringify({
+                        type: 'ice-broadcaster',
+                        candidate: e.candidate
+                    }));
+                }
+            };
+
+            pc.onconnectionstatechange = () => {
+                log(`Connection state: ${pc.connectionState}`);
+            };
+
+            // Create and send offer
+            const offer = await pc.createOffer();
+            await pc.setLocalDescription(offer);
+            ws.send(JSON.stringify({ type: 'offer', offer: pc.localDescription }));
+            log('Offer sent');
+
+            return tempId;
+        }
+
+        init().catch(err => {
+            statusEl.textContent = `❌ Error: ${err.message}`;
+            log(`Init error: ${err}`);
+        });
+    </script>
+</body>
+
+</html>
