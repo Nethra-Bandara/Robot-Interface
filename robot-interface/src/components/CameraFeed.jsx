@@ -50,7 +50,7 @@ const CameraFeed = forwardRef(({ enabled, className, style }, ref) => {
             };
 
             // 4. WebSocket signaling server
-            const ws = new WebSocket("https://robot-interface-production-d0d3.up.railway.app/ws");
+            const ws = new WebSocket("wss://robot-interface-production-d0d3.up.railway.app/ws");
             wsRef.current = ws;
 
             ws.onopen = () => {
