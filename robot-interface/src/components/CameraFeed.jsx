@@ -127,6 +127,6 @@ const CameraFeed = forwardRef(({ className, style }, ref) => {
       style={{ ...style, objectFit: 'cover' }}
     />
   );
-});
+};
 
 export default CameraFeed;
