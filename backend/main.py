@@ -70,6 +70,7 @@ signaling = SignalingManager()
 @app.websocket("/ws/broadcaster")
 async def broadcaster_ws(websocket: WebSocket):
     await signaling.connect_broadcaster(websocket)
+
     async def ping():
         while True:
             await asyncio.sleep(20)
@@ -77,31 +78,26 @@ async def broadcaster_ws(websocket: WebSocket):
                 await websocket.send_json({"type": "ping"})
             except Exception:
                 break
+
     ping_task = asyncio.create_task(ping())
     try:
         while True:
             data = await websocket.receive_json()
-            if data.get("type") == "ping":
+            msg_type = data.get("type")
+            if msg_type == "ping":
                 continue
-            try:
-                while True:
-                    data = await websocket.receive_json()
-                    msg_type = data.get("type")
 
-                    if msg_type == "offer":
-                        # Broadcaster sends offer → forward to all viewers
-                        await signaling.broadcast_to_viewers(data)
+            if msg_type == "offer":
+                await signaling.broadcast_to_viewers(data)
 
-                    elif msg_type == "ice-broadcaster":
-                        # Broadcaster's ICE candidates → forward to all viewers
-                        await signaling.broadcast_to_viewers({
-                            "type": "ice-broadcaster",
-                            "candidate": data.get("candidate")
-                        })
-    
+            elif msg_type == "ice-broadcaster":
+                await signaling.broadcast_to_viewers({
+                    "type": "ice-broadcaster",
+                    "candidate": data.get("candidate")
+                })
 
-            except WebSocketDisconnect:
-                signaling.disconnect_broadcaster()
+    except WebSocketDisconnect:
+        signaling.disconnect_broadcaster()
     finally:
         ping_task.cancel()
 
@@ -109,6 +105,7 @@ async def broadcaster_ws(websocket: WebSocket):
 @app.websocket("/ws/viewer")
 async def viewer_ws(websocket: WebSocket):
     await signaling.connect_viewer(websocket)
+
     async def ping():
         while True:
             await asyncio.sleep(20)
@@ -116,38 +113,38 @@ async def viewer_ws(websocket: WebSocket):
                 await websocket.send_json({"type": "ping"})
             except Exception:
                 break
+
     ping_task = asyncio.create_task(ping())
+
+    # Small delay so the viewer's WebSocket is stable before we trigger an offer
+    await asyncio.sleep(0.5)
+
     try:
+        if signaling.broadcaster:
+            await signaling.send_to_broadcaster({"type": "new-viewer"})
+
         while True:
             data = await websocket.receive_json()
-            if data.get("type") == "ping":
+            msg_type = data.get("type")
+            if msg_type == "ping":
                 continue
-            try:
-                # If broadcaster is already live, ask it to re-offer to this new viewer
-                if signaling.broadcaster:
-                    await signaling.send_to_broadcaster({"type": "new-viewer"})
 
-                while True:
-                    data = await websocket.receive_json()
-                    msg_type = data.get("type")
-
-                    if msg_type == "answer":
-                        # Viewer's answer → forward to broadcaster
-                        await signaling.send_to_broadcaster({
-                            "type": "answer",
-                            "answer": data.get("answer"),
-                            "viewerId": id(websocket)
-                            })
-
-                    elif msg_type == "ice-viewer":
-                        # Viewer's ICE candidates → forward to broadcaster
-                        await signaling.send_to_broadcaster({
-                            "type": "ice-viewer",
-                            "candidate": data.get("candidate"),
-                            "viewerId": id(websocket)
+            if msg_type == "answer":
+                await signaling.send_to_broadcaster({
+                    "type": "answer",
+                    "answer": data.get("answer"),
+                    "viewerId": id(websocket)
                 })
-            except WebSocketDisconnect:
-                signaling.disconnect_viewer(websocket)
+
+            elif msg_type == "ice-viewer":
+                await signaling.send_to_broadcaster({
+                    "type": "ice-viewer",
+                    "candidate": data.get("candidate"),
+                    "viewerId": id(websocket)
+                })
+
+    except WebSocketDisconnect:
+        signaling.disconnect_viewer(websocket)
     finally:
         ping_task.cancel()
 

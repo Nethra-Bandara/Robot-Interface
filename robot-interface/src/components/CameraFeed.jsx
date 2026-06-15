@@ -31,6 +31,7 @@ const CameraFeed = forwardRef(({ className, style }, ref) => {
   const reconnectRef = useRef(null);
 
   const connect = () => {
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) return;
     const ws = new WebSocket(WS_URL);
     wsRef.current = ws;
 
