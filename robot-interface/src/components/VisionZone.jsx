@@ -178,35 +178,35 @@ const [keys, setKeys] = useState({
         };
     }, [sendMoveCommand]);
 
-    const handleModeChange = (event, newMode) => {
-        if (newMode !== null && onModeChange) {
-            onModeChange(newMode);
+ //   const handleModeChange = (event, newMode) => {
+//        if (newMode !== null && onModeChange) {
+//            onModeChange(newMode);
             // Reset subMode to '1' when switching to LAND mode
-            if (newMode === 'LAND') {
-                setSubMode('1');
-            }
+//            if (newMode === 'LAND') {
+//                setSubMode('1');
+//            }
             // Send mode change via MQTT, include appropriate subMode
-            if (sendModeCommand) {
-                if (newMode === 'WATER') {
+//            if (sendModeCommand) {
+//                if (newMode === 'WATER') {
                     // In WATER mode, subMode is irrelevant; send null
-                    sendModeCommand(newMode, null);
-                } else {
+//                    sendModeCommand(newMode, null);
+//                } else {
                     // LAND mode, default subMode is '1'
-                    const currentSub = subMode || '1';
-                    sendModeCommand(newMode, currentSub);
-                }
-            }
-        }
-    };
+//                    const currentSub = subMode || '1';
+//                    sendModeCommand(newMode, currentSub);
+//                }
+//            }
+//        }
+ //   };
     // Sub-mode change handler
-    const handleSubModeChange = (event, newSub) => {
-        if (newSub !== null) {
-            setSubMode(newSub);
-            if (sendModeCommand) {
-                sendModeCommand(mode, newSub);
-            }
-        }
-    };
+//    const handleSubModeChange = (event, newSub) => {
+//        if (newSub !== null) {
+//            setSubMode(newSub);
+//            if (sendModeCommand) {
+//                sendModeCommand(mode, newSub);
+//            }
+//        }
+//    };
 
     // Speed change handler
     const handleSpeedChange = (event, newValue) => {
