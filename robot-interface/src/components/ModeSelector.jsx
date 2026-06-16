@@ -71,7 +71,9 @@ const ModeSelector = ({ theme, onModeChange }) => {
                 </ToggleButton>
                 <ToggleButton value="WATER" sx={{
                     flex: 1, color: isDark ? '#aaa' : '#555',
-                    '&.Mui-selected': { color: '#2979ff', borderColor: '#2979ff' }
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',                    '&.Mui-selected': { color: '#2979ff', borderColor: '#2979ff' }
                 }}>
                     <Water fontSize="small" sx={{ mr: 1 }} /> Water
                 </ToggleButton>
