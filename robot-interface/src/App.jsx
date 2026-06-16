@@ -217,6 +217,9 @@ function App() {
           telemetry={telemetry}
         />
 
+        <ModeSelector 
+        theme={theme} onModeChange={setMode} />
+
         <div className="content-panel">
           <ScreenshotGallery
             screenshots={screenshots}
