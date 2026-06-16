@@ -253,7 +253,7 @@ input {
   flex-direction: column;
   min-width: 220px;
   flex-shrink: 0;
-  background: var(--panel-bg);
+  background: rgba(76, 175, 80, 0.15);
 }
 
 input {
