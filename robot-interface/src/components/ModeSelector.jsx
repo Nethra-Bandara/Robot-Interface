@@ -69,13 +69,10 @@ const ModeSelector = ({ theme, onModeChange }) => {
                 }}>
                     <Terrain fontSize="small" sx={{ mr: 1 }} /> Land
                 </ToggleButton>
-                <ToggleButton value="WATER" sx={{
+                <ToggleButton value="AQUA" sx={{
                     flex: 1, color: isDark ? '#aaa' : '#555',
                     border: '1px solid transparent',
-                    '&.Mui-selected': { color: '#2979ff', borderColor: '#2979ff !important', backgroundColor: 'transparent !important', boxShadow: 'none' },
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',                    
+                    '&.Mui-selected': { color: '#2979ff', borderColor: '#2979ff !important' }
                 }}>
                     <Water fontSize="small" sx={{ mr: 1 }} /> Water
                 </ToggleButton>
