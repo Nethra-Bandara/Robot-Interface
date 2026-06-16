@@ -246,6 +246,7 @@ input {
   justify-content: center;
   gap: 24px;
   width: 100%;
+  background: rgba(76, 175, 80, 0.15);
 }
 
 .mode-selector {
