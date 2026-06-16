@@ -230,6 +230,10 @@ function App() {
             isPurging={isPurging}
           />
 
+          <ModeSelector 
+        theme={theme} onModeChange={setMode} />
+        </div>
+
           <Sidebar
             activeContext={screenshots[activeIndex]}
             currentMode={mode}
@@ -239,9 +243,7 @@ function App() {
 
           />
 
-          <ModeSelector 
-        theme={theme} onModeChange={setMode} />
-        </div>
+          
 
         <ConfirmDialog
           open={showConfirm}
