@@ -219,7 +219,8 @@ MQTT_USER          = "robot_interface"
 MQTT_PASS          = "Pwd12345"
 MQTT_TOPIC         = "robot/telemetry"
 MQTT_TOPIC_COMMAND = "robot/commands"
-MQTT_TOPIC_MODE    = "robot/mode"          # ← NEW dedicated mode topic
+MQTT_TOPIC_MODE    = "robot/mode"
+MQTT_TOPIC_MOVEMENT = "robot/movement"
 
 client = None
 
@@ -258,7 +259,8 @@ def on_mqtt_connect(client, userdata, flags, reason_code, properties):
         print("Backend connected to MQTT Broker!")
         client.subscribe(MQTT_TOPIC)
         client.subscribe(MQTT_TOPIC_COMMAND)
-        print(f"Subscribed to: {MQTT_TOPIC}, {MQTT_TOPIC_COMMAND}")
+        client.subscribe(MQTT_TOPIC_MOVEMENT)
+        print(f"Subscribed to: {MQTT_TOPIC}, {MQTT_TOPIC_COMMAND}, {MQTT_TOPIC_MOVEMENT}")    
     else:
         print(f"Backend MQTT connection failed with code: {reason_code}")
 
@@ -282,6 +284,14 @@ def on_mqtt_message(client, userdata, message):
             else:
                 # Unknown command — log it
                 print(f"📨 Unknown command received: {payload}")
+
+
+        # ── Movement channel ────────────────────────────────────────────────
+        elif topic == MQTT_TOPIC_MOVEMENT:
+            direction = payload.get("direction")
+            print(f"🕹️  Movement received: {direction}")
+            # No DB persistence needed; RPi subscribes to robot/movement directly.
+            # This block exists only for backend-side logging/debugging.
 
         # ── Telemetry channel ────────────────────────────────────────────────
         elif topic == MQTT_TOPIC:

@@ -84,9 +84,9 @@ export const useMQTT = () => {
             return;
         }
 
-        const msg = String(direction);
-        client.publish('robot/control', msg, { qos: 1 });
-        console.log('Movement command sent:', msg);
+        const payload = JSON.stringify({ direction: String(direction) });
+        client.publish('robot/movement', payload, { qos: 1 });
+        console.log('Movement command sent:', payload);
     };
 
     const sendSpeedCommand = (value) => {
