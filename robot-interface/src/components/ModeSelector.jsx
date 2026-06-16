@@ -94,7 +94,13 @@ const ModeSelector = ({ theme }) => {
                 {['1', '2', '3'].map(n => (
                     <ToggleButton key={n} value={n} sx={{
                         flex: 1, color: isDark ? '#aaa' : '#555',
-                        '&.Mui-selected': { color: '#4caf50', borderColor: '#4caf50' }
+                        '&.Mui-selected': { color: domain === 'WATER' ? (isDark ? '#aaa' : '#555')
+                : '#4caf50', borderColor: domain === 'WATER'
+                ? 'transparent'
+                : '#4caf50',
+            backgroundColor: domain === 'WATER'
+                ? 'transparent'
+                : undefined,}
                     }}>
                         {n}
                     </ToggleButton>
