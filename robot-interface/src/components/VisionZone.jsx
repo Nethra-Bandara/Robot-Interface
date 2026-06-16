@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { IconButton, Box, Typography, ToggleButton, ToggleButtonGroup, Slider } from '@mui/material';
+import { IconButton, Box, Typography, Slider } from '@mui/material';
 import { 
     ArrowUpward, ArrowDownward, ArrowBack, ArrowForward, PhotoCamera, 
-    Terrain, Water, Videocam, VideocamOff, Mic, MicOff, 
+     Videocam, VideocamOff, Mic, MicOff, 
     Lightbulb, LightbulbOutline, Brightness4, Brightness7,
     KeyboardArrowUp, KeyboardArrowDown, KeyboardArrowLeft, KeyboardArrowRight,
     FilterCenterFocus
@@ -11,9 +11,9 @@ import { useMQTT } from '../hooks/useMQTT';
 import CameraFeed from './CameraFeed';
 
 const VisionZone = ({
-    onCapture, mode, onModeChange, theme, onToggleTheme,
+    onCapture,  theme, onToggleTheme,
     sendMoveCommand, sendSpeedCommand, sendCameraToggle,
-    sendMicToggle, sendLightsToggle, sendCameraCommand, sendModeCommand, telemetry
+    sendMicToggle, sendLightsToggle, sendCameraCommand,  telemetry
 }) => {
 
     const [activeDirection, setActiveDirection] = useState(null);
@@ -24,7 +24,7 @@ const VisionZone = ({
     const [cameraOn, setCameraOn] = useState(true);
     const [micOn, setMicOn] = useState(true);
     const [lightsOn, setLightsOn] = useState(false);
-    const [subMode, setSubMode] = useState('1');
+    //const [subMode, setSubMode] = useState('1');
 
     // Track active movement keys to prevent OS repeat rate spamming
 const [keys, setKeys] = useState({
@@ -347,7 +347,7 @@ const [keys, setKeys] = useState({
                     {theme === 'dark' ? <Brightness7 /> : <Brightness4 />}
                 </IconButton>
 
-                <div className="camera-container" style={{ width: '100%', borderColor: mode === 'WATER' ? '#2979ff' : 'var(--panel-border)' }}>
+                <div className="camera-container" style={{ width: '100%', borderColor: 'var(--panel-border)'}}>
                     <CameraFeed
                         ref={cameraFeedRef}
                         enabled={cameraOn}
@@ -357,7 +357,6 @@ const [keys, setKeys] = useState({
 
                     {/* HUD Overlay (Removed Speed & Status, Added Pressure) */}
                     <div className="hud-overlay">
-                        <span>MODE: <strong style={{ color: theme === 'dark' ? '#fff' : '#2e7d32' }}>{mode}</strong></span>
                         <span>SIGNAL: <strong>{telemetry && telemetry.signal !== undefined ? `${telemetry.signal}%` : '92% (RF MESH)'}</strong></span>
                         <span>POWER: <strong>{telemetry && telemetry.battery !== undefined ? `${telemetry.battery}%` : '88%'}</strong></span>
                         <span>PRESSURE: <strong>{telemetry && telemetry.pressure !== undefined ? `${telemetry.pressure} hPa` : '1013 hPa'}</strong></span>
@@ -414,61 +413,10 @@ const [keys, setKeys] = useState({
 
             <Box className="control-panel" sx={{ mt: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: { xs: 2, md: 4 }, flexWrap: 'wrap' }}>
-                    <ToggleButtonGroup
-                        value={mode}
-                        exclusive
-                        onChange={handleModeChange}
-                        aria-label="device mode"
-                        orientation="vertical"
-                        className="mode-selector-group"
-                        sx={{
-                            bgcolor: theme === 'dark' ? 'rgba(255,255,255,0.05)' : '#fff',
-                            border: `1px solid ${theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : '#1a3324'}`,
-                            borderRadius: 2,
-                            boxShadow: theme === 'dark' 
-                                ? 'inset 2px 2px 5px rgba(255, 255, 255, 0.05), inset -2px -2px 5px rgba(0, 0, 0, 0.5)'
-                                : 'inset 2px 2px 5px rgba(255, 255, 255, 1), inset -2px -2px 5px rgba(0, 0, 0, 0.05), 0 2px 6px rgba(0,0,0,0.1)'
-                        }}
-                    >
-                        <ToggleButton value="LAND" sx={{ color: theme === 'dark' ? '#aaa' : '#555', '&.Mui-selected': { color: '#4caf50', borderColor: '#4caf50', boxShadow: 'inset 2px 2px 4px rgba(0,0,0,0.1)' } }}>
-                            <Terrain />
-                        </ToggleButton>
-                        <ToggleButton value="WATER" sx={{ color: theme === 'dark' ? '#aaa' : '#555', '&.Mui-selected': { color: '#2979ff', borderColor: '#2979ff', boxShadow: 'inset 2px 2px 4px rgba(0,0,0,0.1)' } }}>
-                            <Water />
-                        </ToggleButton>
-                    </ToggleButtonGroup>
+                    
+                    
                     {/* Sub-mode selector, enabled only in LAND mode */}
-                    <ToggleButtonGroup
-                        value={subMode}
-                        exclusive
-                        onChange={handleSubModeChange}
-                        aria-label="sub-mode selector"
-                        disabled={mode === 'WATER'}
-                        orientation="horizontal"
-                        className="submode-selector-group"
-                        sx={{
-                            mt: 1,
-                            overflow: 'hidden',
-                            bgcolor: mode === 'WATER' ? 'rgba(255,255,255,0.02)' : (theme === 'dark' ? 'rgba(255,255,255,0.05)' : '#fff'),
-                            border: `1px solid ${theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : '#1a3324'}`,
-                            borderRadius: 2,
-                            boxShadow: theme === 'dark'
-                                ? 'inset 2px 2px 5px rgba(255, 255, 255, 0.05), inset -2px -2px 5px rgba(0, 0, 0, 0.5)'
-                                : 'inset 2px 2px 5px rgba(255, 255, 255, 1), inset -2px -2px 5px rgba(0, 0, 0, 0.05), 0 2px 6px rgba(0,0,0,0.1)'
-                        }}
-                    >
-                        {['1','2','3'].map(val => (
-                            <ToggleButton key={val} value={val} sx={{
-                                color: theme === 'dark' ? '#aaa' : '#555',
-                                border: 'none',
-                                '&.Mui-selected': {
-                                    color: '#4caf50',
-                                    backgroundColor: theme === 'dark' ? 'rgba(76, 175, 80, 0.18)' : 'rgba(76, 175, 80, 0.12)',
-                                    '&:hover': { backgroundColor: theme === 'dark' ? 'rgba(76, 175, 80, 0.25)' : 'rgba(76, 175, 80, 0.2)' },
-                                },
-                            }}>{val}</ToggleButton>
-                        ))}
-                    </ToggleButtonGroup>
+                    
 
                     <Box sx={{ height: { xs: 80, md: 120 }, display: 'flex', flexDirection: 'column', alignItems: 'center', mx: 1 }}>
                         <Slider
