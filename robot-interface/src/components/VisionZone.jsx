@@ -9,11 +9,12 @@ import {
 } from '@mui/icons-material';
 import { useMQTT } from '../hooks/useMQTT';
 import CameraFeed from './CameraFeed';
+import ModeSelector from './ModeSelector';
 
 const VisionZone = ({
-    onCapture,  theme, onToggleTheme,
+    onCapture, mode, onModeChange, theme, onToggleTheme,
     sendMoveCommand, sendSpeedCommand, sendCameraToggle,
-    sendMicToggle, sendLightsToggle, sendCameraCommand,  telemetry
+    sendMicToggle, sendLightsToggle, sendCameraCommand, sendModeCommand, telemetry
 }) => {
 
     const [activeDirection, setActiveDirection] = useState(null);
@@ -177,36 +178,6 @@ const [keys, setKeys] = useState({
             window.removeEventListener('keyup', handleKeyUp);
         };
     }, [sendMoveCommand]);
-
- //   const handleModeChange = (event, newMode) => {
-//        if (newMode !== null && onModeChange) {
-//            onModeChange(newMode);
-            // Reset subMode to '1' when switching to LAND mode
-//            if (newMode === 'LAND') {
-//                setSubMode('1');
-//            }
-            // Send mode change via MQTT, include appropriate subMode
-//            if (sendModeCommand) {
-//                if (newMode === 'WATER') {
-                    // In WATER mode, subMode is irrelevant; send null
-//                    sendModeCommand(newMode, null);
-//                } else {
-                    // LAND mode, default subMode is '1'
-//                    const currentSub = subMode || '1';
-//                    sendModeCommand(newMode, currentSub);
-//                }
-//            }
-//        }
- //   };
-    // Sub-mode change handler
-//    const handleSubModeChange = (event, newSub) => {
-//        if (newSub !== null) {
-//            setSubMode(newSub);
-//            if (sendModeCommand) {
-//                sendModeCommand(mode, newSub);
-//            }
-//        }
-//    };
 
     // Speed change handler
     const handleSpeedChange = (event, newValue) => {
@@ -411,12 +382,15 @@ const [keys, setKeys] = useState({
                 </div>
             </Box>
 
-            <Box className="control-panel" sx={{ mt: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: { xs: 2, md: 4 }, flexWrap: 'wrap' }}>
-                    
-                    
-                    {/* Sub-mode selector, enabled only in LAND mode */}
-                    
+            {/* Control bar: width-matched to camera feed (90% / max 850px), holds ModeSelector + D-pad + toggles */}
+            <Box className="control-bar" sx={{ width: '90%', maxWidth: 850, mt: 2 }}>
+
+                {/* Operational Domain / Mode selector — moved here from Sidebar */}
+                <Box className="mode-selector">
+                    <ModeSelector theme={theme} onModeChange={onModeChange} sendModeCommand={sendModeCommand} />
+                </Box>
+
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: { xs: 2, md: 4 }, flexWrap: 'wrap', flex: 1 }}>
 
                     <Box sx={{ height: { xs: 80, md: 120 }, display: 'flex', flexDirection: 'column', alignItems: 'center', mx: 1 }}>
                         <Slider
