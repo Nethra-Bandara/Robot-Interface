@@ -18,7 +18,8 @@ const sendRobotCommand = async (action, value) => {
 
 const ModeSelector = ({ theme }) => {
     const [domain, setDomain] = useState('LAND');   // 'LAND' | 'WATER'
-    const [modeNum, setModeNum] = useState('1');    // '1' | '2' | '3'
+    const [modeNum, setModeNum] = useState('1');
+    const [lastLandMode, setLastLandMode] = useState('1');    // '1' | '2' | '3'
 
     const handleDomainChange = (_, newDomain) => {
         if (!newDomain) return;
@@ -26,9 +27,11 @@ const ModeSelector = ({ theme }) => {
 
         if (newDomain === 'WATER') {
             // Water: no sub-mode, publish water mode directly
+            setModeNum(null);
             sendRobotCommand('set_mode', { domain: 'water', mode: null });
         } else {
             // Switching back to land: restore last selected mode number
+            setModeNum(lastLandMode);
             sendRobotCommand('set_mode', { domain: 'land', mode: parseInt(modeNum) });
         }
     };
@@ -36,6 +39,7 @@ const ModeSelector = ({ theme }) => {
     const handleModeNumChange = (_, newNum) => {
         if (!newNum) return;   // prevent deselecting
         setModeNum(newNum);
+        setLastLandMode(newNum);
         sendRobotCommand('set_mode', { domain: 'land', mode: parseInt(newNum) });
     };
 
