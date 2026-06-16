@@ -15,8 +15,6 @@ import threading
 import paho.mqtt.client as mqtt
 import asyncio
 
-
-# Load environment variables from .env (for local dev)
 load_dotenv()
 
 app = FastAPI()
@@ -86,16 +84,13 @@ async def broadcaster_ws(websocket: WebSocket):
             msg_type = data.get("type")
             if msg_type == "ping":
                 continue
-
             if msg_type == "offer":
                 await signaling.broadcast_to_viewers(data)
-
             elif msg_type == "ice-broadcaster":
                 await signaling.broadcast_to_viewers({
                     "type": "ice-broadcaster",
                     "candidate": data.get("candidate")
                 })
-
     except WebSocketDisconnect:
         signaling.disconnect_broadcaster()
     finally:
@@ -115,8 +110,6 @@ async def viewer_ws(websocket: WebSocket):
                 break
 
     ping_task = asyncio.create_task(ping())
-
-    # Small delay so the viewer's WebSocket is stable before we trigger an offer
     await asyncio.sleep(0.5)
 
     try:
@@ -128,59 +121,53 @@ async def viewer_ws(websocket: WebSocket):
             msg_type = data.get("type")
             if msg_type == "ping":
                 continue
-
             if msg_type == "answer":
                 await signaling.send_to_broadcaster({
                     "type": "answer",
                     "answer": data.get("answer"),
                     "viewerId": id(websocket)
                 })
-
             elif msg_type == "ice-viewer":
                 await signaling.send_to_broadcaster({
                     "type": "ice-viewer",
                     "candidate": data.get("candidate"),
                     "viewerId": id(websocket)
                 })
-
     except WebSocketDisconnect:
         signaling.disconnect_viewer(websocket)
     finally:
         ping_task.cancel()
 
 
+# ─── CORS ────────────────────────────────────────────────────────────────────
 
-
-
-# Configure CORS (add your frontend origins here)
 FRONTEND_ORIGINS = [
     "http://localhost:5173",
-    "https://robot-interface-rho.vercel.app",    
+    "https://robot-interface-rho.vercel.app",
 ]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "https://robot-interface-rho.vercel.app"
-    ],
+    allow_origins=FRONTEND_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Directories
+# ─── Directories ─────────────────────────────────────────────────────────────
+
 UPLOADS_DIR = "uploads"
 KNOWLEDGE_DIR = "knowledge"
 os.makedirs(UPLOADS_DIR, exist_ok=True)
 os.makedirs(KNOWLEDGE_DIR, exist_ok=True)
 
-# Database Setup
+# ─── Database ────────────────────────────────────────────────────────────────
+
 DB_FILE = "data.db"
+
 def init_db():
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
-    
-    # Automatic migration: drop old table if it has the "status" column
+
     try:
         cursor.execute("SELECT status FROM telemetry_history LIMIT 1")
         print("Migrating schema: dropping old telemetry_history table...")
@@ -190,72 +177,140 @@ def init_db():
 
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS telemetry_history (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-            battery REAL,
+            id          INTEGER PRIMARY KEY AUTOINCREMENT,
+            timestamp   DATETIME DEFAULT CURRENT_TIMESTAMP,
+            battery     REAL,
             temperature REAL,
-            humidity REAL,
-            signal REAL,
-            pressure REAL,
-            gps_lat REAL, gps_lon REAL,
-            roll REAL,
-            pitch REAL,
-            yaw REAL
+            humidity    REAL,
+            signal      REAL,
+            pressure    REAL,
+            gps_lat     REAL,
+            gps_lon     REAL,
+            roll        REAL,
+            pitch       REAL,
+            yaw         REAL
         )
     ''')
+
+    # ── NEW: table to persist the last known mode ──
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS robot_mode (
+            id         INTEGER PRIMARY KEY CHECK (id = 1),
+            domain     TEXT    NOT NULL DEFAULT 'land',
+            mode_num   INTEGER,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+    # Seed one row so UPDATE always finds something
+    cursor.execute('''
+        INSERT OR IGNORE INTO robot_mode (id, domain, mode_num) VALUES (1, 'land', 1)
+    ''')
+
     conn.commit()
     conn.close()
 
 init_db()
 
-# Background MQTT Subscriber
-MQTT_BROKER = "002277b56cde45b29a96d3dd3ef81785.s1.eu.hivemq.cloud"
-MQTT_PORT = 8883
-MQTT_USER = "robot_interface"
-MQTT_PASS = "Pwd12345"
-MQTT_TOPIC = "robot/telemetry"
+# ─── MQTT ────────────────────────────────────────────────────────────────────
+
+MQTT_BROKER        = "002277b56cde45b29a96d3dd3ef81785.s1.eu.hivemq.cloud"
+MQTT_PORT          = 8883
+MQTT_USER          = "robot_interface"
+MQTT_PASS          = "Pwd12345"
+MQTT_TOPIC         = "robot/telemetry"
 MQTT_TOPIC_COMMAND = "robot/commands"
+MQTT_TOPIC_MODE    = "robot/mode"          # ← NEW dedicated mode topic
 
 client = None
+
+
+# ── NEW: mode handler (called from on_mqtt_message) ──────────────────────────
+def handle_set_mode(domain: str, mode_num):
+    """
+    Persist the new mode to DB, then re-publish it on the dedicated
+    robot/mode topic so the RPi (and any other subscriber) receives it cleanly.
+    """
+    # 1. Persist
+    try:
+        conn = sqlite3.connect(DB_FILE)
+        cursor = conn.cursor()
+        cursor.execute('''
+            UPDATE robot_mode
+            SET domain = ?, mode_num = ?, updated_at = CURRENT_TIMESTAMP
+            WHERE id = 1
+        ''', (domain, mode_num))
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"⚠️  DB error saving mode: {e}")
+
+    # 2. Re-publish on dedicated topic so RPi picks it up
+    mode_payload = json.dumps({"domain": domain, "mode": mode_num})
+    if client:
+        client.publish(MQTT_TOPIC_MODE, mode_payload)
+        print(f"📡 Mode published → {MQTT_TOPIC_MODE}: {mode_payload}")
+    else:
+        print("⚠️  MQTT client not ready; mode not re-published")
+
 
 def on_mqtt_connect(client, userdata, flags, reason_code, properties):
     if reason_code == 0:
         print("Backend connected to MQTT Broker!")
         client.subscribe(MQTT_TOPIC)
+        client.subscribe(MQTT_TOPIC_COMMAND)
+        print(f"Subscribed to: {MQTT_TOPIC}, {MQTT_TOPIC_COMMAND}")
     else:
         print(f"Backend MQTT connection failed with code: {reason_code}")
+
 
 def on_mqtt_message(client, userdata, message):
     try:
         payload = json.loads(message.payload.decode("utf-8"))
-        battery = payload.get("battery", None)
-        temperature = payload.get("temp", None)  # RPi script currently sends 'temp'
-        if temperature is None:
-            temperature = payload.get("temperature", None)
-        humidity = payload.get("humidity", None)
-        speed = payload.get("speed", None)
-        signal = payload.get("signal", None)
-        pressure = payload.get("pressure", None)
-        
-        conn = sqlite3.connect(DB_FILE)
-        cursor = conn.cursor()
-        
-        # Insert the new record
-        cursor.execute('''
-            INSERT INTO telemetry_history (battery, temperature, humidity, speed, signal, pressure)
-            VALUES (?, ?, ?, ?, ?, ?)
-        ''', (battery, temperature, humidity, speed, signal, pressure))
-        
-        # Delete any records older than 7 days
-        cursor.execute('''
-            DELETE FROM telemetry_history 
-            WHERE timestamp <= datetime('now', '-7 days')
-        ''')
-        
-        conn.commit()
-        conn.close()
+        topic   = message.topic
+
+        # ── Commands channel ─────────────────────────────────────────────────
+        if topic == MQTT_TOPIC_COMMAND:
+            action = payload.get("action")
+
+            if action == "set_mode":
+                value    = payload.get("value", {})
+                domain   = value.get("domain")    # "land" | "water"
+                mode_num = value.get("mode")      # 1 | 2 | 3 | None
+                print(f"🎮 set_mode received: domain={domain}, mode={mode_num}")
+                handle_set_mode(domain, mode_num)
+
+            else:
+                # Unknown command — log it
+                print(f"📨 Unknown command received: {payload}")
+
+        # ── Telemetry channel ────────────────────────────────────────────────
+        elif topic == MQTT_TOPIC:
+            battery     = payload.get("battery")
+            temperature = payload.get("temp") or payload.get("temperature")
+            humidity    = payload.get("humidity")
+            speed       = payload.get("speed")
+            signal      = payload.get("signal")
+            pressure    = payload.get("pressure")
+
+            conn = sqlite3.connect(DB_FILE)
+            cursor = conn.cursor()
+            cursor.execute('''
+                INSERT INTO telemetry_history
+                    (battery, temperature, humidity, signal, pressure)
+                VALUES (?, ?, ?, ?, ?)
+            ''', (battery, temperature, humidity, signal, pressure))
+            cursor.execute('''
+                DELETE FROM telemetry_history
+                WHERE timestamp <= datetime('now', '-7 days')
+            ''')
+            conn.commit()
+            conn.close()
+
+    except json.JSONDecodeError as e:
+        print(f"⚠️  Bad JSON on {message.topic}: {e}")
     except Exception as e:
-        print(f"Error processing MQTT message: {e}")
+        print(f"⚠️  Error handling message on {message.topic}: {e}")
+
 
 def start_mqtt_listener():
     global client
@@ -264,35 +319,36 @@ def start_mqtt_listener():
     client.tls_set()
     client.on_connect = on_mqtt_connect
     client.on_message = on_mqtt_message
-    
+
     try:
         client.connect(MQTT_BROKER, MQTT_PORT)
         client.loop_forever()
     except Exception as e:
         print(f"Failed to start MQTT listener: {e}")
 
-# Run MQTT in a background thread
 mqtt_thread = threading.Thread(target=start_mqtt_listener, daemon=True)
 mqtt_thread.start()
 
+# ─── Knowledge base helper ───────────────────────────────────────────────────
+
 def get_knowledge_context():
-    """Simple RAG helper: read .md and .txt files from knowledge dir."""
     context = ""
     try:
         if os.path.exists(KNOWLEDGE_DIR):
             for filename in os.listdir(KNOWLEDGE_DIR):
                 if filename.endswith(".md") or filename.endswith(".txt"):
                     with open(os.path.join(KNOWLEDGE_DIR, filename), "r", encoding="utf-8") as f:
-                        context += f"\n--- {filename} ---\n"
-                        context += f.read() + "\n"
+                        context += f"\n--- {filename} ---\n" + f.read() + "\n"
     except Exception as e:
         print(f"Error reading knowledge base: {e}")
     return context
 
-# Serve uploaded files
+# ─── Static files ────────────────────────────────────────────────────────────
+
 app.mount("/static/uploads", StaticFiles(directory=UPLOADS_DIR), name="static_uploads")
 
-# Gemini / Google Gen AI setup
+# ─── Gemini setup ────────────────────────────────────────────────────────────
+
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") or os.getenv("VITE_GEMINI_API_KEY")
 if GEMINI_API_KEY:
     try:
@@ -300,7 +356,7 @@ if GEMINI_API_KEY:
     except Exception as e:
         print(f"Error configuring genai: {e}")
 else:
-    print("WARNING: GEMINI_API_KEY not found. Chat endpoints will return a helpful message.")
+    print("WARNING: GEMINI_API_KEY not found.")
 
 SYSTEM_INSTRUCTION = (
     "You are the AI assistant for a Robot Interface. "
@@ -315,17 +371,54 @@ class ChatRequest(BaseModel):
     message: str
     image_url: Optional[str] = None
 
-@app.post("/command")
-async def send_command(command: dict):
-    if client is None:
-        raise HTTPException(status_code=500, detail="MQTT Client not initialized")
-    payload = json.dumps(command)
-    client.publish(MQTT_TOPIC_COMMAND, payload)
-    return {"status": "sent", "command": command}
+# ─── API Routes ──────────────────────────────────────────────────────────────
 
 @app.get("/")
 def read_root():
     return {"message": "Robot Interface Backend Online"}
+
+
+@app.post("/command")
+async def send_command(command: dict):
+    """
+    Generic command endpoint.
+    For set_mode actions the backend also persists the mode and
+    re-publishes it on robot/mode for the RPi to consume.
+    """
+    if client is None:
+        raise HTTPException(status_code=500, detail="MQTT Client not initialized")
+
+    # Publish raw command to robot/commands (existing behaviour)
+    payload = json.dumps(command)
+    client.publish(MQTT_TOPIC_COMMAND, payload)
+
+    # If this is a mode command, also handle it server-side immediately
+    if command.get("action") == "set_mode":
+        value    = command.get("value", {})
+        domain   = value.get("domain")
+        mode_num = value.get("mode")
+        handle_set_mode(domain, mode_num)
+
+    return {"status": "sent", "command": command}
+
+
+# ── NEW: get the last saved mode ─────────────────────────────────────────────
+@app.get("/mode")
+def get_current_mode():
+    """Returns the last known domain + mode number saved in the DB."""
+    try:
+        conn = sqlite3.connect(DB_FILE)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute("SELECT domain, mode_num, updated_at FROM robot_mode WHERE id = 1")
+        row = cursor.fetchone()
+        conn.close()
+        if row:
+            return dict(row)
+        return {"domain": "land", "mode_num": 1, "updated_at": None}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.post("/chat")
 async def chat_endpoint(request: ChatRequest):
@@ -334,18 +427,15 @@ async def chat_endpoint(request: ChatRequest):
 
     try:
         context = get_knowledge_context()
-
-        # Initialize model wrapper
-        model = genai.GenerativeModel(
+        model   = genai.GenerativeModel(
             model_name="gemini-3-flash-preview",
             system_instruction=SYSTEM_INSTRUCTION
         )
-
         full_prompt = f"Knowledge Base Context:\n{context}\n\nUser Question: {request.message}"
         parts = [full_prompt]
 
         if request.image_url:
-            filename = request.image_url.split("/")[-1]
+            filename  = request.image_url.split("/")[-1]
             file_path = os.path.join(UPLOADS_DIR, filename)
             if os.path.exists(file_path):
                 import base64
@@ -357,16 +447,11 @@ async def chat_endpoint(request: ChatRequest):
 
         response = model.generate_content(parts, request_options={"timeout": 15})
 
-        # Robust extraction of text from the response
         text_out = None
         if hasattr(response, "text") and response.text:
             text_out = response.text
         elif getattr(response, "parts", None):
-            text_parts = []
-            for p in response.parts:
-                if getattr(p, "text", None):
-                    text_parts.append(p.text)
-            text_out = "\n".join(text_parts)
+            text_out = "\n".join(p.text for p in response.parts if getattr(p, "text", None))
         else:
             text_out = str(response)
 
@@ -376,23 +461,23 @@ async def chat_endpoint(request: ChatRequest):
         print(f"Gemini Error: {e}")
         return {"response": f"❌ API Error: {str(e)}"}
 
+
 @app.post("/upload")
 async def upload_image(file: UploadFile = File(...)):
     try:
         file_location = f"{UPLOADS_DIR}/{file.filename}"
         with open(file_location, "wb+") as buffer:
             shutil.copyfileobj(file.file, buffer)
-        img_url = f"/static/uploads/{file.filename}"
-        return {"url": img_url, "filename": file.filename}
+        return {"url": f"/static/uploads/{file.filename}", "filename": file.filename}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Could not upload file: {e}")
 
+
 @app.get("/screenshots")
 def get_screenshots():
-    files = []
     try:
-        entries = os.listdir(UPLOADS_DIR)
-        for entry in entries:
+        files = []
+        for entry in os.listdir(UPLOADS_DIR):
             full_path = os.path.join(UPLOADS_DIR, entry)
             if os.path.isfile(full_path):
                 stats = os.stat(full_path)
@@ -406,15 +491,15 @@ def get_screenshots():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @app.delete("/screenshots")
 def delete_all_screenshots():
     try:
         if not os.path.exists(UPLOADS_DIR):
             return {"message": "Uploads directory does not exist, nothing to delete"}
-        entries = os.listdir(UPLOADS_DIR)
         deleted_count = 0
         errors = []
-        for entry in entries:
+        for entry in os.listdir(UPLOADS_DIR):
             file_path = os.path.join(UPLOADS_DIR, entry)
             if os.path.isfile(file_path):
                 try:
@@ -422,9 +507,10 @@ def delete_all_screenshots():
                     deleted_count += 1
                 except Exception as e:
                     errors.append(f"{entry}: {e}")
-        return {"message": f"Deleted {deleted_count} files", "errors": errors if errors else None}
+        return {"message": f"Deleted {deleted_count} files", "errors": errors or None}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.delete("/screenshots/{filename}")
 def delete_screenshot(filename: str):
@@ -432,8 +518,8 @@ def delete_screenshot(filename: str):
     if os.path.exists(file_path):
         os.remove(file_path)
         return {"message": "Deleted"}
-    else:
-        raise HTTPException(status_code=404, detail="File not found")
+    raise HTTPException(status_code=404, detail="File not found")
+
 
 @app.get("/telemetry/history")
 def get_telemetry_history(limit: int = 100):
@@ -442,22 +528,18 @@ def get_telemetry_history(limit: int = 100):
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
         cursor.execute('''
-            SELECT * FROM telemetry_history 
-            ORDER BY timestamp DESC 
+            SELECT * FROM telemetry_history
+            ORDER BY timestamp DESC
             LIMIT ?
         ''', (limit,))
         rows = cursor.fetchall()
         conn.close()
-        
-        history = []
-        for row in rows:
-            history.append(dict(row))
-        return history
+        return [dict(row) for row in rows]
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 if __name__ == '__main__':
     import uvicorn
     port = int(os.environ.get("PORT", 8000))
     uvicorn.run(app, host="0.0.0.0", port=port)
-
