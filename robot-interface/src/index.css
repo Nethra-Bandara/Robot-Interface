@@ -63,9 +63,8 @@ body {
 
 /* Dashboard Layout */
 .dashboard {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  display: grid;
+  grid-template-columns: 1fr 600px;
   height: 100vh;
   height: 100dvh;
   overflow: hidden;
@@ -201,6 +200,15 @@ body {
   border-left: 3px solid var(--accent-neon);
 }
 
+.controls-wrapper {
+    display: flex;
+    flex-direction: column; /* Stacks ModeSelector and Control buttons */
+    align-items: center;    /* Centers horizontally */
+    justify-content: center; /* Centers vertically */
+    width: 100%;
+    margin-top: 20px;
+}
+
 input {
   background: var(--input-bg);
   border: 1px solid var(--panel-border);
@@ -237,15 +245,6 @@ input {
 
 .screenshot-card.active {
   border-color: var(--accent-primary);
-}
-
-.controls-wrapper {
-    display: flex;
-    flex-direction: column; /* Stacks ModeSelector and Control buttons */
-    align-items: center;    /* Centers horizontally */
-    justify-content: center; /* Centers vertically */
-    width: 100%;
-    margin-top: 20px;
 }
 
 input {
