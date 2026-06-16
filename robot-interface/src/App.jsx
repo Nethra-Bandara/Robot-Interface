@@ -217,8 +217,7 @@ function App() {
           telemetry={telemetry}
         />
 
-        <ModeSelector 
-        theme={theme} onModeChange={setMode} />
+        
 
         <div className="content-panel">
           <ScreenshotGallery
@@ -237,7 +236,11 @@ function App() {
             onModeChange={setMode}
             theme={theme}
             telemetry={telemetry}
+
           />
+
+          <ModeSelector 
+        theme={theme} onModeChange={setMode} />
         </div>
 
         <ConfirmDialog
