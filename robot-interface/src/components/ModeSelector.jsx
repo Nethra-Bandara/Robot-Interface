@@ -99,7 +99,7 @@ const ModeSelector = ({ theme }) => {
                 ? 'transparent'
                 : '#4caf50',
             backgroundColor: domain === 'WATER'
-                ? 'transparent'
+                ? 'transparent !important'
                 : undefined,}
                     }}>
                         {n}
