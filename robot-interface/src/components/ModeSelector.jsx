@@ -81,7 +81,7 @@ const ModeSelector = ({ theme }) => {
                 MODE
             </Typography>
             <ToggleButtonGroup
-                value={modeNum}
+                value={domain === 'WATER' ? null : modeNum}
                 exclusive
                 onChange={handleModeNumChange}
                 aria-label="mode number"
