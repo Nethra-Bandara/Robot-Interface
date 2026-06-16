@@ -124,7 +124,8 @@ export const useMQTT = () => {
     };
     const sendCameraCommand = (direction) => {
         if (!client) return;
-        client.publish('robot/camera_control', String(direction), { qos: 1 });
+        const payload = JSON.stringify({ direction: String(direction) });
+        client.publish('robot/camera_control', payload, { qos: 1 });
         console.log('Camera direction command sent:', direction);
     };
 
