@@ -200,14 +200,7 @@ body {
   border-left: 3px solid var(--accent-neon);
 }
 
-.controls-wrapper {
-    display: flex;
-    flex-direction: column; /* Stacks ModeSelector and Control buttons */
-    align-items: center;    /* Centers horizontally */
-    justify-content: center; /* Centers vertically */
-    width: 100%;
-    margin-top: 20px;
-}
+
 
 input {
   background: var(--input-bg);
