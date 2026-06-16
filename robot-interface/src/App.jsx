@@ -217,9 +217,7 @@ function App() {
           telemetry={telemetry}
         />
 
-        <ModeSelector 
-        theme={theme} onModeChange={setMode} />
-        </div>
+        
 
         <div className="content-panel">
           <ScreenshotGallery
@@ -232,7 +230,8 @@ function App() {
             isPurging={isPurging}
           />
 
-          
+          <ModeSelector 
+        theme={theme} onModeChange={setMode} />
 
           <Sidebar
             activeContext={screenshots[activeIndex]}
@@ -240,10 +239,8 @@ function App() {
             onModeChange={setMode}
             theme={theme}
             telemetry={telemetry}
-
           />
-
-          
+        </div>
 
         <ConfirmDialog
           open={showConfirm}
