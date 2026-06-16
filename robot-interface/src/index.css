@@ -240,6 +240,21 @@ input {
   border-color: var(--accent-primary);
 }
 
+.control-bar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 24px;
+  width: 100%;
+}
+
+.mode-selector {
+  display: flex;
+  flex-direction: column;
+  min-width: 220px;
+  flex-shrink: 0;
+}
+
 input {
   border: var(--border);
 }

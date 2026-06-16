@@ -7,7 +7,6 @@ import { useMQTT } from './hooks/useMQTT';
 import useMobile from './hooks/useMobile';
 import MobileLayout from './components/MobileLayout';
 import ConfirmDialog from './components/ConfirmDialog';
-import ModeSelector from './components/ModeSelector';
 
 
 import './App.css';
@@ -215,11 +214,7 @@ function App() {
           sendCameraCommand={sendCameraCommand}
           sendModeCommand={sendModeCommand}
           telemetry={telemetry}
-          >
-              <ModeSelector 
-        theme={theme} onModeChange={setMode} />
-        
-        </VisionZone>
+          />
 
         
 
