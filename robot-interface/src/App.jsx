@@ -215,7 +215,11 @@ function App() {
           sendCameraCommand={sendCameraCommand}
           sendModeCommand={sendModeCommand}
           telemetry={telemetry}
-        />
+          >
+              <ModeSelector 
+        theme={theme} onModeChange={setMode} />
+        
+        </VisionZone>
 
         
 
@@ -240,8 +244,7 @@ function App() {
             telemetry={telemetry}
           />
 
-            <ModeSelector 
-        theme={theme} onModeChange={setMode} />
+          
         </div>
 
         <ConfirmDialog
