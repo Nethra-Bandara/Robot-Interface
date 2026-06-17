@@ -249,41 +249,41 @@ input {
   
 }
 
+/* --- Mode Selector Updates --- */
 .mode-selector {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  background: transparent !important; /* Removes background */
+  background: transparent !important;
 }
 
 .mode-selector-group {
   display: flex;
   background: transparent;
-  border: none;
+  border: 1px solid var(--panel-border);
+  border-radius: 8px; /* Rounded outer container */
+  overflow: hidden;
 }
 
 .mode-btn {
   padding: 10px 20px;
   cursor: pointer;
-  border: 1px solid var(--panel-border);
+  border: none;
   background: transparent;
   color: var(--text-main);
   transition: all 0.3s ease;
+  flex: 1;
 }
 
-/* Rounded Edges */
-.mode-btn:first-child {
-  border-radius: 8px 0 0 8px;
-}
-.mode-btn:last-child {
-  border-radius: 0 8px 8px 0;
-}
-
-/* Active State: Neon Green */
+/* Active State: Neon Green matching the mic button color */
 .mode-btn.active {
   background: var(--accent-primary) !important;
-  color: #000;
-  border-color: var(--accent-primary);
+  color: #000 !important;
+}
+
+/* Ensure borders separate buttons only */
+.mode-btn:not(:last-child) {
+  border-right: 1px solid var(--panel-border);
 }
 
 /* --- Camera/Mic Buttons (Matching Design) --- */

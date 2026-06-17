@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Typography, ToggleButton, ToggleButtonGroup } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import { Terrain, Water } from '@mui/icons-material';
 
 const BACKEND_URL = 'https://robot-interface-production-d0d3.up.railway.app';
@@ -16,98 +16,168 @@ const sendRobotCommand = async (action, value) => {
     }
 };
 
-const ModeSelector = ({ theme, onModeChange }) => {
-    const [domain, setDomain] = useState('LAND');   // 'LAND' | 'WATER'
+const ModeSelector = ({ theme, onModeChange, sendModeCommand }) => {
+    const [domain, setDomain] = useState('LAND');
     const [modeNum, setModeNum] = useState('1');
-    const [lastLandMode, setLastLandMode] = useState('1');    // '1' | '2' | '3'
+    const [lastLandMode, setLastLandMode] = useState('1');
 
-    const handleDomainChange = (_, newDomain) => {
-        if (!newDomain) return;
+    const isDark = theme === 'dark';
+    const isAqua = domain === 'WATER';
+
+    const handleDomainChange = (newDomain) => {
+        if (newDomain === domain) return;
         setDomain(newDomain);
         if (onModeChange) onModeChange(newDomain);
 
         if (newDomain === 'WATER') {
-            // Water: no sub-mode, publish water mode directly
-            setModeNum(null);
             sendRobotCommand('set_mode', { domain: 'water', mode: null });
         } else {
-            // Switching back to land: restore last selected mode number
             setModeNum(lastLandMode);
-            sendRobotCommand('set_mode', { domain: 'land', mode: parseInt(modeNum) });
+            sendRobotCommand('set_mode', { domain: 'land', mode: parseInt(lastLandMode) });
         }
     };
 
-    const handleModeNumChange = (_, newNum) => {
-        if (!newNum) return;   // prevent deselecting
+    const handleModeNumChange = (newNum) => {
+        if (isAqua) return;
         setModeNum(newNum);
         setLastLandMode(newNum);
         sendRobotCommand('set_mode', { domain: 'land', mode: parseInt(newNum) });
     };
 
-    const isDark = theme === 'dark';
-    const baseBg = isDark ? '#141a16' : '#fff';
-    const innerBg = isDark ? 'rgba(255,255,255,0.05)' : '#f8fdfa';
-    const innerBorder = isDark ? 'none' : '1.5px solid #1a3324';
+    // ── Colours ──────────────────────────────────────────────────────────────
+    const accent      = '#00ff88';
+    const bgOuter     = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)';
+    const borderColor = isDark ? 'rgba(255,255,255,0.12)' : 'rgba(26,51,36,0.25)';
+    const textDim     = isDark ? 'rgba(255,255,255,0.45)' : 'rgba(10,28,18,0.45)';
+    const textActive  = isDark ? '#e8f5e9' : '#0a1c12';
+    const labelColor  = isDark ? 'rgba(255,255,255,0.35)' : 'rgba(10,28,18,0.4)';
 
-    return (
-        <Box sx={{ p: 2, bgcolor: baseBg, borderBottom: `1px solid ${isDark ? 'transparent' : 'rgba(0,0,0,0.1)'}` }}>
-
-            {/* ── Domain selector ── */}
-            <Typography variant="caption" sx={{ color: '#aaa', mb: 1, display: 'block' }}>
-                OPERATIONAL DOMAIN
-            </Typography>
-            <ToggleButtonGroup
-                value={domain}
-                exclusive
-                onChange={handleDomainChange}
-                aria-label="domain mode"
-                sx={{ width: '100%', mb: 2, bgcolor: innerBg, border: innerBorder }}
-            >
-                <ToggleButton value="LAND" sx={{
-                    flex: 1, color: isDark ? '#aaa' : '#555',
-                    '&.Mui-selected': { color: '#4caf50', borderColor: '#4caf50' }
-                }}>
-                    <Terrain fontSize="small" sx={{ mr: 1 }} /> Land
-                </ToggleButton>
-                <ToggleButton value="WATER" sx={{
-                    flex: 1, color: isDark ? '#aaa' : '#555',
-                    border: '1px solid transparent',
-                    '&.Mui-selected': { color: '#2979ff', borderColor: '#2979ff !important' }
-                }}>
-                    <Water fontSize="small" sx={{ mr: 1 }} /> Aqua
-                </ToggleButton>
-            </ToggleButtonGroup>
-
-            {/* ── Mode number selector (disabled in Water mode) ── */}
-            <Typography variant="caption" sx={{ color: '#aaa', mb: 1, display: 'block' }}>
-                MODE
-            </Typography>
-            <ToggleButtonGroup
-                value={domain === 'WATER' ? null : modeNum}
-                exclusive
-                onChange={handleModeNumChange}
-                aria-label="mode number"
-                disabled={domain === 'WATER'}   // disables all children at once
-                sx={{ width: '100%', bgcolor: innerBg, border: innerBorder,
-                    opacity: domain === 'WATER' ? 0.4 : 1,
-                    transition: 'opacity 0.2s'
+    // ── Shared domain button ─────────────────────────────────────────────────
+    const DomainBtn = ({ value, icon: Icon, label }) => {
+        const active = domain === value;
+        return (
+            <Box
+                onClick={() => handleDomainChange(value)}
+                sx={{
+                    flex: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    py: '12px',
+                    cursor: 'pointer',
+                    borderRadius: '10px',
+                    color: active ? textActive : textDim,
+                    fontWeight: active ? 600 : 400,
+                    fontSize: '0.85rem',
+                    letterSpacing: '0.08em',
+                    transition: 'all 0.2s ease',
+                    userSelect: 'none',
+                    // Active domain gets a subtle inset glow, no fill
+                    boxShadow: active
+                        ? `inset 0 0 0 1.5px ${isDark ? 'rgba(255,255,255,0.25)' : 'rgba(26,51,36,0.5)'},
+                           0 0 12px rgba(0,255,136,0.08)`
+                        : 'none',
+                    '&:hover': {
+                        color: active ? textActive : (isDark ? 'rgba(255,255,255,0.7)' : 'rgba(10,28,18,0.7)'),
+                    },
                 }}
             >
-                {['1', '2', '3'].map(n => (
-                    <ToggleButton key={n} value={n} sx={{
-                        flex: 1, color: isDark ? '#aaa' : '#555',
-                        '&.Mui-selected': { color: domain === 'WATER' ? (isDark ? '#aaa' : '#555')
-                : '#4caf50', borderColor: domain === 'WATER'
-                ? 'transparent'
-                : '#4caf50',
-            backgroundColor: domain === 'WATER'
-                ? 'transparent !important'
-                : undefined,}
-                    }}>
-                        {n}
-                    </ToggleButton>
-                ))}
-            </ToggleButtonGroup>
+                <Icon sx={{ fontSize: '1.1rem' }} />
+                <span>{label}</span>
+            </Box>
+        );
+    };
+
+    // ── Mode number button ───────────────────────────────────────────────────
+    const ModeBtn = ({ num }) => {
+        const active = !isAqua && modeNum === num;
+        return (
+            <Box
+                onClick={() => handleModeNumChange(num)}
+                sx={{
+                    flex: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    py: '14px',
+                    cursor: isAqua ? 'not-allowed' : 'pointer',
+                    borderRadius: '10px',
+                    color: active ? accent : (isAqua ? 'transparent' : textDim),
+                    fontSize: '1.1rem',
+                    fontWeight: active ? 700 : 400,
+                    letterSpacing: '0.05em',
+                    transition: 'all 0.25s ease',
+                    userSelect: 'none',
+                    // Active mode: just the number glows green, no background fill
+                    textShadow: active ? `0 0 12px ${accent}88` : 'none',
+                    '&:hover': !isAqua ? {
+                        color: active ? accent : (isDark ? 'rgba(255,255,255,0.6)' : 'rgba(10,28,18,0.6)'),
+                    } : {},
+                }}
+            >
+                {num}
+            </Box>
+        );
+    };
+
+    return (
+        <Box sx={{ p: '12px 8px', display: 'flex', flexDirection: 'column', gap: '10px', minWidth: 200 }}>
+
+            {/* ── Label ── */}
+            <Typography sx={{
+                fontSize: '0.65rem',
+                letterSpacing: '0.15em',
+                color: labelColor,
+                fontWeight: 600,
+                pl: '2px',
+            }}>
+                OPERATIONAL DOMAIN
+            </Typography>
+
+            {/* ── Domain Toggle ── */}
+            <Box sx={{
+                display: 'flex',
+                borderRadius: '12px',
+                border: `1px solid ${borderColor}`,
+                background: bgOuter,
+                overflow: 'hidden',
+                p: '3px',
+                gap: '3px',
+            }}>
+                <DomainBtn value="LAND"  icon={Terrain} label="LAND"  />
+                <DomainBtn value="WATER" icon={Water}   label="AQUA"  />
+            </Box>
+
+            {/* ── Mode Label ── */}
+            <Typography sx={{
+                fontSize: '0.65rem',
+                letterSpacing: '0.15em',
+                color: isAqua ? 'transparent' : labelColor,
+                fontWeight: 600,
+                pl: '2px',
+                transition: 'color 0.25s ease',
+            }}>
+                MODE
+            </Typography>
+
+            {/* ── Mode Number Toggle ── */}
+            <Box sx={{
+                display: 'flex',
+                borderRadius: '12px',
+                border: `1px solid ${isAqua ? 'transparent' : borderColor}`,
+                background: isAqua ? 'transparent' : bgOuter,
+                overflow: 'hidden',
+                p: '3px',
+                gap: '3px',
+                transition: 'all 0.25s ease',
+                pointerEvents: isAqua ? 'none' : 'auto',
+            }}>
+                <ModeBtn num="1" />
+                <ModeBtn num="2" />
+                <ModeBtn num="3" />
+            </Box>
+
         </Box>
     );
 };
