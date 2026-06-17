@@ -537,7 +537,6 @@ const [keys, setKeys] = useState({
                             <PhotoCamera />
                         </IconButton>
                     </Box>
-                </Box>
             </Box>
         </main>
     );
