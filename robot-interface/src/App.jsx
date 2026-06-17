@@ -8,7 +8,6 @@ import useMobile from './hooks/useMobile';
 import MobileLayout from './components/MobileLayout';
 import ConfirmDialog from './components/ConfirmDialog';
 import { useBreakpoint } from './hooks/useBreakpoint';
-import MobileLayout from './components/MobileLayout';
 import TabletLayout from './components/TabletLayout';
 import DesktopLayout from './components/DesktopLayout';
 import { useMediaQuery } from '@mui/material';
