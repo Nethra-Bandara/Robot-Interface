@@ -1,3 +1,0 @@
-VITE_API_URL = https://robot-interface-production-d0d3.up.railway.app/
-VITE_USE_MOCK = false
-VITE_WS_URL=wss://robot-interface-production-d0d3.up.railway.app/ws/viewer
