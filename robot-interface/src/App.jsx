@@ -36,11 +36,15 @@ function App() {
   const [screenshots, setScreenshots] = useState([]);
   const [activeIndex, setActiveIndex] = useState(null);
   const [mode, setMode] = useState('LAND');
+  const [theme, setTheme] = useState('dark'); // not undefined
+  const onToggleTheme = () => setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+
+
 
   const layoutProps = {
-    mode, setMode, handleCapture, screenshots,
+    mode, setMode, onCapture: handleCapture,handleCapture, screenshots,
     handleSelectScreenshot, activeIndex, handleDelete,
-    handleDeleteAll, theme, isPurging, onToggleTheme,
+    handleDeleteAll, theme, isPurging, onToggleTheme: toggleTheme,
     sendMoveCommand, sendSpeedCommand, sendCameraToggle,
     sendMicToggle, sendLightsToggle, sendCameraCommand,
     sendModeCommand, telemetry
@@ -79,7 +83,7 @@ function App() {
     sendCameraCommand,
     sendModeCommand
   } = useMQTT();
-  const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'dark');
+  //const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'dark');
   const [isPurging, setIsPurging] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const isMobile = useMobile();
@@ -267,6 +271,11 @@ function App() {
   );
   return (
     <Box className={`theme-${theme}`}>
+      sx={{ 
+            minHeight: '100dvh',
+            bgcolor: 'var(--bg-page)',
+            background: 'var(--bg-gradient)',
+        }}
         {isMobile && <MobileLayout {...layoutProps} />}
         {!isMobile && isTablet && <TabletLayout {...layoutProps} />}
         {!isMobile && !isTablet && <DesktopLayout {...layoutProps} />}
