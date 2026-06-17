@@ -24,7 +24,7 @@ app = FastAPI()
 class SignalingManager:
     def __init__(self):
         self.broadcaster: WebSocket | None = None
-        self.viewers: list[WebSocket] = []
+        self.viewers: dict[int, WebSocket] = {}  # viewerId → WebSocket
 
     async def connect_broadcaster(self, ws: WebSocket):
         await ws.accept()
@@ -33,34 +33,42 @@ class SignalingManager:
 
     async def connect_viewer(self, ws: WebSocket):
         await ws.accept()
-        self.viewers.append(ws)
-        print(f"Viewer connected. Total viewers: {len(self.viewers)}")
+        self.viewers[id(ws)] = ws
+        print(f"Viewer {id(ws)} connected. Total viewers: {len(self.viewers)}")
 
     def disconnect_broadcaster(self):
         self.broadcaster = None
         print("Broadcaster disconnected")
 
     def disconnect_viewer(self, ws: WebSocket):
-        if ws in self.viewers:
-            self.viewers.remove(ws)
-        print(f"Viewer disconnected. Total viewers: {len(self.viewers)}")
+        self.viewers.pop(id(ws), None)
+        print(f"Viewer {id(ws)} disconnected. Total viewers: {len(self.viewers)}")
 
     async def send_to_broadcaster(self, message: dict):
         if self.broadcaster:
-            await self.broadcaster.send_json(message)
+            try:
+                await self.broadcaster.send_json(message)
+            except Exception:
+                self.broadcaster = None
 
-    async def send_to_viewer(self, ws: WebSocket, message: dict):
-        await ws.send_json(message)
+    async def send_to_viewer(self, viewer_id: int, message: dict):
+        ws = self.viewers.get(viewer_id)
+        if ws:
+            try:
+                await ws.send_json(message)
+            except Exception:
+                self.viewers.pop(viewer_id, None)
 
     async def broadcast_to_viewers(self, message: dict):
         dead = []
-        for viewer in self.viewers:
+        for vid, ws in self.viewers.items():
             try:
-                await viewer.send_json(message)
+                await ws.send_json(message)
             except Exception:
-                dead.append(viewer)
-        for d in dead:
-            self.viewers.remove(d)
+                dead.append(vid)
+        for vid in dead:
+            self.viewers.pop(vid, None)
+
 
 signaling = SignalingManager()
 
@@ -84,13 +92,25 @@ async def broadcaster_ws(websocket: WebSocket):
             msg_type = data.get("type")
             if msg_type == "ping":
                 continue
-            if msg_type == "offer":
-                await signaling.broadcast_to_viewers(data)
+
+            elif msg_type == "offer":
+                # Forward offer to specific viewer
+                viewer_id = data.get("viewerId")
+                if viewer_id:
+                    await signaling.send_to_viewer(viewer_id, {
+                        "type": "offer",
+                        "offer": data.get("offer")
+                    })
+
             elif msg_type == "ice-broadcaster":
-                await signaling.broadcast_to_viewers({
-                    "type": "ice-broadcaster",
-                    "candidate": data.get("candidate")
-                })
+                # Forward ICE to specific viewer
+                viewer_id = data.get("viewerId")
+                if viewer_id:
+                    await signaling.send_to_viewer(viewer_id, {
+                        "type": "ice-broadcaster",
+                        "candidate": data.get("candidate")
+                    })
+
     except WebSocketDisconnect:
         signaling.disconnect_broadcaster()
     finally:
@@ -100,6 +120,7 @@ async def broadcaster_ws(websocket: WebSocket):
 @app.websocket("/ws/viewer")
 async def viewer_ws(websocket: WebSocket):
     await signaling.connect_viewer(websocket)
+    viewer_id = id(websocket)
 
     async def ping():
         while True:
@@ -113,32 +134,37 @@ async def viewer_ws(websocket: WebSocket):
     await asyncio.sleep(0.5)
 
     try:
+        # Tell broadcaster about new viewer, passing the viewerId
         if signaling.broadcaster:
-            await signaling.send_to_broadcaster({"type": "new-viewer"})
+            await signaling.send_to_broadcaster({
+                "type": "new-viewer",
+                "viewerId": viewer_id
+            })
 
         while True:
             data = await websocket.receive_json()
             msg_type = data.get("type")
             if msg_type == "ping":
                 continue
-            if msg_type == "answer":
+
+            elif msg_type == "answer":
                 await signaling.send_to_broadcaster({
                     "type": "answer",
                     "answer": data.get("answer"),
-                    "viewerId": id(websocket)
+                    "viewerId": viewer_id
                 })
+
             elif msg_type == "ice-viewer":
                 await signaling.send_to_broadcaster({
                     "type": "ice-viewer",
                     "candidate": data.get("candidate"),
-                    "viewerId": id(websocket)
+                    "viewerId": viewer_id
                 })
+
     except WebSocketDisconnect:
         signaling.disconnect_viewer(websocket)
     finally:
         ping_task.cancel()
-
-
 # ─── CORS ────────────────────────────────────────────────────────────────────
 
 FRONTEND_ORIGINS = [

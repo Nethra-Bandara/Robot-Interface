@@ -1,51 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8" />
-    <title>Broadcaster</title>
-    <style>
-        body {
-            background: #111;
-            color: #eee;
-            font-family: monospace;
-            padding: 20px;
-        }
-
-        video {
-            width: 400px;
-            border: 2px solid #444;
-            border-radius: 8px;
-            display: block;
-            margin: 16px 0;
-        }
-
-        #status {
-            color: #4ade80;
-            margin-bottom: 8px;
-        }
-
-        #log {
-            font-size: 12px;
-            color: #888;
-            max-height: 200px;
-            overflow-y: auto;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <title>Broadcaster</title>
+  <style>
+    body { background: #111; color: #eee; font-family: monospace; padding: 20px; }
+    video { width: 400px; border: 2px solid #444; border-radius: 8px; display: block; margin: 16px 0; }
+    #status { color: #4ade80; margin-bottom: 8px; }
+    #viewers { color: #facc15; margin-bottom: 8px; }
+    #log { font-size: 12px; color: #888; max-height: 300px; overflow-y: auto; }
+  </style>
 </head>
-
 <body>
-    <h2>📡 Broadcaster (Laptop)</h2>
-    <div id="status">Connecting...</div>
-    <video id="localVideo" autoplay muted playsinline></video>
-    <div id="log"></div>
+  <h2>📡 Broadcaster</h2>
+  <div id="status">Connecting...</div>
+  <div id="viewers">Viewers: 0</div>
+  <video id="localVideo" autoplay muted playsinline></video>
+  <div id="log"></div>
 
-    <script>
+  <script>
     const WS_URL = 'wss://robot-interface-production-d0d3.up.railway.app/ws/broadcaster';
     const ICE_SERVERS = [
-  {
-        urls: "stun:stun.relay.metered.ca:80",
-      },
+      { urls: "stun:stun.relay.metered.ca:80" },
       {
         urls: "turn:global.relay.metered.ca:80",
         username: "eb316b848a7a2a268f409f3e",
@@ -66,114 +42,177 @@
         username: "eb316b848a7a2a268f409f3e",
         credential: "FzXzeTEot3tpT4Ab",
       },
-];
+    ];
 
     const statusEl = document.getElementById('status');
+    const viewersEl = document.getElementById('viewers');
     const logEl = document.getElementById('log');
     const localVideo = document.getElementById('localVideo');
 
-    const peerConnections = {};  // viewerId → RTCPeerConnection
+    // viewerId → { pc, iceCandidateQueue }
+    const peers = {};
     let localStream = null;
     let ws = null;
-    let pendingPc = null;  // the PC waiting for an answer
-    let pendingId = null;
+    let wsReconnectTimer = null;
 
     function log(msg) {
-        console.log(msg);
-        logEl.innerHTML += `<div>${new Date().toLocaleTimeString()} ${msg}</div>`;
-        logEl.scrollTop = logEl.scrollHeight;
+      console.log(msg);
+      const time = new Date().toLocaleTimeString();
+      logEl.innerHTML += `<div>${time} ${msg}</div>`;
+      logEl.scrollTop = logEl.scrollHeight;
+      // Keep log from growing forever
+      while (logEl.children.length > 100) logEl.removeChild(logEl.firstChild);
     }
 
+    function updateViewerCount() {
+      viewersEl.textContent = `Viewers: ${Object.keys(peers).length}`;
+    }
+
+    // ── Create a peer connection for a specific viewer ──────────────────────
+    async function createPeerForViewer(viewerId) {
+      // Clean up any existing PC for this viewer
+      if (peers[viewerId]) {
+        peers[viewerId].pc.close();
+        delete peers[viewerId];
+      }
+
+      const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
+      peers[viewerId] = { pc, iceCandidateQueue: [] };
+
+      // Add all local tracks
+      localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+
+      pc.onicecandidate = (e) => {
+        if (e.candidate && ws?.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({
+            type: 'ice-broadcaster',
+            candidate: e.candidate,
+            viewerId
+          }));
+        }
+      };
+
+      pc.onconnectionstatechange = () => {
+        log(`Viewer ${viewerId} state: ${pc.connectionState}`);
+        if (pc.connectionState === 'failed' || pc.connectionState === 'closed') {
+          log(`Viewer ${viewerId} failed — cleaning up`);
+          pc.close();
+          delete peers[viewerId];
+          updateViewerCount();
+        }
+        if (pc.connectionState === 'connected') {
+          updateViewerCount();
+        }
+      };
+
+      pc.oniceconnectionstatechange = () => {
+        if (pc.iceConnectionState === 'failed') {
+          log(`ICE failed for viewer ${viewerId} — restarting ICE`);
+          pc.restartIce();
+        }
+      };
+
+      // Create and send offer
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+      ws.send(JSON.stringify({ type: 'offer', offer: pc.localDescription, viewerId }));
+      log(`Offer sent to viewer ${viewerId}`);
+
+      return pc;
+    }
+
+    // ── WebSocket connection ────────────────────────────────────────────────
+    function connectWS() {
+      clearTimeout(wsReconnectTimer);
+
+      ws = new WebSocket(WS_URL);
+
+      ws.onopen = () => {
+        statusEl.textContent = '🟢 Connected to signaling server';
+        log('WebSocket connected');
+      };
+
+      ws.onclose = () => {
+        statusEl.textContent = '🔴 Disconnected — reconnecting in 3s...';
+        log('WebSocket disconnected — will reconnect');
+        wsReconnectTimer = setTimeout(connectWS, 3000);
+      };
+
+      ws.onerror = () => {
+        log('WebSocket error');
+      };
+
+      ws.onmessage = async (event) => {
+        const data = JSON.parse(event.data);
+        if (data.type === 'ping') return;
+
+        // New viewer joined
+        if (data.type === 'new-viewer') {
+          const viewerId = data.viewerId;
+          log(`New viewer: ${viewerId}`);
+          await createPeerForViewer(viewerId);
+          updateViewerCount();
+        }
+
+        // Viewer answered our offer
+        else if (data.type === 'answer') {
+          const viewerId = data.viewerId;
+          const peer = peers[viewerId];
+          if (!peer) {
+            log(`Answer from unknown viewer ${viewerId} — ignoring`);
+            return;
+          }
+          try {
+            await peer.pc.setRemoteDescription(new RTCSessionDescription(data.answer));
+            log(`Remote description set for viewer ${viewerId}`);
+
+            // Flush any queued ICE candidates
+            for (const candidate of peer.iceCandidateQueue) {
+              await peer.pc.addIceCandidate(new RTCIceCandidate(candidate));
+            }
+            peer.iceCandidateQueue = [];
+          } catch (e) {
+            log(`Error setting remote description for ${viewerId}: ${e}`);
+          }
+        }
+
+        // ICE candidate from a viewer
+        else if (data.type === 'ice-viewer') {
+          const viewerId = data.viewerId;
+          const peer = peers[viewerId];
+          if (!peer || !data.candidate) return;
+
+          try {
+            if (peer.pc.remoteDescription) {
+              await peer.pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+            } else {
+              // Queue it until remote description is set
+              peer.iceCandidateQueue.push(data.candidate);
+            }
+          } catch (e) {
+            log(`ICE candidate error for ${viewerId}: ${e}`);
+          }
+        }
+      };
+    }
+
+    // ── Init ───────────────────────────────────────────────────────────────
     async function init() {
+      try {
         localStream = await navigator.mediaDevices.getUserMedia({
-            video: { width: { ideal: 1280 }, height: { ideal: 720 } },
-            audio: false
+          video: { width: { ideal: 1280 }, height: { ideal: 720 } },
+          audio: false
         });
         localVideo.srcObject = localStream;
         log('Webcam started');
-
-        ws = new WebSocket(WS_URL);
-
-        ws.onopen = () => {
-            statusEl.textContent = '🟢 Connected to signaling server';
-            log('WebSocket connected');
-        };
-
-        ws.onclose = () => {
-            statusEl.textContent = '🔴 Disconnected — refresh to reconnect';
-            log('WebSocket disconnected');
-        };
-
-        ws.onmessage = async (event) => {
-            const data = JSON.parse(event.data);
-            if (data.type === 'ping') return;
-
-            if (data.type === 'new-viewer') {
-                log('New viewer joined, creating offer...');
-                await createOffer();
-            }
-
-            else if (data.type === 'answer') {
-                const viewerId = data.viewerId;
-                log(`Answer received, viewerId=${viewerId}`);
-
-                // Move pendingPc into peerConnections under the real viewerId
-                if (pendingPc) {
-                    peerConnections[viewerId] = pendingPc;
-                    pendingPc = null;
-                    await peerConnections[viewerId].setRemoteDescription(
-                        new RTCSessionDescription(data.answer)
-                    );
-                    log(`Remote description set for viewer ${viewerId}`);
-                }
-            }
-
-            else if (data.type === 'ice-viewer') {
-                const viewerId = data.viewerId;
-                const pc = peerConnections[viewerId] || pendingPc;
-                if (pc && data.candidate) {
-                    await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
-                }
-            }
-        };
-    }
-
-    async function createOffer() {
-        // Close any unresolved pending connection
-        if (pendingPc) {
-            pendingPc.close();
-            pendingPc = null;
-        }
-
-        const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
-        pendingPc = pc;
-
-        localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
-
-        pc.onicecandidate = (e) => {
-            if (e.candidate) {
-                ws.send(JSON.stringify({
-                    type: 'ice-broadcaster',
-                    candidate: e.candidate
-                }));
-            }
-        };
-
-        pc.onconnectionstatechange = () => {
-            log(`Connection state: ${pc.connectionState}`);
-        };
-
-        const offer = await pc.createOffer();
-        await pc.setLocalDescription(offer);
-        ws.send(JSON.stringify({ type: 'offer', offer: pc.localDescription }));
-        log('Offer sent');
-    }
-
-    init().catch(err => {
+        connectWS();
+      } catch (err) {
         statusEl.textContent = `❌ Error: ${err.message}`;
         log(`Init error: ${err}`);
-    });
-</script>
-</body>
+      }
+    }
 
+    init();
+  </script>
+</body>
 </html>
