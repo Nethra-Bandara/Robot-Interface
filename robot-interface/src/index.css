@@ -303,7 +303,71 @@ input {
   border: var(--border);
 }
 
-@media (max-width: 900px) {
-  .dashboard { grid-template-columns: 1fr; }
-  .content-panel { display: none; }
+/* ── Mobile (≤600px) ───────────────────────────────────────── */
+@media (max-width: 600px) {
+    .vision-zone { padding: 8px; }
+
+    .camera-container {
+        border-radius: 10px;
+        aspect-ratio: 4 / 3;   /* taller crop on phone */
+    }
+
+    .hud-overlay {
+        font-size: 0.65rem;
+        padding: 5px 8px;
+    }
+
+    .control-btn {
+        width: 52px !important;
+        height: 52px !important;
+    }
+
+    .control-bar {
+        gap: 12px;
+        px: 0;
+    }
+}
+
+/* ── Tablet (601px–1024px) ─────────────────────────────────── */
+@media (min-width: 601px) and (max-width: 1024px) {
+    .dashboard {
+        grid-template-columns: 1fr;   /* single column */
+    }
+
+    .content-panel { display: none; } /* hidden — use drawer instead */
+
+    .vision-zone { padding: 12px; }
+
+    .camera-container { border-radius: 12px; }
+
+    .control-btn {
+        width: 58px !important;
+        height: 58px !important;
+    }
+
+    .control-bar { gap: 16px; }
+}
+
+/* ── Laptop (1025px–1440px) ────────────────────────────────── */
+@media (min-width: 1025px) and (max-width: 1440px) {
+    .dashboard {
+        grid-template-columns: 1fr 520px;
+    }
+
+    .content-panel {
+        grid-template-columns: 180px 340px;
+    }
+
+    .camera-container { border-radius: 14px; }
+}
+
+/* ── Large desktop (≥1441px) ───────────────────────────────── */
+@media (min-width: 1441px) {
+    .dashboard {
+        grid-template-columns: 1fr 680px;
+    }
+
+    .content-panel {
+        grid-template-columns: 220px 460px;
+    }
 }

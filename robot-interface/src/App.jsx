@@ -7,7 +7,10 @@ import { useMQTT } from './hooks/useMQTT';
 import useMobile from './hooks/useMobile';
 import MobileLayout from './components/MobileLayout';
 import ConfirmDialog from './components/ConfirmDialog';
-
+import { useBreakpoint } from './hooks/useBreakpoint';
+import MobileLayout from './components/MobileLayout';
+import TabletLayout from './components/TabletLayout';
+import DesktopLayout from './components/DesktopLayout';
 
 import './App.css';
 
@@ -35,6 +38,16 @@ function App() {
   const [screenshots, setScreenshots] = useState([]);
   const [activeIndex, setActiveIndex] = useState(null);
   const [mode, setMode] = useState('LAND');
+  const { isMobile, isTablet } = useBreakpoint();
+
+  const layoutProps = {
+    mode, setMode, handleCapture, screenshots,
+    handleSelectScreenshot, activeIndex, handleDelete,
+    handleDeleteAll, theme, isPurging, onToggleTheme,
+    sendMoveCommand, sendSpeedCommand, sendCameraToggle,
+    sendMicToggle, sendLightsToggle, sendCameraCommand,
+    sendModeCommand, telemetry
+};
 
   // Load locally-saved screenshots from localStorage
   const loadLocalScreenshots = () => {
@@ -253,6 +266,13 @@ function App() {
       </div>
     </ErrorBoundary>
   );
+  return (
+    <Box className={`theme-${theme}`}>
+        {isMobile  && <MobileLayout  {...layoutProps} />}
+        {isTablet  && <TabletLayout  {...layoutProps} />}
+        {!isMobile && !isTablet && <DesktopLayout {...layoutProps} />}
+    </Box>
+);
 }
 
 export default App;

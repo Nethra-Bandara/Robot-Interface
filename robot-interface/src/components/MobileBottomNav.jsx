@@ -5,30 +5,14 @@ import { Videocam, PhotoLibrary, Map } from '@mui/icons-material';
 const MobileBottomNav = ({ value, onChange }) => {
     return (
         <Paper sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1000 }} elevation={3}>
-            <BottomNavigation
-                showLabels
-                value={value}
-                onChange={(event, newValue) => {
-                    onChange(newValue);
-                }}
-                sx={{ bgcolor: '#0b0f0c', borderTop: '1px solid #333' }}
-            >
-                <BottomNavigationAction
-                    label="Vision"
-                    icon={<Videocam />}
-                    sx={{ color: '#888', '&.Mui-selected': { color: '#ff9800' } }}
-                />
-                <BottomNavigationAction
-                    label="Gallery"
-                    icon={<PhotoLibrary />}
-                    sx={{ color: '#888', '&.Mui-selected': { color: '#ff9800' } }}
-                />
-                <BottomNavigationAction
-                    label="Intel"
-                    icon={<Map />}
-                    sx={{ color: '#888', '&.Mui-selected': { color: '#ff9800' } }}
-                />
-            </BottomNavigation>
+            <BottomNavigation sx={{ bgcolor: 'var(--bg-page)', borderTop: 'var(--border)' }}>
+    <BottomNavigationAction label="Vision" icon={<Videocam />}
+        sx={{ color: 'var(--text-dim)', '&.Mui-selected': { color: 'var(--accent-primary)' } }} />
+    <BottomNavigationAction label="Gallery" icon={<PhotoLibrary />}
+        sx={{ color: 'var(--text-dim)', '&.Mui-selected': { color: 'var(--accent-primary)' } }} />
+    <BottomNavigationAction label="Intel" icon={<Map />}
+        sx={{ color: 'var(--text-dim)', '&.Mui-selected': { color: 'var(--accent-primary)' } }} />
+</BottomNavigation>
         </Paper>
     );
 };
