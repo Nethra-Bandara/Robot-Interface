@@ -8,8 +8,10 @@ const WS_URL = raw.startsWith('ws://') && !raw.includes('localhost')
   : raw;
 
 const ICE_SERVERS = [
-  { urls: 'stun:stun.l.google.com:19302' },
   {
+        urls: "stun:stun.relay.metered.ca:80",
+      },
+      {
         urls: "turn:global.relay.metered.ca:80",
         username: "eb316b848a7a2a268f409f3e",
         credential: "FzXzeTEot3tpT4Ab",
