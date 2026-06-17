@@ -11,7 +11,7 @@ import { useBreakpoint } from './hooks/useBreakpoint';
 import MobileLayout from './components/MobileLayout';
 import TabletLayout from './components/TabletLayout';
 import DesktopLayout from './components/DesktopLayout';
-
+import { useMediaQuery } from '@mui/material';
 import './App.css';
 
 
@@ -38,7 +38,6 @@ function App() {
   const [screenshots, setScreenshots] = useState([]);
   const [activeIndex, setActiveIndex] = useState(null);
   const [mode, setMode] = useState('LAND');
-  const { isMobile, isTablet } = useBreakpoint();
 
   const layoutProps = {
     mode, setMode, handleCapture, screenshots,
@@ -86,6 +85,8 @@ function App() {
   const [isPurging, setIsPurging] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const isMobile = useMobile();
+  const isTablet = useMediaQuery('(min-width: 601px) and (max-width: 1024px)');
+
 
   useEffect(() => {
     localStorage.setItem('theme', theme);
@@ -268,8 +269,8 @@ function App() {
   );
   return (
     <Box className={`theme-${theme}`}>
-        {isMobile  && <MobileLayout  {...layoutProps} />}
-        {isTablet  && <TabletLayout  {...layoutProps} />}
+        {isMobile && <MobileLayout {...layoutProps} />}
+        {!isMobile && isTablet && <TabletLayout {...layoutProps} />}
         {!isMobile && !isTablet && <DesktopLayout {...layoutProps} />}
     </Box>
 );
