@@ -42,7 +42,29 @@
 
     <script>
     const WS_URL = 'wss://robot-interface-production-d0d3.up.railway.app/ws/broadcaster';
-    const ICE_SERVERS = [{ urls: 'stun:stun.l.google.com:19302' }];
+    const ICE_SERVERS = [
+  { urls: 'stun:stun.l.google.com:19302' },
+  {
+        urls: "turn:global.relay.metered.ca:80",
+        username: "eb316b848a7a2a268f409f3e",
+        credential: "FzXzeTEot3tpT4Ab",
+      },
+      {
+        urls: "turn:global.relay.metered.ca:80?transport=tcp",
+        username: "eb316b848a7a2a268f409f3e",
+        credential: "FzXzeTEot3tpT4Ab",
+      },
+      {
+        urls: "turn:global.relay.metered.ca:443",
+        username: "eb316b848a7a2a268f409f3e",
+        credential: "FzXzeTEot3tpT4Ab",
+      },
+      {
+        urls: "turns:global.relay.metered.ca:443?transport=tcp",
+        username: "eb316b848a7a2a268f409f3e",
+        credential: "FzXzeTEot3tpT4Ab",
+      },
+];
 
     const statusEl = document.getElementById('status');
     const logEl = document.getElementById('log');

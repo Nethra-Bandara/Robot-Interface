@@ -10,20 +10,25 @@ const WS_URL = raw.startsWith('ws://') && !raw.includes('localhost')
 const ICE_SERVERS = [
   { urls: 'stun:stun.l.google.com:19302' },
   {
-    urls: 'turn:openrelay.metered.ca:80',
-    username: 'openrelayproject',
-    credential: 'openrelayproject'
-  },
-  {
-    urls: 'turn:openrelay.metered.ca:443',
-    username: 'openrelayproject',
-    credential: 'openrelayproject'
-  },
-  {
-    urls: 'turn:openrelay.metered.ca:443?transport=tcp',
-    username: 'openrelayproject',
-    credential: 'openrelayproject'
-  }
+        urls: "turn:global.relay.metered.ca:80",
+        username: "eb316b848a7a2a268f409f3e",
+        credential: "FzXzeTEot3tpT4Ab",
+      },
+      {
+        urls: "turn:global.relay.metered.ca:80?transport=tcp",
+        username: "eb316b848a7a2a268f409f3e",
+        credential: "FzXzeTEot3tpT4Ab",
+      },
+      {
+        urls: "turn:global.relay.metered.ca:443",
+        username: "eb316b848a7a2a268f409f3e",
+        credential: "FzXzeTEot3tpT4Ab",
+      },
+      {
+        urls: "turns:global.relay.metered.ca:443?transport=tcp",
+        username: "eb316b848a7a2a268f409f3e",
+        credential: "FzXzeTEot3tpT4Ab",
+      },
 ];
 
 const CameraFeed = forwardRef(({ className, style }, ref) => {
