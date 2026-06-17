@@ -223,46 +223,43 @@ const [keys, setKeys] = useState({
     };
 
     const controlButtonStyle = {
-        color: theme === 'dark' ? '#00ff88' : '#2e7d32',
-        border: theme === 'dark' 
-            ? '1px solid rgba(0, 255, 136, 0.4)' 
-            : '1.5px solid #1a3324',
-        backgroundColor: theme === 'dark' ? '#1b1b1b' : '#fff',
-        boxShadow: theme === 'dark' 
-            ? 'inset 2px 2px 5px rgba(255, 255, 255, 0.1), inset -2px -2px 5px rgba(0, 0, 0, 0.7), 0 4px 6px rgba(0,0,0,0.5)'
-            : 'inset 2px 2px 5px rgba(255, 255, 255, 1), inset -2px -2px 5px rgba(0, 0, 0, 0.05), 0 4px 10px rgba(0, 0, 0, 0.08)',
-        transition: 'all 0.15s ease',
-        '&:hover': {
-            backgroundColor: '#00ff88',
-            color: '#000',
-            borderColor: '#00ff88',
-            boxShadow: theme === 'dark' 
-                ? 'inset 2px 2px 5px rgba(255, 255, 255, 0.1), inset -2px -2px 5px rgba(0, 0, 0, 0.7), 0 0 10px rgba(0, 255, 136, 0.4)'
-                : 'inset 2px 2px 5px rgba(255, 255, 255, 0.3), inset -2px -2px 5px rgba(0, 0, 0, 0.1), 0 4px 12px rgba(0, 255, 136, 0.3)',
-        },
-        '&:active': {
-            backgroundColor: theme === 'dark' ? '#00e676' : '#1b5e20',
-            color: '#000',
-            boxShadow: theme === 'dark'
-                ? 'inset 3px 3px 6px rgba(0,0,0,0.6)'
-                : 'inset 3px 3px 6px rgba(0,0,0,0.2)',
-            transform: 'translateY(1px)'
-        },
-    };
+    color: theme === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(10,28,18,0.3)',
+    border: 'none',
+    backgroundColor: 'transparent',
+    boxShadow: 'none',
+    transition: 'all 0.15s ease',
+    '&:hover': {
+        backgroundColor: '#00ff88',
+        color: '#000',
+        boxShadow: '0 0 16px rgba(0, 255, 136, 0.35)',
+    },
+    '&:active': {
+        backgroundColor: '#00ff88',
+        color: '#000',
+        boxShadow: '0 0 20px rgba(0, 255, 136, 0.5)',
+        transform: 'scale(0.93)',
+    },
+};
 
     const toggleButtonStyle = {
-        ...controlButtonStyle,
-        width: 50,
-        height: 50,
-        '&.Mui-selected': {
-            backgroundColor: '#00ff88',
-            color: '#000',
-            '&:hover': {
-                backgroundColor: '#00ff88',
-                color: '#000',
-            },
-        },
-    };
+    width: 50,
+    height: 50,
+    color: theme === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(10,28,18,0.3)',
+    border: 'none',
+    backgroundColor: 'transparent',
+    boxShadow: 'none',
+    transition: 'all 0.15s ease',
+    '&:hover': {
+        backgroundColor: '#00ff88',
+        color: '#000',
+        boxShadow: '0 0 16px rgba(0, 255, 136, 0.35)',
+    },
+    '&:active': {
+        backgroundColor: '#00ff88',
+        color: '#000',
+        transform: 'scale(0.93)',
+    },
+};
 
     const edgeButtonStyle = {
         position: 'absolute',
@@ -298,6 +295,13 @@ const [keys, setKeys] = useState({
             transform: 'scale(0.92)'
         }
     };
+
+    const activeStyle = {
+    backgroundColor: '#00ff88 !important',
+    color: '#000 !important',
+    borderColor: '#00ff88 !important',
+    boxShadow: '0 0 10px rgba(0, 255, 136, 0.4) !important',
+};
 
     return (
         <main className="vision-zone">
@@ -383,16 +387,35 @@ const [keys, setKeys] = useState({
             </Box>
 
             {/* Control bar: width-matched to camera feed (90% / max 850px), holds ModeSelector + D-pad + toggles */}
-            <Box className="control-bar" sx={{ width: '90%', maxWidth: 850, mt: 2 }}>
+            {/* Control bar */}
+                <Box
+                    className="control-bar"
+                    sx={{
+                        width: '90%',
+                        maxWidth: 850,
+                        mt: 2,
+                        display: 'flex',
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',  // even spacing across full width
+                        gap: 0,
+                        px: 1,
+                    }}
+                >
+                    {/* Mode Selector */}
+                    <Box sx={{ flex: '0 0 auto' }}>
+                        <ModeSelector theme={theme} onModeChange={onModeChange} sendModeCommand={sendModeCommand} />
+                    </Box>
 
-                {/* Operational Domain / Mode selector — moved here from Sidebar */}
-                <Box className="mode-selector">
-                    <ModeSelector theme={theme} onModeChange={onModeChange} sendModeCommand={sendModeCommand} />
-                </Box>
-
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: { xs: 2, md: 4 }, flexWrap: 'wrap', flex: 1 }}>
-
-                    <Box sx={{ height: { xs: 80, md: 120 }, display: 'flex', flexDirection: 'column', alignItems: 'center', mx: 1 }}>
+                    {/* Speed Slider */}
+                    <Box sx={{
+                        flex: '0 0 auto',
+                        height: 120,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: 1,
+                    }}>
                         <Slider
                             orientation="vertical"
                             value={speed}
@@ -408,112 +431,78 @@ const [keys, setKeys] = useState({
                                     backgroundColor: '#fff',
                                     border: `2px solid ${theme === 'dark' ? '#00ff88' : '#2e7d32'}`,
                                 },
-                                '& .MuiSlider-track': {
-                                    border: 'none',
-                                    width: 8,
-                                    borderRadius: 4
-                                },
+                                '& .MuiSlider-track': { border: 'none', width: 8, borderRadius: 4 },
                                 '& .MuiSlider-rail': {
                                     width: 8,
                                     backgroundColor: theme === 'dark' ? '#333' : '#ccdacc',
-                                    borderRadius: 4
-                                }
+                                    borderRadius: 4,
+                                },
                             }}
                         />
-                        <Typography variant="caption" sx={{ color: '#aaa', mt: 1, fontSize: '0.7rem' }}>SPEED</Typography>
+                        <Typography variant="caption" sx={{ color: '#aaa', fontSize: '0.7rem', letterSpacing: '0.08em' }}>
+                            SPEED
+                        </Typography>
                     </Box>
 
-                    {/* Robot movement controls with MouseDown/MouseUp hold & release binds */}
-                    <Box 
+                    {/* D-Pad */}
+                    <Box
                         onTouchStart={handleDpadTouch}
                         onTouchMove={handleDpadTouch}
                         onTouchEnd={handleDpadTouchEnd}
                         onTouchCancel={handleDpadTouchEnd}
-                        sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1 }}
+                        sx={{ flex: '0 0 auto', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1 }}
                     >
                         <Box />
-                        <IconButton 
+                        <IconButton
                             onMouseDown={() => startMoving('up')}
                             onMouseUp={() => stopMoving('up')}
                             onMouseLeave={() => stopMoving('up')}
                             data-direction="up"
-                            sx={{
-                                ...controlButtonStyle,
-                                ...(activeDirection === 'UP' && {
-                                    backgroundColor: '#00ff88 !important',
-                                    color: '#000 !important',
-                                    borderColor: '#00ff88 !important',
-                                    boxShadow: '0 0 10px rgba(0, 255, 136, 0.4) !important',
-                                })
-                            }} 
+                            sx={{ ...controlButtonStyle, ...(activeDirection === 'UP' && activeStyle) }}
                             className="control-btn"
                         >
                             <ArrowUpward fontSize="large" />
                         </IconButton>
                         <Box />
-                        
-                        <IconButton 
+
+                        <IconButton
                             onMouseDown={() => startMoving('left')}
                             onMouseUp={() => stopMoving('left')}
                             onMouseLeave={() => stopMoving('left')}
                             data-direction="left"
-                            sx={{
-                                ...controlButtonStyle,
-                                ...(activeDirection === 'LEFT' && {
-                                    backgroundColor: '#00ff88 !important',
-                                    color: '#000 !important',
-                                    borderColor: '#00ff88 !important',
-                                    boxShadow: '0 0 10px rgba(0, 255, 136, 0.4) !important',
-                                })
-                            }} 
+                            sx={{ ...controlButtonStyle, ...(activeDirection === 'LEFT' && activeStyle) }}
                             className="control-btn"
                         >
                             <ArrowBack fontSize="large" />
                         </IconButton>
-                        
-                        <IconButton 
+                        <IconButton
                             onMouseDown={() => startMoving('down')}
                             onMouseUp={() => stopMoving('down')}
                             onMouseLeave={() => stopMoving('down')}
                             data-direction="down"
-                            sx={{
-                                ...controlButtonStyle,
-                                ...(activeDirection === 'DOWN' && {
-                                    backgroundColor: '#00ff88 !important',
-                                    color: '#000 !important',
-                                    borderColor: '#00ff88 !important',
-                                    boxShadow: '0 0 10px rgba(0, 255, 136, 0.4) !important',
-                                })
-                            }} 
+                            sx={{ ...controlButtonStyle, ...(activeDirection === 'DOWN' && activeStyle) }}
                             className="control-btn"
                         >
                             <ArrowDownward fontSize="large" />
                         </IconButton>
-                        
-                        <IconButton 
+                        <IconButton
                             onMouseDown={() => startMoving('right')}
                             onMouseUp={() => stopMoving('right')}
                             onMouseLeave={() => stopMoving('right')}
                             data-direction="right"
-                            sx={{
-                                ...controlButtonStyle,
-                                ...(activeDirection === 'RIGHT' && {
-                                    backgroundColor: '#00ff88 !important',
-                                    color: '#000 !important',
-                                    borderColor: '#00ff88 !important',
-                                    boxShadow: '0 0 10px rgba(0, 255, 136, 0.4) !important',
-                                })
-                            }} 
+                            sx={{ ...controlButtonStyle, ...(activeDirection === 'RIGHT' && activeStyle) }}
                             className="control-btn"
                         >
                             <ArrowForward fontSize="large" />
                         </IconButton>
                     </Box>
 
+                    {/* Toggle Buttons — 2x2 grid */}
                     <Box sx={{
+                        flex: '0 0 auto',
                         display: 'grid',
-                        gridTemplateColumns: { xs: 'repeat(4, 1fr)', md: 'repeat(2, 1fr)' },
-                        gap: 1
+                        gridTemplateColumns: 'repeat(2, 1fr)',
+                        gap: 1,
                     }}>
                         <IconButton
                             onClick={handleCameraToggle}
@@ -542,13 +531,7 @@ const [keys, setKeys] = useState({
                         <IconButton
                             onClick={handleCaptureInternal}
                             onTouchStart={(e) => { e.preventDefault(); handleCaptureInternal(); }}
-                            sx={{ 
-                                ...controlButtonStyle, 
-                                borderColor: theme === 'dark' ? 'rgba(255, 255, 255, 0.3)' : '#1a3324', 
-                                color: theme === 'dark' ? '#fff' : '#0a1c12', 
-                                width: 50, 
-                                height: 50 
-                            }}
+                            sx={{ ...toggleButtonStyle, borderColor: theme === 'dark' ? 'rgba(255,255,255,0.3)' : '#1a3324', color: theme === 'dark' ? '#fff' : '#0a1c12' }}
                             title="Capture Screenshot"
                         >
                             <PhotoCamera />
