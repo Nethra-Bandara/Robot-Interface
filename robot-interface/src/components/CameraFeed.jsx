@@ -7,22 +7,37 @@ const WS_URL = raw.startsWith('ws://') && !raw.includes('localhost')
   ? raw.replace('ws://', 'wss://')
   : raw;
 
-const ICE_SERVERS = [{ urls: 'stun:stun.l.google.com:19302' }];
+const ICE_SERVERS = [
+  { urls: 'stun:stun.l.google.com:19302' },
+  {
+    urls: 'turn:openrelay.metered.ca:80',
+    username: 'openrelayproject',
+    credential: 'openrelayproject'
+  },
+  {
+    urls: 'turn:openrelay.metered.ca:443',
+    username: 'openrelayproject',
+    credential: 'openrelayproject'
+  },
+  {
+    urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+    username: 'openrelayproject',
+    credential: 'openrelayproject'
+  }
+];
 
 const CameraFeed = forwardRef(({ className, style }, ref) => {
   const videoRef = useRef(null);
   const pcRef = useRef(null);
   const wsRef = useRef(null);
   const reconnectRef = useRef(null);
-  const mountedRef = useRef(false);  // guard against StrictMode double-mount
+  const mountedRef = useRef(false);
   const [status, setStatus] = useState('connecting');
   const [errorMsg, setErrorMsg] = useState('');
 
   useEffect(() => {
-    // StrictMode calls useEffect twice — only run once
     if (mountedRef.current) return;
     mountedRef.current = true;
-
     connect();
     return () => {
       mountedRef.current = false;
@@ -37,56 +52,91 @@ const CameraFeed = forwardRef(({ className, style }, ref) => {
       pcRef.current = null;
     }
     if (wsRef.current) {
-      wsRef.current.onclose = null; // prevent reconnect firing on intentional close
+      wsRef.current.onclose = null;
       wsRef.current.close();
       wsRef.current = null;
     }
   };
 
+  const scheduleReconnect = () => {
+    clearTimeout(reconnectRef.current);
+    reconnectRef.current = setTimeout(() => {
+      if (mountedRef.current) connect();
+    }, 3000);
+  };
+
   const connect = () => {
     if (!mountedRef.current) return;
-
-    // Don't open a second connection if one is already open
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) return;
 
-    cleanup();  // clean up any previous connection first
+    // Close existing WS without triggering reconnect
+    if (wsRef.current) {
+      wsRef.current.onclose = null;
+      wsRef.current.close();
+      wsRef.current = null;
+    }
 
+    // Only create a new PC if we don't have one or it's failed/closed
+    if (
+      !pcRef.current ||
+      pcRef.current.connectionState === 'failed' ||
+      pcRef.current.connectionState === 'closed'
+    ) {
+      if (pcRef.current) pcRef.current.close();
+
+      const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
+      pcRef.current = pc;
+
+      pc.ontrack = (event) => {
+        console.log('Got track!', event.streams);
+        if (videoRef.current && mountedRef.current) {
+          videoRef.current.srcObject = event.streams[0];
+          setStatus('live');
+        }
+      };
+
+      pc.onicecandidate = (e) => {
+        if (e.candidate && wsRef.current?.readyState === WebSocket.OPEN) {
+          wsRef.current.send(JSON.stringify({ type: 'ice-viewer', candidate: e.candidate }));
+        }
+      };
+
+      pc.onconnectionstatechange = () => {
+        console.log('PC state:', pc.connectionState);
+        if (pc.connectionState === 'failed') {
+          scheduleReconnect();
+        }
+      };
+    }
+
+    // Always create a fresh WS
     const ws = new WebSocket(WS_URL);
     wsRef.current = ws;
 
-    const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
-    pcRef.current = pc;
-
-    pc.ontrack = (event) => {
-      if (videoRef.current && mountedRef.current) {
-        videoRef.current.srcObject = event.streams[0];
-        setStatus('live');
-      }
-    };
-
-    pc.onicecandidate = (e) => {
-      if (e.candidate && ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({ type: 'ice-viewer', candidate: e.candidate }));
-      }
-    };
-
-    pc.onconnectionstatechange = () => {
-      console.log('PC state:', pc.connectionState);
-      if (pc.connectionState === 'failed') {
-        // ICE failed — trigger a full reconnect
-        scheduleReconnect();
-      }
+    ws.onopen = () => {
+      console.log('Viewer WS connected');
     };
 
     ws.onmessage = async (event) => {
       const data = JSON.parse(event.data);
-      if (data.type === 'ping') return;  // ignore keepalive pings
+      if (data.type === 'ping') return;
+
+      const pc = pcRef.current;
+      if (!pc) return;
 
       if (data.type === 'offer') {
+        if (
+          pc.signalingState !== 'stable' &&
+          pc.signalingState !== 'have-remote-offer'
+        ) {
+          console.warn('PC in unexpected signaling state:', pc.signalingState, '— skipping offer');
+          return;
+        }
         await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
         ws.send(JSON.stringify({ type: 'answer', answer: pc.localDescription }));
+        console.log('Answer sent');
       }
 
       else if (data.type === 'ice-broadcaster') {
@@ -100,14 +150,9 @@ const CameraFeed = forwardRef(({ className, style }, ref) => {
       }
     };
 
-    ws.onopen = () => {
-      console.log('Viewer WS connected');
-    };
-
     ws.onclose = (e) => {
       console.log('Viewer WS closed:', e.code);
       if (mountedRef.current) {
-        setStatus('connecting');
         scheduleReconnect();
       }
     };
@@ -115,13 +160,6 @@ const CameraFeed = forwardRef(({ className, style }, ref) => {
     ws.onerror = () => {
       console.log('Viewer WS error');
     };
-  };
-
-  const scheduleReconnect = () => {
-    clearTimeout(reconnectRef.current);
-    reconnectRef.current = setTimeout(() => {
-      if (mountedRef.current) connect();
-    }, 3000);
   };
 
   useImperativeHandle(ref, () => ({
@@ -135,34 +173,58 @@ const CameraFeed = forwardRef(({ className, style }, ref) => {
     }
   }));
 
-  if (status === 'error') {
-    return (
-      <Box className={className} style={{ ...style, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: '#1a0000', color: '#ff5252' }}>
-        <Warning sx={{ fontSize: 60, mb: 1 }} />
-        <Typography variant="h6">STREAM ERROR</Typography>
-        <Typography variant="caption" sx={{ mt: 1, textAlign: 'center', px: 2 }}>{errorMsg}</Typography>
-      </Box>
-    );
-  }
-
-  if (status === 'connecting') {
-    return (
-      <Box className={className} style={{ ...style, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: '#000', color: '#555' }}>
-        <SignalWifiOff sx={{ fontSize: 60, mb: 1 }} />
-        <Typography>Waiting for broadcaster...</Typography>
-      </Box>
-    );
-  }
-
   return (
-    <video
-      ref={videoRef}
-      autoPlay
-      playsInline
-      muted
-      className={className}
-      style={{ ...style, objectFit: 'cover' }}
-    />
+    <>
+      <video
+        ref={videoRef}
+        autoPlay
+        playsInline
+        muted
+        className={className}
+        style={{
+          ...style,
+          objectFit: 'cover',
+          display: status === 'live' ? 'block' : 'none'
+        }}
+      />
+      {status === 'connecting' && (
+        <Box
+          className={className}
+          style={{
+            ...style,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: '#000',
+            color: '#555'
+          }}
+        >
+          <SignalWifiOff sx={{ fontSize: 60, mb: 1 }} />
+          <Typography>Waiting for broadcaster...</Typography>
+        </Box>
+      )}
+      {status === 'error' && (
+        <Box
+          className={className}
+          style={{
+            ...style,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: '#1a0000',
+            color: '#ff5252'
+          }}
+        >
+          <Warning sx={{ fontSize: 60, mb: 1 }} />
+          <Typography variant="h6">STREAM ERROR</Typography>
+          <Typography variant="caption" sx={{ mt: 1, textAlign: 'center', px: 2 }}>
+            {errorMsg}
+          </Typography>
+        </Box>
+      )}
+    </>
   );
 });
 
