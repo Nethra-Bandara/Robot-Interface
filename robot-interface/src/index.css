@@ -252,9 +252,51 @@ input {
 .mode-selector {
   display: flex;
   flex-direction: column;
-  min-width: 220px;
-  flex-shrink: 0;
+  gap: 10px;
+  background: transparent !important; /* Removes background */
+}
+
+.mode-selector-group {
+  display: flex;
   background: transparent;
+  border: none;
+}
+
+.mode-btn {
+  padding: 10px 20px;
+  cursor: pointer;
+  border: 1px solid var(--panel-border);
+  background: transparent;
+  color: var(--text-main);
+  transition: all 0.3s ease;
+}
+
+/* Rounded Edges */
+.mode-btn:first-child {
+  border-radius: 8px 0 0 8px;
+}
+.mode-btn:last-child {
+  border-radius: 0 8px 8px 0;
+}
+
+/* Active State: Neon Green */
+.mode-btn.active {
+  background: var(--accent-primary) !important;
+  color: #000;
+  border-color: var(--accent-primary);
+}
+
+/* --- Camera/Mic Buttons (Matching Design) --- */
+.control-btn {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%; /* Perfect circles */
+  background: var(--accent-primary) !important;
+  color: #000 !important;
+  border: none !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 input {
