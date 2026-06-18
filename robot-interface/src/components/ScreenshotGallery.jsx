@@ -54,15 +54,16 @@ const ScreenshotGallery = ({ screenshots, onSelect, activeIndex, onDelete, onDel
                         sx={{
                             cursor: 'pointer',
                             bgcolor: activeIndex === index 
-                                ? (theme === 'dark' ? 'rgba(0, 255, 136, 0.1)' : 'rgba(46, 125, 50, 0.1)') 
-                                : 'rgba(255, 255, 255, 0.03)',
+                                ? (theme === 'dark' ? 'rgba(0, 255, 136, 0.12)' : 'rgba(46, 125, 50, 0.12)') 
+                                : 'rgba(255, 255, 255, 0.04)',
                             border: activeIndex === index 
                                 ? `1px solid ${theme === 'dark' ? '#00ff88' : '#2e7d32'}` 
-                                : '1px solid #333',
-                            transition: 'all 0.2s',
+                                : `1px solid ${theme === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'}` ,
+                            transition: 'transform 0.25s ease, border-color 0.25s ease, background-color 0.25s ease',
                             '&:hover': {
-                                transform: 'translateY(-2px)',
-                                borderColor: theme === 'dark' ? '#00ff88' : '#2e7d32'
+                                transform: 'translateY(-3px)',
+                                borderColor: theme === 'dark' ? '#00ff88' : '#2e7d32',
+                                backgroundColor: theme === 'dark' ? 'rgba(0,255,136,0.14)' : 'rgba(46,125,50,0.14)'
                             },
                             position: 'relative'
                         }}

@@ -21,6 +21,14 @@ const ModeSelector = ({ theme, onModeChange, sendModeCommand }) => {
     const [modeNum, setModeNum] = useState('1');
     const [lastLandMode, setLastLandMode] = useState('1');
 
+    const dispatchModeCommand = async (domainValue, modeValue) => {
+        if (sendModeCommand) {
+            sendModeCommand(domainValue, modeValue);
+            return;
+        }
+        await sendRobotCommand('set_mode', { domain: domainValue, mode: modeValue });
+    };
+
     const isDark = theme === 'dark';
     const isAqua = domain === 'WATER';
 
@@ -30,10 +38,10 @@ const ModeSelector = ({ theme, onModeChange, sendModeCommand }) => {
         if (onModeChange) onModeChange(newDomain);
 
         if (newDomain === 'WATER') {
-            sendRobotCommand('set_mode', { domain: 'water', mode: null });
+            dispatchModeCommand('water', null);
         } else {
             setModeNum(lastLandMode);
-            sendRobotCommand('set_mode', { domain: 'land', mode: parseInt(lastLandMode) });
+            dispatchModeCommand('land', parseInt(lastLandMode, 10));
         }
     };
 
@@ -41,7 +49,7 @@ const ModeSelector = ({ theme, onModeChange, sendModeCommand }) => {
         if (isAqua) return;
         setModeNum(newNum);
         setLastLandMode(newNum);
-        sendRobotCommand('set_mode', { domain: 'land', mode: parseInt(newNum) });
+        dispatchModeCommand('land', parseInt(newNum, 10));
     };
 
     // ── Colours ──────────────────────────────────────────────────────────────

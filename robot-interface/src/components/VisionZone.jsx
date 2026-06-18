@@ -223,57 +223,74 @@ const [keys, setKeys] = useState({
     };
 
     const controlButtonStyle = {
-    color: theme === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(10,28,18,0.3)',
-    border: 'none',
-    backgroundColor: 'transparent',
-    boxShadow: 'none',
-    transition: 'all 0.15s ease',
-    '&:hover': {
-        backgroundColor: '#00ff88',
-        color: '#000',
-        boxShadow: '0 0 16px rgba(0, 255, 136, 0.35)',
-    },
-    '&:active': {
-        backgroundColor: '#00ff88',
-        color: '#000',
-        boxShadow: '0 0 20px rgba(0, 255, 136, 0.5)',
-        transform: 'scale(0.93)',
-    },
-};
+        color: theme === 'dark' ? 'rgba(255,255,255,0.8)' : 'rgba(10,28,18,0.8)',
+        border: '1px solid rgba(255,255,255,0.12)',
+        backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.82)',
+        boxShadow: theme === 'dark' ? '0 0 0 1px rgba(255,255,255,0.04)' : '0 1px 4px rgba(0,0,0,0.08)',
+        transition: 'all 0.25s ease',
+        '&:hover': {
+            backgroundColor: '#00ff88',
+            color: '#000',
+            boxShadow: '0 0 18px rgba(0, 255, 136, 0.32)',
+            transform: 'translateY(-1px)'
+        },
+        '&:active': {
+            backgroundColor: '#00ff88',
+            color: '#000',
+            boxShadow: '0 0 24px rgba(0, 255, 136, 0.45)',
+            transform: 'scale(0.95)'
+        },
+        '&:focus-visible': {
+            outline: '2px solid #00ff88',
+            outlineOffset: '3px'
+        }
+    };
 
     const toggleButtonStyle = {
-    width: 50,
-    height: 50,
-    color: theme === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(10,28,18,0.3)',
-    border: 'none',
-    backgroundColor: 'transparent',
-    boxShadow: 'none',
-    transition: 'all 0.15s ease',
-    '&:hover': {
-        backgroundColor: '#00ff88',
-        color: '#000',
-        boxShadow: '0 0 16px rgba(0, 255, 136, 0.35)',
-    },
-    '&:active': {
-        backgroundColor: '#00ff88',
-        color: '#000',
-        transform: 'scale(0.93)',
-    },
-};
+        width: 50,
+        height: 50,
+        color: theme === 'dark' ? 'rgba(255,255,255,0.8)' : 'rgba(10,28,18,0.8)',
+        border: '1px solid rgba(255,255,255,0.12)',
+        backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.9)',
+        boxShadow: theme === 'dark' ? '0 0 0 1px rgba(255,255,255,0.04)' : '0 1px 5px rgba(0,0,0,0.08)',
+        transition: 'all 0.25s ease',
+        '&:hover': {
+            backgroundColor: '#00ff88',
+            color: '#000',
+            boxShadow: '0 0 18px rgba(0, 255, 136, 0.32)',
+            transform: 'translateY(-1px)'
+        },
+        '&:active': {
+            backgroundColor: '#00ff88',
+            color: '#000',
+            transform: 'scale(0.95)'
+        },
+        '&:focus-visible': {
+            outline: '2px solid #00ff88',
+            outlineOffset: '3px'
+        }
+    };
 
     const edgeButtonStyle = {
         position: 'absolute',
-        color: 'rgba(255, 255, 255, 0.55)',
-        backgroundColor: 'transparent',
+        color: 'rgba(255, 255, 255, 0.75)',
+        backgroundColor: 'rgba(0,0,0,0.18)',
+        border: '1px solid rgba(255,255,255,0.15)',
+        borderRadius: '999px',
         zIndex: 15,
-        transition: 'all 0.2s',
+        transition: 'transform 0.2s ease, background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease',
         transformOrigin: 'center',
         '&:hover': {
             color: '#00ff88',
+            backgroundColor: 'rgba(255,255,255,0.14)',
+            boxShadow: '0 0 18px rgba(0,255,136,0.18)'
         },
         '&:active': {
-            // active transform is applied per button so pre-existing translate values are preserved
-            backgroundColor: 'rgba(255,255,255,0.08)'
+            backgroundColor: 'rgba(255,255,255,0.12)'
+        },
+        '&:focus-visible': {
+            outline: '2px solid #00ff88',
+            outlineOffset: '3px'
         }
     };
 

@@ -175,8 +175,9 @@ const ChatWindow = ({ activeContext, theme }) => {
                     type="text"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+                    onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
                     placeholder={activeContext ? "Ask about this capture..." : "Ask about the detected species..."}
+                    aria-label="Chat input"
                     style={{
                         border: 'none',
                         outline: 'none',
@@ -184,7 +185,8 @@ const ChatWindow = ({ activeContext, theme }) => {
                         flexGrow: 1,
                         color: theme === 'dark' ? 'white' : '#0a1c12',
                         padding: '12px',
-                        margin: 0
+                        margin: 0,
+                        transition: 'background-color 0.25s ease'
                     }}
                     disabled={isLoading}
                 />
@@ -196,6 +198,8 @@ const ChatWindow = ({ activeContext, theme }) => {
                             : (theme === 'dark' ? '#00ff88' : '#2e7d32'),
                         p: '8px',
                         transition: 'all 0.2s',
+                        opacity: isLoading ? 0.6 : 1,
+                        pointerEvents: isLoading ? 'none' : 'auto',
                         '&:hover': {
                             backgroundColor: isLoading ? 'transparent' : '#00ff88',
                             color: isLoading ? 'inherit' : '#000',
