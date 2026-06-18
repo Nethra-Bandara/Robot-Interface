@@ -223,7 +223,7 @@ const [keys, setKeys] = useState({
     };
 
     const controlButtonStyle = {
-        color: theme === 'dark' ? 'rgba(255,255,255,0.88)' : '#000',
+        color: theme === 'dark' ? 'rgba(255,255,255,0.88)' : '#00ff88',
         border: theme === 'dark' ? '1px solid rgba(255,255,255,0.12)' : '1px solid rgba(5, 86, 41, 0.85)',
         backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(3, 30, 17, 0.98)',
         boxShadow: theme === 'dark' ? '0 0 0 1px rgba(255,255,255,0.04)' : '0 16px 34px rgba(0,0,0,0.24)',
@@ -277,7 +277,7 @@ const [keys, setKeys] = useState({
 
     const edgeButtonStyle = {
         position: 'absolute',
-        color: theme === 'dark' ? 'rgba(255, 255, 255, 0.85)' : '#000',
+        color: theme === 'dark' ? 'rgba(255, 255, 255, 0.85)' : '#00ff88',
         backgroundColor: theme === 'dark' ? 'rgba(0,0,0,0.18)' : 'rgba(4, 28, 15, 0.96)',
         border: theme === 'dark' ? '1px solid rgba(255,255,255,0.15)' : '1px solid rgba(0, 90, 42, 0.55)',
         borderRadius: '999px',
