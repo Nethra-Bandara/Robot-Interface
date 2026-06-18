@@ -463,7 +463,7 @@ const [keys, setKeys] = useState({
                     </Box>
 
                     {/* Speed Slider */}
-                    <Box sx={{
+                    <Box className="slider-panel" sx={{
                         flex: '0 0 auto',
                         height: 120,
                         display: 'flex',
