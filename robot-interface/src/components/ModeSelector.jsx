@@ -54,11 +54,11 @@ const ModeSelector = ({ theme, onModeChange, sendModeCommand }) => {
 
     // ── Colours ──────────────────────────────────────────────────────────────
     const accent      = '#00ff88';
-    const bgOuter     = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)';
-    const borderColor = isDark ? 'rgba(255,255,255,0.12)' : 'rgba(26,51,36,0.25)';
-    const textDim     = isDark ? 'rgba(255,255,255,0.45)' : 'rgba(10,28,18,0.45)';
-    const textActive  = isDark ? '#e8f5e9' : '#0a1c12';
-    const labelColor  = isDark ? 'rgba(255,255,255,0.35)' : 'rgba(10,28,18,0.4)';
+    const bgOuter     = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(5, 25, 13, 0.96)';
+    const borderColor = isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0, 100, 40, 0.55)';
+    const textDim     = isDark ? 'rgba(255,255,255,0.45)' : 'rgba(215,243,209,0.75)';
+    const textActive  = isDark ? '#e8f5e9' : '#e8f5e4';
+    const labelColor  = isDark ? 'rgba(255,255,255,0.35)' : 'rgba(215,243,209,0.65)';
 
     // ── Shared domain button ─────────────────────────────────────────────────
     const DomainBtn = ({ value, icon: Icon, label }) => {

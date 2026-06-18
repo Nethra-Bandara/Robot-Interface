@@ -23,15 +23,15 @@
 }
 
 .theme-light {
-  /* HIGH-CONTRAST LIGHT THEME - Crisp Design */
-  --bg-page: #f8fdfa; 
-  --bg-gradient: linear-gradient(135deg, #f8fdfa 0%, #eefbf1 100%);
-  --panel-bg: rgba(255, 255, 255, 0.85); /* Frosty white */
-  --text-main: #0a1c12; 
-  --text-dim: #2e3d34;
-  --panel-border: rgba(26, 51, 36, 0.8);
-  --card-bg: #ffffff;
-  --input-bg: #ffffff;
+  /* SOFT FOREST LIGHT MODE */
+  --bg-page: #eaf3ea;
+  --bg-gradient: linear-gradient(135deg, #f4faf3 0%, #dfe9de 100%);
+  --panel-bg: rgba(8, 30, 16, 0.95);
+  --text-main: #e8f5e4;
+  --text-dim: #a0c1a0;
+  --panel-border: rgba(0, 120, 48, 0.32);
+  --card-bg: rgba(5, 25, 13, 0.96);
+  --input-bg: rgba(5, 25, 13, 0.96);
 }
 
 *,
@@ -68,6 +68,50 @@ body {
   color: var(--text-main);
   overflow: hidden;
   scroll-behavior: smooth;
+}
+
+.theme-light body,
+.theme-light .dashboard,
+.theme-light .content-panel,
+.theme-light .vision-zone,
+.theme-light .sidebar,
+.theme-light .camera-container,
+.theme-light .chat-window,
+.theme-light .screenshot-gallery {
+  background: transparent;
+}
+
+.theme-light .hud-overlay {
+  background: rgba(6, 30, 16, 0.94);
+  border-color: rgba(0, 120, 48, 0.22);
+}
+
+.theme-light .camera-container,
+.theme-light .sidebar,
+.theme-light .chat-window,
+.theme-light .slider-panel,
+.theme-light .mode-selector-group,
+.theme-light .control-btn {
+  background: rgba(5, 25, 13, 0.96) !important;
+  border: 1px solid rgba(0, 100, 40, 0.55) !important;
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.18) !important;
+}
+
+.theme-light .camera-container {
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.24) !important;
+}
+
+.theme-light .mode-selector-group {
+  border-radius: 16px;
+}
+
+.theme-light .mode-btn {
+  color: #d7f3d1 !important;
+}
+
+.theme-light .mode-btn.active {
+  background: rgba(0, 255, 136, 0.16) !important;
+  color: #000 !important;
 }
 
 .MuiIconButton-root,
@@ -145,8 +189,8 @@ input {
 /* Theme Toggle Position */
 .theme-toggle-btn {
   position: absolute;
-  top: 0; /* Aligned with top of vision zone container padding if relative, but let's be precise */
-  left: 20px; /* Same as vision-zone padding */
+  top: 0;
+  left: 20px;
   z-index: 100;
   color: var(--text-main) !important;
 }
@@ -159,15 +203,15 @@ input {
   right: 10px;
   display: flex;
   justify-content: space-between;
-  background: var(--bg-page);
+  background: rgba(6, 30, 16, 0.92);
   color: var(--text-main);
   padding: 8px 15px;
-  border-radius: 8px;
-  backdrop-filter: blur(5px);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
   font-size: 0.8rem;
   z-index: 10;
-  border: var(--border);
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  border: 1px solid rgba(0, 128, 55, 0.18);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.18);
 }
 
 .theme-dark .hud-overlay {
@@ -271,34 +315,36 @@ input {
 }
 
 .theme-light .screenshot-gallery {
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid rgba(26, 51, 36, 0.12);
+  background: rgba(5, 25, 13, 0.96);
+  border: 1px solid rgba(0, 100, 40, 0.55);
   border-radius: 18px;
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.18);
   padding: 20px;
 }
 
 .theme-light .slider-panel {
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid rgba(26, 51, 36, 0.14);
+  background: rgba(5, 25, 13, 0.96);
+  border: 1px solid rgba(0, 100, 40, 0.55);
   border-radius: 18px;
-  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.18);
   padding: 10px;
 }
 
 .theme-light .MuiIconButton-root,
 .theme-light .MuiButton-root,
 .theme-light .MuiFab-root {
-  background: rgba(255, 255, 255, 0.9) !important;
-  border: 1px solid rgba(26, 51, 36, 0.12) !important;
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.07) !important;
-  border-radius: 14px !important;
+  background: rgba(5, 28, 13, 0.96) !important;
+  border: 1px solid rgba(0, 100, 40, 0.55) !important;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.18) !important;
+  color: #d7f3d1 !important;
+  border-radius: 18px !important;
 }
 
 .theme-light .MuiIconButton-root:hover,
 .theme-light .MuiButton-root:hover,
 .theme-light .MuiFab-root:hover {
-  background: rgba(255, 255, 255, 1) !important;
+  background: rgba(6, 45, 23, 0.98) !important;
+  color: #fff !important;
 }
 
 .control-bar {
@@ -385,7 +431,7 @@ input {
 
     .control-bar {
         gap: 12px;
-        px: 0;
+        padding: 0;
     }
 }
 

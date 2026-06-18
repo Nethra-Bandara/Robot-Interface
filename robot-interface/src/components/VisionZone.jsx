@@ -253,19 +253,19 @@ const [keys, setKeys] = useState({
         width: 50,
         height: 50,
         color: theme === 'dark' ? 'rgba(255,255,255,0.9)' : '#d7f3d1',
-        border: theme === 'dark' ? '1px solid rgba(255,255,255,0.12)' : '1px solid rgba(5, 86, 41, 0.85)',
-        backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(3, 30, 17, 0.98)',
-        boxShadow: theme === 'dark' ? '0 0 0 1px rgba(255,255,255,0.04)' : '0 12px 26px rgba(0,0,0,0.18)',
+        border: theme === 'dark' ? '1px solid rgba(255,255,255,0.12)' : '1px solid rgba(0, 100, 40, 0.55)',
+        backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(5, 28, 13, 0.96)',
+        boxShadow: theme === 'dark' ? '0 0 0 1px rgba(255,255,255,0.04)' : '0 14px 30px rgba(0,0,0,0.20)',
         transition: 'all 0.25s ease',
         borderRadius: '22px',
         '&:hover': {
-            backgroundColor: theme === 'dark' ? '#00ff88' : 'rgba(7, 85, 44, 0.98)',
+            backgroundColor: theme === 'dark' ? '#00ff88' : 'rgba(6, 45, 23, 0.98)',
             color: theme === 'dark' ? '#000' : '#fff',
-            boxShadow: '0 0 18px rgba(0, 255, 136, 0.32)',
+            boxShadow: theme === 'dark' ? '0 0 18px rgba(0, 255, 136, 0.32)' : '0 0 18px rgba(0, 128, 44, 0.36)',
             transform: 'translateY(-1px)'
         },
         '&:active': {
-            backgroundColor: theme === 'dark' ? '#00ff88' : 'rgba(0, 90, 35, 0.96)',
+            backgroundColor: theme === 'dark' ? '#00ff88' : 'rgba(0, 90, 32, 0.96)',
             color: '#fff',
             transform: 'scale(0.96)'
         },
