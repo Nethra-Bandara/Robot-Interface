@@ -267,11 +267,13 @@ const [keys, setKeys] = useState({
         backgroundColor: 'transparent',
         zIndex: 15,
         transition: 'all 0.2s',
+        transformOrigin: 'center',
         '&:hover': {
             color: '#00ff88',
         },
         '&:active': {
-            transform: 'scale(0.92)'
+            // active transform is applied per button so pre-existing translate values are preserved
+            backgroundColor: 'rgba(255,255,255,0.08)'
         }
     };
 
