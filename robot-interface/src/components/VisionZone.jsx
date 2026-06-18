@@ -25,15 +25,13 @@ const VisionZone = ({
     const [cameraOn, setCameraOn] = useState(true);
     const [micOn, setMicOn] = useState(true);
     const [lightsOn, setLightsOn] = useState(false);
-    //const [subMode, setSubMode] = useState('1');
 
-    // Track active movement keys to prevent OS repeat rate spamming
-const [keys, setKeys] = useState({
-  up: false,
-  down: false,
-  left: false,
-  right: false
-});
+    const [keys, setKeys] = useState({
+        up: false,
+        down: false,
+        left: false,
+        right: false
+    });
 
     const startMoving = (direction) => {
         const dirKey = direction.toLowerCase();
@@ -101,7 +99,6 @@ const [keys, setKeys] = useState({
         }
     };
 
-    // Add keyboard support for arrow keys (Hold to Move, Release to Stop)
     useEffect(() => {
         const handleKeyDown = (e) => {
             if (e.repeat) return;
@@ -179,7 +176,6 @@ const [keys, setKeys] = useState({
         };
     }, [sendMoveCommand]);
 
-    // Speed change handler
     const handleSpeedChange = (event, newValue) => {
         setSpeed(newValue);
         if (sendSpeedCommand) {
@@ -223,7 +219,9 @@ const [keys, setKeys] = useState({
     };
 
     const controlButtonStyle = {
-        color: theme === 'dark' ? 'rgba(255,255,255,0.88)' : '#000',
+        // FIX: was '#000' in light mode — invisible against the dark button background.
+        // Now '#00ff88' (green) in both themes so arrows are always visible and on-brand.
+        color: '#00ff88',
         border: theme === 'dark' ? '1px solid rgba(255,255,255,0.12)' : '1px solid rgba(5, 86, 41, 0.85)',
         backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(3, 30, 17, 0.98)',
         boxShadow: theme === 'dark' ? '0 0 0 1px rgba(255,255,255,0.04)' : '0 16px 34px rgba(0,0,0,0.24)',
@@ -233,13 +231,13 @@ const [keys, setKeys] = useState({
         transition: 'all 0.25s ease',
         '&:hover': {
             backgroundColor: theme === 'dark' ? '#00ff88' : 'rgba(7, 85, 44, 0.98)',
-            color: theme === 'dark' ? '#000' : '#000',
+            color: '#000',
             boxShadow: '0 0 18px rgba(0, 255, 136, 0.32)',
             transform: 'translateY(-1px)'
         },
         '&:active': {
             backgroundColor: theme === 'dark' ? '#00ff88' : 'rgba(0, 90, 35, 0.96)',
-            color: theme === 'dark' ? '#fff' : '#000',
+            color: '#000',
             boxShadow: '0 0 24px rgba(0, 255, 136, 0.35)',
             transform: 'scale(0.96)'
         },
@@ -321,11 +319,11 @@ const [keys, setKeys] = useState({
     };
 
     const activeStyle = {
-    backgroundColor: '#00ff88 !important',
-    color: '#000 !important',
-    borderColor: '#00ff88 !important',
-    boxShadow: '0 0 10px rgba(0, 255, 136, 0.4) !important',
-};
+        backgroundColor: '#00ff88 !important',
+        color: '#000 !important',
+        borderColor: '#00ff88 !important',
+        boxShadow: '0 0 10px rgba(0, 255, 136, 0.4) !important',
+    };
 
     return (
         <main className="vision-zone">
@@ -354,14 +352,14 @@ const [keys, setKeys] = useState({
                         style={{ opacity: cameraOn ? 1 : 0.1 }}
                     />
 
-                    {/* HUD Overlay (Removed Speed & Status, Added Pressure) */}
+                    {/* HUD Overlay */}
                     <div className="hud-overlay">
                         <span>SIGNAL: <strong>{telemetry && telemetry.signal !== undefined ? `${telemetry.signal}%` : '92% (RF MESH)'}</strong></span>
                         <span>POWER: <strong>{telemetry && telemetry.battery !== undefined ? `${telemetry.battery}%` : '88%'}</strong></span>
                         <span>PRESSURE: <strong>{telemetry && telemetry.pressure !== undefined ? `${telemetry.pressure} hPa` : '1013 hPa'}</strong></span>
                     </div>
 
-                    {/* 4 Transparent Camera Direction Overlay Buttons */}
+                    {/* Camera Direction Overlay Buttons */}
                     <IconButton 
                         onClick={() => sendCameraCommand && sendCameraCommand('cam_up')}
                         onTouchStart={(e) => { e.preventDefault(); sendCameraCommand && sendCameraCommand('cam_up'); }}
@@ -446,157 +444,156 @@ const [keys, setKeys] = useState({
                 </div>
             </Box>
 
-            {/* Control bar: width-matched to camera feed (90% / max 850px), holds ModeSelector + D-pad + toggles */}
             {/* Control bar */}
+            <Box
+                className="control-bar"
+                sx={{
+                    width: '90%',
+                    maxWidth: 850,
+                    mt: 2,
+                    display: 'flex',
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: 0,
+                    px: 1,
+                }}
+            >
+                {/* Mode Selector */}
+                <Box sx={{ flex: '0 0 auto' }}>
+                    <ModeSelector theme={theme} onModeChange={onModeChange} sendModeCommand={sendModeCommand} />
+                </Box>
+
+                {/* Speed Slider */}
+                <Box className="slider-panel" sx={{
+                    flex: '0 0 auto',
+                    height: 120,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: 1,
+                }}>
+                    <Slider
+                        orientation="vertical"
+                        value={speed}
+                        onChange={handleSpeedChange}
+                        aria-label="Speed"
+                        valueLabelDisplay="auto"
+                        sx={{
+                            color: theme === 'dark' ? '#00ff88' : '#2e7d32',
+                            '& .MuiSlider-thumb': {
+                                borderRadius: '4px',
+                                height: 20,
+                                width: 20,
+                                backgroundColor: '#fff',
+                                border: `2px solid ${theme === 'dark' ? '#00ff88' : '#2e7d32'}`,
+                            },
+                            '& .MuiSlider-track': { border: 'none', width: 8, borderRadius: 4 },
+                            '& .MuiSlider-rail': {
+                                width: 8,
+                                backgroundColor: theme === 'dark' ? '#333' : '#ccdacc',
+                                borderRadius: 4,
+                            },
+                        }}
+                    />
+                    <Typography variant="caption" sx={{ color: 'rgb(250, 250, 250)', fontSize: '0.7rem', letterSpacing: '0.08em' }}>
+                        SPEED
+                    </Typography>
+                </Box>
+
+                {/* D-Pad */}
                 <Box
-                    className="control-bar"
-                    sx={{
-                        width: '90%',
-                        maxWidth: 850,
-                        mt: 2,
-                        display: 'flex',
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',  // even spacing across full width
-                        gap: 0,
-                        px: 1,
-                    }}
+                    onTouchStart={handleDpadTouch}
+                    onTouchMove={handleDpadTouch}
+                    onTouchEnd={handleDpadTouchEnd}
+                    onTouchCancel={handleDpadTouchEnd}
+                    sx={{ flex: '0 0 auto', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1 }}
                 >
-                    {/* Mode Selector */}
-                    <Box sx={{ flex: '0 0 auto' }}>
-                        <ModeSelector theme={theme} onModeChange={onModeChange} sendModeCommand={sendModeCommand} />
-                    </Box>
-
-                    {/* Speed Slider */}
-                    <Box className="slider-panel" sx={{
-                        flex: '0 0 auto',
-                        height: 120,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        gap: 1,
-                    }}>
-                        <Slider
-                            orientation="vertical"
-                            value={speed}
-                            onChange={handleSpeedChange}
-                            aria-label="Speed"
-                            valueLabelDisplay="auto"
-                            sx={{
-                                color: theme === 'dark' ? '#00ff88' : '#2e7d32',
-                                '& .MuiSlider-thumb': {
-                                    borderRadius: '4px',
-                                    height: 20,
-                                    width: 20,
-                                    backgroundColor: '#fff',
-                                    border: `2px solid ${theme === 'dark' ? '#00ff88' : '#2e7d32'}`,
-                                },
-                                '& .MuiSlider-track': { border: 'none', width: 8, borderRadius: 4 },
-                                '& .MuiSlider-rail': {
-                                    width: 8,
-                                    backgroundColor: theme === 'dark' ? '#333' : '#ccdacc',
-                                    borderRadius: 4,
-                                },
-                            }}
-                        />
-                        <Typography variant="caption" sx={{ color: '#aaa', fontSize: '0.7rem', letterSpacing: '0.08em' }}>
-                            SPEED
-                        </Typography>
-                    </Box>
-
-                    {/* D-Pad */}
-                    <Box
-                        onTouchStart={handleDpadTouch}
-                        onTouchMove={handleDpadTouch}
-                        onTouchEnd={handleDpadTouchEnd}
-                        onTouchCancel={handleDpadTouchEnd}
-                        sx={{ flex: '0 0 auto', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1 }}
+                    <Box />
+                    <IconButton
+                        onMouseDown={() => startMoving('up')}
+                        onMouseUp={() => stopMoving('up')}
+                        onMouseLeave={() => stopMoving('up')}
+                        data-direction="up"
+                        sx={{ ...controlButtonStyle, ...(activeDirection === 'UP' && activeStyle) }}
+                        className="control-btn"
                     >
-                        <Box />
-                        <IconButton
-                            onMouseDown={() => startMoving('up')}
-                            onMouseUp={() => stopMoving('up')}
-                            onMouseLeave={() => stopMoving('up')}
-                            data-direction="up"
-                            sx={{ ...controlButtonStyle, ...(activeDirection === 'UP' && activeStyle) }}
-                            className="control-btn"
-                        >
-                            <ArrowUpward fontSize="large" />
-                        </IconButton>
-                        <Box />
+                        <ArrowUpward fontSize="large" />
+                    </IconButton>
+                    <Box />
 
-                        <IconButton
-                            onMouseDown={() => startMoving('left')}
-                            onMouseUp={() => stopMoving('left')}
-                            onMouseLeave={() => stopMoving('left')}
-                            data-direction="left"
-                            sx={{ ...controlButtonStyle, ...(activeDirection === 'LEFT' && activeStyle) }}
-                            className="control-btn"
-                        >
-                            <ArrowBack fontSize="large" />
-                        </IconButton>
-                        <IconButton
-                            onMouseDown={() => startMoving('down')}
-                            onMouseUp={() => stopMoving('down')}
-                            onMouseLeave={() => stopMoving('down')}
-                            data-direction="down"
-                            sx={{ ...controlButtonStyle, ...(activeDirection === 'DOWN' && activeStyle) }}
-                            className="control-btn"
-                        >
-                            <ArrowDownward fontSize="large" />
-                        </IconButton>
-                        <IconButton
-                            onMouseDown={() => startMoving('right')}
-                            onMouseUp={() => stopMoving('right')}
-                            onMouseLeave={() => stopMoving('right')}
-                            data-direction="right"
-                            sx={{ ...controlButtonStyle, ...(activeDirection === 'RIGHT' && activeStyle) }}
-                            className="control-btn"
-                        >
-                            <ArrowForward fontSize="large" />
-                        </IconButton>
-                    </Box>
+                    <IconButton
+                        onMouseDown={() => startMoving('left')}
+                        onMouseUp={() => stopMoving('left')}
+                        onMouseLeave={() => stopMoving('left')}
+                        data-direction="left"
+                        sx={{ ...controlButtonStyle, ...(activeDirection === 'LEFT' && activeStyle) }}
+                        className="control-btn"
+                    >
+                        <ArrowBack fontSize="large" />
+                    </IconButton>
+                    <IconButton
+                        onMouseDown={() => startMoving('down')}
+                        onMouseUp={() => stopMoving('down')}
+                        onMouseLeave={() => stopMoving('down')}
+                        data-direction="down"
+                        sx={{ ...controlButtonStyle, ...(activeDirection === 'DOWN' && activeStyle) }}
+                        className="control-btn"
+                    >
+                        <ArrowDownward fontSize="large" />
+                    </IconButton>
+                    <IconButton
+                        onMouseDown={() => startMoving('right')}
+                        onMouseUp={() => stopMoving('right')}
+                        onMouseLeave={() => stopMoving('right')}
+                        data-direction="right"
+                        sx={{ ...controlButtonStyle, ...(activeDirection === 'RIGHT' && activeStyle) }}
+                        className="control-btn"
+                    >
+                        <ArrowForward fontSize="large" />
+                    </IconButton>
+                </Box>
 
-                    {/* Toggle Buttons — 2x2 grid */}
-                    <Box sx={{
-                        flex: '0 0 auto',
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(2, 1fr)',
-                        gap: 1,
-                    }}>
-                        <IconButton
-                            onClick={handleCameraToggle}
-                            onTouchStart={(e) => { e.preventDefault(); handleCameraToggle(); }}
-                            sx={{ ...toggleButtonStyle, backgroundColor: cameraOn ? '#00ff88' : (theme === 'dark' ? '#1b1b1b' : '#eee'), color: cameraOn ? '#000' : (theme === 'dark' ? '#888' : '#666') }}
-                            title="Toggle Camera"
-                        >
-                            {cameraOn ? <Videocam /> : <VideocamOff />}
-                        </IconButton>
-                        <IconButton
-                            onClick={handleMicToggle}
-                            onTouchStart={(e) => { e.preventDefault(); handleMicToggle(); }}
-                            sx={{ ...toggleButtonStyle, backgroundColor: micOn ? '#00ff88' : (theme === 'dark' ? '#1b1b1b' : '#eee'), color: micOn ? '#000' : (theme === 'dark' ? '#888' : '#666') }}
-                            title="Toggle Mic"
-                        >
-                            {micOn ? <Mic /> : <MicOff />}
-                        </IconButton>
-                        <IconButton
-                            onClick={handleLightsToggle}
-                            onTouchStart={(e) => { e.preventDefault(); handleLightsToggle(); }}
-                            sx={{ ...toggleButtonStyle, backgroundColor: lightsOn ? '#00ff88' : (theme === 'dark' ? '#1b1b1b' : '#eee'), color: lightsOn ? '#000' : (theme === 'dark' ? '#888' : '#666') }}
-                            title="Toggle Lights"
-                        >
-                            {lightsOn ? <Lightbulb /> : <LightbulbOutline />}
-                        </IconButton>
-                        <IconButton
-                            onClick={handleCaptureInternal}
-                            onTouchStart={(e) => { e.preventDefault(); handleCaptureInternal(); }}
-                            sx={{ ...toggleButtonStyle, borderColor: theme === 'dark' ? 'rgba(255,255,255,0.3)' : '#1a3324', color: theme === 'dark' ? '#fff' : '#0a1c12' }}
-                            title="Capture Screenshot"
-                        >
-                            <PhotoCamera />
-                        </IconButton>
-                    </Box>
+                {/* Toggle Buttons — 2x2 grid */}
+                <Box sx={{
+                    flex: '0 0 auto',
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(2, 1fr)',
+                    gap: 1,
+                }}>
+                    <IconButton
+                        onClick={handleCameraToggle}
+                        onTouchStart={(e) => { e.preventDefault(); handleCameraToggle(); }}
+                        sx={{ ...toggleButtonStyle, backgroundColor: cameraOn ? '#00ff88' : (theme === 'dark' ? '#1b1b1b' : '#eee'), color: cameraOn ? '#000' : (theme === 'dark' ? '#888' : '#666') }}
+                        title="Toggle Camera"
+                    >
+                        {cameraOn ? <Videocam /> : <VideocamOff />}
+                    </IconButton>
+                    <IconButton
+                        onClick={handleMicToggle}
+                        onTouchStart={(e) => { e.preventDefault(); handleMicToggle(); }}
+                        sx={{ ...toggleButtonStyle, backgroundColor: micOn ? '#00ff88' : (theme === 'dark' ? '#1b1b1b' : '#eee'), color: micOn ? '#000' : (theme === 'dark' ? '#888' : '#666') }}
+                        title="Toggle Mic"
+                    >
+                        {micOn ? <Mic /> : <MicOff />}
+                    </IconButton>
+                    <IconButton
+                        onClick={handleLightsToggle}
+                        onTouchStart={(e) => { e.preventDefault(); handleLightsToggle(); }}
+                        sx={{ ...toggleButtonStyle, backgroundColor: lightsOn ? '#00ff88' : (theme === 'dark' ? '#1b1b1b' : '#eee'), color: lightsOn ? '#000' : (theme === 'dark' ? '#888' : '#666') }}
+                        title="Toggle Lights"
+                    >
+                        {lightsOn ? <Lightbulb /> : <LightbulbOutline />}
+                    </IconButton>
+                    <IconButton
+                        onClick={handleCaptureInternal}
+                        onTouchStart={(e) => { e.preventDefault(); handleCaptureInternal(); }}
+                        sx={{ ...toggleButtonStyle, borderColor: theme === 'dark' ? 'rgba(255,255,255,0.3)' : '#1a3324', color: theme === 'dark' ? '#fff' : '#0a1c12' }}
+                        title="Capture Screenshot"
+                    >
+                        <PhotoCamera />
+                    </IconButton>
+                </Box>
             </Box>
         </main>
     );
