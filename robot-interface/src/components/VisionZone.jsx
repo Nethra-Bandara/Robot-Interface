@@ -223,7 +223,7 @@ const [keys, setKeys] = useState({
     };
 
     const controlButtonStyle = {
-        color: theme === 'dark' ? 'rgba(255,255,255,0.88)' : '#00ff88',
+        color: theme === 'dark' ? 'rgba(255,255,255,0.88)' : '#000',
         border: theme === 'dark' ? '1px solid rgba(255,255,255,0.12)' : '1px solid rgba(5, 86, 41, 0.85)',
         backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(3, 30, 17, 0.98)',
         boxShadow: theme === 'dark' ? '0 0 0 1px rgba(255,255,255,0.04)' : '0 16px 34px rgba(0,0,0,0.24)',
@@ -233,13 +233,13 @@ const [keys, setKeys] = useState({
         transition: 'all 0.25s ease',
         '&:hover': {
             backgroundColor: theme === 'dark' ? '#00ff88' : 'rgba(7, 85, 44, 0.98)',
-            color: theme === 'dark' ? '#000' : '#fff',
+            color: theme === 'dark' ? '#000' : '#000',
             boxShadow: '0 0 18px rgba(0, 255, 136, 0.32)',
             transform: 'translateY(-1px)'
         },
         '&:active': {
             backgroundColor: theme === 'dark' ? '#00ff88' : 'rgba(0, 90, 35, 0.96)',
-            color: '#fff',
+            color: theme === 'dark' ? '#fff' : '#000',
             boxShadow: '0 0 24px rgba(0, 255, 136, 0.35)',
             transform: 'scale(0.96)'
         },
@@ -277,7 +277,7 @@ const [keys, setKeys] = useState({
 
     const edgeButtonStyle = {
         position: 'absolute',
-        color: theme === 'dark' ? 'rgba(255, 255, 255, 0.85)' : '#00ff88',
+        color: theme === 'dark' ? 'rgba(255, 255, 255, 0.85)' : '#000',
         backgroundColor: theme === 'dark' ? 'rgba(0,0,0,0.18)' : 'rgba(4, 28, 15, 0.96)',
         border: theme === 'dark' ? '1px solid rgba(255,255,255,0.15)' : '1px solid rgba(0, 90, 42, 0.55)',
         borderRadius: '999px',
@@ -285,7 +285,7 @@ const [keys, setKeys] = useState({
         transition: 'transform 0.2s ease, background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease',
         transformOrigin: 'center',
         '&:hover': {
-            color: '#00ff88',
+            color: theme === 'dark' ? '#00ff88' : '#000',
             backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.14)' : 'rgba(0, 120, 43, 0.96)',
             boxShadow: theme === 'dark' ? '0 0 18px rgba(0,255,136,0.18)' : '0 0 18px rgba(0, 128, 44, 0.32)'
         },
