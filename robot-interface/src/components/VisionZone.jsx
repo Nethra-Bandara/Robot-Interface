@@ -223,70 +223,74 @@ const [keys, setKeys] = useState({
     };
 
     const controlButtonStyle = {
-        color: theme === 'dark' ? 'rgba(255,255,255,0.8)' : 'rgba(10,28,18,0.8)',
-        border: '1px solid rgba(255,255,255,0.12)',
-        backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.82)',
-        boxShadow: theme === 'dark' ? '0 0 0 1px rgba(255,255,255,0.04)' : '0 1px 4px rgba(0,0,0,0.08)',
+        color: theme === 'dark' ? 'rgba(255,255,255,0.88)' : '#d7f3d1',
+        border: theme === 'dark' ? '1px solid rgba(255,255,255,0.12)' : '1px solid rgba(5, 86, 41, 0.85)',
+        backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(3, 30, 17, 0.98)',
+        boxShadow: theme === 'dark' ? '0 0 0 1px rgba(255,255,255,0.04)' : '0 16px 34px rgba(0,0,0,0.24)',
+        borderRadius: '22px',
+        minWidth: 64,
+        minHeight: 64,
         transition: 'all 0.25s ease',
         '&:hover': {
-            backgroundColor: '#00ff88',
-            color: '#000',
+            backgroundColor: theme === 'dark' ? '#00ff88' : 'rgba(7, 85, 44, 0.98)',
+            color: theme === 'dark' ? '#000' : '#fff',
             boxShadow: '0 0 18px rgba(0, 255, 136, 0.32)',
             transform: 'translateY(-1px)'
         },
         '&:active': {
-            backgroundColor: '#00ff88',
-            color: '#000',
-            boxShadow: '0 0 24px rgba(0, 255, 136, 0.45)',
-            transform: 'scale(0.95)'
+            backgroundColor: theme === 'dark' ? '#00ff88' : 'rgba(0, 90, 35, 0.96)',
+            color: '#fff',
+            boxShadow: '0 0 24px rgba(0, 255, 136, 0.35)',
+            transform: 'scale(0.96)'
         },
         '&:focus-visible': {
             outline: '2px solid #00ff88',
-            outlineOffset: '3px'
+            outlineOffset: '4px'
         }
     };
 
     const toggleButtonStyle = {
         width: 50,
         height: 50,
-        color: theme === 'dark' ? 'rgba(255,255,255,0.8)' : 'rgba(10,28,18,0.8)',
-        border: '1px solid rgba(255,255,255,0.12)',
-        backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.9)',
-        boxShadow: theme === 'dark' ? '0 0 0 1px rgba(255,255,255,0.04)' : '0 1px 5px rgba(0,0,0,0.08)',
+        color: theme === 'dark' ? 'rgba(255,255,255,0.9)' : '#d7f3d1',
+        border: theme === 'dark' ? '1px solid rgba(255,255,255,0.12)' : '1px solid rgba(5, 86, 41, 0.85)',
+        backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(3, 30, 17, 0.98)',
+        boxShadow: theme === 'dark' ? '0 0 0 1px rgba(255,255,255,0.04)' : '0 12px 26px rgba(0,0,0,0.18)',
         transition: 'all 0.25s ease',
+        borderRadius: '22px',
         '&:hover': {
-            backgroundColor: '#00ff88',
-            color: '#000',
+            backgroundColor: theme === 'dark' ? '#00ff88' : 'rgba(7, 85, 44, 0.98)',
+            color: theme === 'dark' ? '#000' : '#fff',
             boxShadow: '0 0 18px rgba(0, 255, 136, 0.32)',
             transform: 'translateY(-1px)'
         },
         '&:active': {
-            backgroundColor: '#00ff88',
-            color: '#000',
-            transform: 'scale(0.95)'
+            backgroundColor: theme === 'dark' ? '#00ff88' : 'rgba(0, 90, 35, 0.96)',
+            color: '#fff',
+            transform: 'scale(0.96)'
         },
         '&:focus-visible': {
             outline: '2px solid #00ff88',
-            outlineOffset: '3px'
+            outlineOffset: '4px'
         }
     };
 
     const edgeButtonStyle = {
         position: 'absolute',
-        color: 'rgba(255, 255, 255, 0.75)',
-        backgroundColor: 'rgba(0,0,0,0.18)',
-        border: '1px solid rgba(255,255,255,0.15)',
+        color: theme === 'dark' ? 'rgba(255, 255, 255, 0.85)' : '#d4f7ce',
+        backgroundColor: theme === 'dark' ? 'rgba(0,0,0,0.18)' : 'rgba(4, 28, 15, 0.96)',
+        border: theme === 'dark' ? '1px solid rgba(255,255,255,0.15)' : '1px solid rgba(0, 90, 42, 0.55)',
         borderRadius: '999px',
         zIndex: 15,
         transition: 'transform 0.2s ease, background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease',
         transformOrigin: 'center',
         '&:hover': {
             color: '#00ff88',
-            backgroundColor: 'rgba(255,255,255,0.14)',
-            boxShadow: '0 0 18px rgba(0,255,136,0.18)'
+            backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.14)' : 'rgba(0, 120, 43, 0.96)',
+            boxShadow: theme === 'dark' ? '0 0 18px rgba(0,255,136,0.18)' : '0 0 18px rgba(0, 128, 44, 0.32)'
         },
         '&:active': {
-            backgroundColor: 'rgba(255,255,255,0.12)'
+            backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.12)' : 'rgba(0, 80, 32, 0.96)'
         },
         '&:focus-visible': {
             outline: '2px solid #00ff88',
@@ -296,19 +300,20 @@ const [keys, setKeys] = useState({
 
     const cameraOverlayButtonStyle = {
         position: 'absolute',
-        color: 'rgba(255, 255, 255, 0.55)',
-        backgroundColor: 'rgba(0, 0, 0, 0.45)',
+        color: theme === 'dark' ? 'rgba(255, 255, 255, 0.55)' : '#d4f7ce',
+        backgroundColor: theme === 'dark' ? 'rgba(0, 0, 0, 0.45)' : 'rgba(4, 28, 15, 0.96)',
         backdropFilter: 'blur(6px)',
-        border: '1px solid rgba(255, 255, 255, 0.15)',
+        border: theme === 'dark' ? '1px solid rgba(255, 255, 255, 0.15)' : '1px solid rgba(0, 90, 42, 0.55)',
         zIndex: 15,
         width: 42,
         height: 42,
+        borderRadius: '16px',
         transition: 'all 0.2s',
         '&:hover': {
             color: '#00ff88',
-            backgroundColor: 'rgba(0, 0, 0, 0.75)',
+            backgroundColor: theme === 'dark' ? 'rgba(0, 0, 0, 0.75)' : 'rgba(0, 120, 43, 0.96)',
             borderColor: '#00ff88',
-            boxShadow: '0 0 12px rgba(0, 255, 136, 0.6)',
+            boxShadow: theme === 'dark' ? '0 0 12px rgba(0, 255, 136, 0.6)' : '0 0 12px rgba(0, 128, 44, 0.4)',
         },
         '&:active': {
             transform: 'scale(0.92)'
