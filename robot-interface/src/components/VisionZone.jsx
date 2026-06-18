@@ -343,7 +343,16 @@ const [keys, setKeys] = useState({
                     <IconButton 
                         onClick={() => sendCameraCommand && sendCameraCommand('cam_up')}
                         onTouchStart={(e) => { e.preventDefault(); sendCameraCommand && sendCameraCommand('cam_up'); }}
-                        sx={{ ...edgeButtonStyle, top: 65, left: '50%', transform: 'translateX(-50%)' }}
+                        sx={{
+                            ...edgeButtonStyle,
+                            top: 65,
+                            left: '50%',
+                            transform: 'translateX(-50%)',
+                            '&:active': {
+                                transform: 'translateX(-50%) translateY(-8px)',
+                                backgroundColor: 'rgba(255,255,255,0.08)'
+                            }
+                        }}
                         title="Camera Tilt Up"
                     >
                         <KeyboardArrowUp />
@@ -352,7 +361,16 @@ const [keys, setKeys] = useState({
                     <IconButton 
                         onClick={() => sendCameraCommand && sendCameraCommand('cam_down')}
                         onTouchStart={(e) => { e.preventDefault(); sendCameraCommand && sendCameraCommand('cam_down'); }}
-                        sx={{ ...edgeButtonStyle, bottom: 15, left: '50%', transform: 'translateX(-50%)' }}
+                        sx={{
+                            ...edgeButtonStyle,
+                            bottom: 15,
+                            left: '50%',
+                            transform: 'translateX(-50%)',
+                            '&:active': {
+                                transform: 'translateX(-50%) translateY(8px)',
+                                backgroundColor: 'rgba(255,255,255,0.08)'
+                            }
+                        }}
                         title="Camera Tilt Down"
                     >
                         <KeyboardArrowDown />
@@ -361,7 +379,16 @@ const [keys, setKeys] = useState({
                     <IconButton 
                         onClick={() => sendCameraCommand && sendCameraCommand('cam_left')}
                         onTouchStart={(e) => { e.preventDefault(); sendCameraCommand && sendCameraCommand('cam_left'); }}
-                        sx={{ ...edgeButtonStyle, left: 15, top: '50%', transform: 'translateY(-50%)' }}
+                        sx={{
+                            ...edgeButtonStyle,
+                            left: 15,
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            '&:active': {
+                                transform: 'translateY(-50%) translateX(-8px)',
+                                backgroundColor: 'rgba(255,255,255,0.08)'
+                            }
+                        }}
                         title="Camera Pan Left"
                     >
                         <KeyboardArrowLeft />
@@ -370,7 +397,16 @@ const [keys, setKeys] = useState({
                     <IconButton 
                         onClick={() => sendCameraCommand && sendCameraCommand('cam_right')}
                         onTouchStart={(e) => { e.preventDefault(); sendCameraCommand && sendCameraCommand('cam_right'); }}
-                        sx={{ ...edgeButtonStyle, right: 15, top: '50%', transform: 'translateY(-50%)' }}
+                        sx={{
+                            ...edgeButtonStyle,
+                            right: 15,
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            '&:active': {
+                                transform: 'translateY(-50%) translateX(8px)',
+                                backgroundColor: 'rgba(255,255,255,0.08)'
+                            }
+                        }}
                         title="Camera Pan Right"
                     >
                         <KeyboardArrowRight />
