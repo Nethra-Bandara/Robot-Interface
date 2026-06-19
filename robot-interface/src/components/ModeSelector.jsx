@@ -60,11 +60,11 @@ const ModeSelector = ({ theme, onModeChange, sendModeCommand }) => {
     const textActive  = isDark ? '#e8f5e9' : '#e8f5e4';
     const labelColor  = isDark ? 'rgba(255,255,255,0.35)' : 'rgba(215,243,209,0.65)';
 
-    // ── Layout values (preserve dark-mode sizes, tighten vertical spacing in light mode) ──
-    const outerPadding = isDark ? '12px 8px' : '8px 6px';
-    const internalGap  = isDark ? '10px' : '6px';
-    const domainPy     = isDark ? '12px' : '8px';
-    const modePy       = isDark ? '14px' : '8px';
+    // ── Layout values (keep identical across themes to preserve exact positioning)
+    const outerPadding = '12px 8px';
+    const internalGap = '10px';
+    const domainPy = '12px';
+    const modePy = '14px';
 
     // ── Shared domain button ─────────────────────────────────────────────────
     const DomainBtn = ({ value, icon: Icon, label }) => {
