@@ -1,4 +1,4 @@
-// src/components/VisionZone.jsx  — responsive width, no hardcoded maxWidth clash
+// src/components/VisionZone.jsx
 import React, { useState, useRef, useEffect } from 'react';
 import { IconButton, Box, Typography, Slider } from '@mui/material';
 import {
@@ -121,7 +121,6 @@ const VisionZone = ({
         border: theme === 'dark' ? '1px solid rgba(255,255,255,0.12)' : '1px solid rgba(5,86,41,0.85)',
         backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(3,30,17,0.98)',
         borderRadius: '22px',
-        // Fluid sizing: clamp between 48px and 64px
         minWidth: 'clamp(48px, 6vw, 64px)',
         minHeight: 'clamp(48px, 6vw, 64px)',
         transition: 'all 0.25s ease',
@@ -172,7 +171,6 @@ const VisionZone = ({
     };
 
     return (
-        // Takes up all available space from the parent flex container
         <Box
             component="main"
             className="vision-zone"
@@ -186,19 +184,67 @@ const VisionZone = ({
                 boxSizing: 'border-box',
             }}
         >
-            {/* Camera container — fluid width, no fixed maxWidth */}
-            <Box sx={{ position: 'relative', width: '100%', maxWidth: '100%' }}>
-                {/* Theme Toggle */}
+            {/* ── Top bar: theme toggle + HUD in one row ── */}
+            <Box
+                sx={{
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    mb: 0.5,
+                    gap: 1,
+                }}
+            >
+                {/* Theme toggle — visible, inside the flow */}
                 <IconButton
                     onClick={onToggleTheme}
                     onTouchStart={(e) => { e.preventDefault(); onToggleTheme?.(); }}
-                    className="theme-toggle-btn"
-                    sx={{ position: 'absolute', top: 0, left: -52, color: 'var(--text-main)', zIndex: 20 }}
                     title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
+                    sx={{
+                        flexShrink: 0,
+                        color: theme === 'dark' ? '#fff' : '#0a2e1a',
+                        bgcolor: theme === 'dark' ? 'rgba(255,255,255,0.07)' : 'rgba(0,80,30,0.12)',
+                        border: theme === 'dark' ? '1px solid rgba(255,255,255,0.15)' : '1px solid rgba(0,90,40,0.3)',
+                        borderRadius: '12px',
+                        width: 38,
+                        height: 38,
+                        '&:hover': { bgcolor: '#00ff88', color: '#000' },
+                    }}
                 >
-                    {theme === 'dark' ? <Brightness7 /> : <Brightness4 />}
+                    {theme === 'dark' ? <Brightness7 fontSize="small" /> : <Brightness4 fontSize="small" />}
                 </IconButton>
 
+                {/* HUD bar — takes remaining width */}
+                <Box
+                    className="hud-overlay"
+                    sx={{
+                        flex: 1,
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        px: 2,
+                        py: 0.75,
+                        bgcolor: theme === 'dark' ? 'rgba(0,0,0,0.55)' : 'rgba(5,28,13,0.9)',
+                        borderRadius: '10px',
+                        border: theme === 'dark' ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,90,42,0.3)',
+                        flexWrap: 'wrap',
+                        gap: 1,
+                    }}
+                >
+                    {[
+                        ['SIGNAL', telemetry?.signal !== undefined ? `${telemetry.signal}%` : '92% (RF MESH)'],
+                        ['POWER',  telemetry?.battery !== undefined ? `${telemetry.battery}%` : '88%'],
+                        ['PRESSURE', telemetry?.pressure !== undefined ? `${telemetry.pressure} hPa` : '1013 hPa'],
+                    ].map(([label, value]) => (
+                        <Typography key={label} variant="caption"
+                            sx={{ color: theme === 'dark' ? 'rgba(255,255,255,0.75)' : '#cde8c0', fontSize: '0.72rem', whiteSpace: 'nowrap' }}>
+                            {label}: <strong style={{ color: theme === 'dark' ? '#fff' : '#e8f8e8' }}>{value}</strong>
+                        </Typography>
+                    ))}
+                </Box>
+            </Box>
+
+            {/* ── Camera feed ── */}
+            <Box sx={{ position: 'relative', width: '100%' }}>
                 <Box
                     className="camera-container"
                     sx={{ width: '100%', borderColor: 'var(--panel-border)', position: 'relative' }}
@@ -210,38 +256,41 @@ const VisionZone = ({
                         style={{ opacity: cameraOn ? 1 : 0.1 }}
                     />
 
-                    {/* HUD Overlay */}
-                    <div className="hud-overlay">
-                        <span>SIGNAL: <strong>{telemetry?.signal !== undefined ? `${telemetry.signal}%` : '92% (RF MESH)'}</strong></span>
-                        <span>POWER: <strong>{telemetry?.battery !== undefined ? `${telemetry.battery}%` : '88%'}</strong></span>
-                        <span>PRESSURE: <strong>{telemetry?.pressure !== undefined ? `${telemetry.pressure} hPa` : '1013 hPa'}</strong></span>
-                    </div>
-
-                    {/* Camera direction buttons */}
-                    <IconButton onClick={() => sendCameraCommand?.('cam_up')} onTouchStart={(e)=>{e.preventDefault();sendCameraCommand?.('cam_up');}}
-                        sx={{ ...edgeButtonStyle, top: 65, left: '50%', transform: 'translateX(-50%)', '&:active':{transform:'translateX(-50%) translateY(-8px)'} }} title="Camera Tilt Up" className="edge-btn">
+                    {/* Camera direction overlay buttons */}
+                    <IconButton onClick={() => sendCameraCommand?.('cam_up')}
+                        onTouchStart={(e)=>{e.preventDefault();sendCameraCommand?.('cam_up');}}
+                        sx={{ ...edgeButtonStyle, top: 12, left: '50%', transform: 'translateX(-50%)' }}
+                        title="Camera Tilt Up" className="edge-btn">
                         <KeyboardArrowUp />
                     </IconButton>
-                    <IconButton onClick={() => sendCameraCommand?.('cam_down')} onTouchStart={(e)=>{e.preventDefault();sendCameraCommand?.('cam_down');}}
-                        sx={{ ...edgeButtonStyle, bottom: 15, left: '50%', transform: 'translateX(-50%)', '&:active':{transform:'translateX(-50%) translateY(8px)'} }} title="Camera Tilt Down" className="edge-btn">
+                    <IconButton onClick={() => sendCameraCommand?.('cam_down')}
+                        onTouchStart={(e)=>{e.preventDefault();sendCameraCommand?.('cam_down');}}
+                        sx={{ ...edgeButtonStyle, bottom: 12, left: '50%', transform: 'translateX(-50%)' }}
+                        title="Camera Tilt Down" className="edge-btn">
                         <KeyboardArrowDown />
                     </IconButton>
-                    <IconButton onClick={() => sendCameraCommand?.('cam_left')} onTouchStart={(e)=>{e.preventDefault();sendCameraCommand?.('cam_left');}}
-                        sx={{ ...edgeButtonStyle, left: 15, top: '50%', transform: 'translateY(-50%)', '&:active':{transform:'translateY(-50%) translateX(-8px)'} }} title="Camera Pan Left" className="edge-btn">
+                    <IconButton onClick={() => sendCameraCommand?.('cam_left')}
+                        onTouchStart={(e)=>{e.preventDefault();sendCameraCommand?.('cam_left');}}
+                        sx={{ ...edgeButtonStyle, left: 12, top: '50%', transform: 'translateY(-50%)' }}
+                        title="Camera Pan Left" className="edge-btn">
                         <KeyboardArrowLeft />
                     </IconButton>
-                    <IconButton onClick={() => sendCameraCommand?.('cam_right')} onTouchStart={(e)=>{e.preventDefault();sendCameraCommand?.('cam_right');}}
-                        sx={{ ...edgeButtonStyle, right: 15, top: '50%', transform: 'translateY(-50%)', '&:active':{transform:'translateY(-50%) translateX(8px)'} }} title="Camera Pan Right" className="edge-btn">
+                    <IconButton onClick={() => sendCameraCommand?.('cam_right')}
+                        onTouchStart={(e)=>{e.preventDefault();sendCameraCommand?.('cam_right');}}
+                        sx={{ ...edgeButtonStyle, right: 12, top: '50%', transform: 'translateY(-50%)' }}
+                        title="Camera Pan Right" className="edge-btn">
                         <KeyboardArrowRight />
                     </IconButton>
-                    <IconButton onClick={() => sendCameraCommand?.('cam_center')} onTouchStart={(e)=>{e.preventDefault();sendCameraCommand?.('cam_center');}}
-                        sx={{ ...cameraOverlayButtonStyle, bottom: 15, right: 15 }} title="Recenter Camera View">
+                    <IconButton onClick={() => sendCameraCommand?.('cam_center')}
+                        onTouchStart={(e)=>{e.preventDefault();sendCameraCommand?.('cam_center');}}
+                        sx={{ ...cameraOverlayButtonStyle, bottom: 12, right: 12 }}
+                        title="Recenter Camera View">
                         <FilterCenterFocus />
                     </IconButton>
                 </Box>
             </Box>
 
-            {/* ── Control bar — fluid, wraps on narrow screens ── */}
+            {/* ── Control bar ── */}
             <Box
                 className="control-bar"
                 sx={{
@@ -249,11 +298,12 @@ const VisionZone = ({
                     mt: 2,
                     display: 'flex',
                     flexDirection: 'row',
-                    flexWrap: 'wrap',          // wraps to next row if viewport too narrow
+                    flexWrap: 'wrap',
                     alignItems: 'center',
                     justifyContent: 'space-evenly',
-                    gap: 1.5,
+                    gap: 2,
                     px: 1,
+                    pb: 2,
                 }}
             >
                 {/* Mode Selector */}
@@ -262,7 +312,7 @@ const VisionZone = ({
                 </Box>
 
                 {/* Speed Slider */}
-                <Box className="slider-panel" sx={{ flex: '0 0 auto', height: 120, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+                <Box sx={{ flex: '0 0 auto', height: 120, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
                     <Slider
                         orientation="vertical"
                         value={speed}
@@ -276,7 +326,7 @@ const VisionZone = ({
                             '& .MuiSlider-rail': { width:8, backgroundColor:theme==='dark'?'#333':'#ccdacc', borderRadius:4 },
                         }}
                     />
-                    <Typography variant="caption" sx={{ color:'rgb(250,250,250)', fontSize:'0.7rem', letterSpacing:'0.08em' }}>SPEED</Typography>
+                    <Typography variant="caption" sx={{ color:'rgba(250,250,250,0.8)', fontSize:'0.7rem', letterSpacing:'0.08em' }}>SPEED</Typography>
                 </Box>
 
                 {/* D-Pad */}

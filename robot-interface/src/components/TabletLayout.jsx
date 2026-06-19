@@ -10,9 +10,8 @@ const BOTTOM_NAV_HEIGHT = 56;
 
 const TabletLayout = (props) => {
     const {
-        theme, screenshots, activeIndex, handleDelete,
-        handleDeleteAll, isPurging, handleSelectScreenshot,
-        mode, setMode, telemetry,
+        theme, screenshots, activeIndex, handleDelete, handleDeleteAll,
+        isPurging, handleSelectScreenshot, mode, setMode, telemetry,
     } = props;
 
     const [tab, setTab] = useState(0);
@@ -29,76 +28,66 @@ const TabletLayout = (props) => {
                 overflow: 'hidden',
             }}
         >
-            {/* ── Main content area — fills all space above bottom nav ── */}
-            <Box
-                sx={{
-                    flex: 1,
-                    minHeight: 0,
-                    overflow: 'hidden',
-                    position: 'relative',
-                }}
-            >
+            {/* ── Main content — fills everything above bottom nav ── */}
+            <Box sx={{ flex: 1, minHeight: 0, overflow: 'hidden', position: 'relative' }}>
+
+                {/* CAMERA TAB */}
                 {tab === 0 && (
-                    <Box sx={{ height: '100%', overflowY: 'auto', overflowX: 'hidden', p: 1.5 }}>
+                    <Box sx={{
+                        position: 'absolute', inset: 0,
+                        overflowY: 'auto', overflowX: 'hidden',
+                        WebkitOverflowScrolling: 'touch',
+                    }}>
                         <VisionZone {...props} />
                     </Box>
                 )}
+
+                {/* GALLERY TAB */}
                 {tab === 1 && (
-                    <Box sx={{ height: '100%', overflowY: 'auto', overflowX: 'hidden', p: 1.5 }}>
+                    <Box sx={{
+                        position: 'absolute', inset: 0,
+                        overflowY: 'auto', overflowX: 'hidden',
+                        WebkitOverflowScrolling: 'touch',
+                        p: 1.5,
+                    }}>
                         <ScreenshotGallery
-                            screenshots={screenshots}
-                            onSelect={handleSelectScreenshot}
-                            activeIndex={activeIndex}
-                            onDelete={handleDelete}
-                            onDeleteAll={handleDeleteAll}
-                            theme={theme}
-                            isPurging={isPurging}
+                            screenshots={screenshots} onSelect={handleSelectScreenshot}
+                            activeIndex={activeIndex} onDelete={handleDelete}
+                            onDeleteAll={handleDeleteAll} theme={theme} isPurging={isPurging}
                         />
                     </Box>
                 )}
+
+                {/* INTEL TAB */}
                 {tab === 2 && (
-                    <Box sx={{ height: '100%', overflowY: 'auto', overflowX: 'hidden' }}>
+                    <Box sx={{
+                        position: 'absolute', inset: 0,
+                        overflowY: 'auto', overflowX: 'hidden',
+                        WebkitOverflowScrolling: 'touch',
+                    }}>
                         <Sidebar
                             activeContext={screenshots[activeIndex]}
-                            currentMode={mode}
-                            onModeChange={setMode}
-                            theme={theme}
-                            telemetry={telemetry}
+                            currentMode={mode} onModeChange={setMode}
+                            theme={theme} telemetry={telemetry}
                         />
                     </Box>
                 )}
             </Box>
 
-            {/* ── Bottom navigation bar ── */}
+            {/* ── Bottom navigation ── */}
             <BottomNavigation
                 value={tab}
-                onChange={(_, newVal) => setTab(newVal)}
+                onChange={(_, v) => setTab(v)}
                 sx={{
-                    position: 'fixed',
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
                     height: `${BOTTOM_NAV_HEIGHT}px`,
-                    zIndex: 100,
+                    flexShrink: 0,
                     bgcolor: 'var(--panel-bg)',
-                    borderTop: 'var(--border, 1px solid rgba(255,255,255,0.1))',
+                    borderTop: '1px solid var(--panel-border, rgba(255,255,255,0.1))',
                 }}
             >
-                <BottomNavigationAction
-                    label="Camera"
-                    icon={<Videocam />}
-                    sx={{ color: tab === 0 ? 'var(--accent-primary)' : 'var(--text-secondary)' }}
-                />
-                <BottomNavigationAction
-                    label="Gallery"
-                    icon={<PhotoLibrary />}
-                    sx={{ color: tab === 1 ? 'var(--accent-primary)' : 'var(--text-secondary)' }}
-                />
-                <BottomNavigationAction
-                    label="Intel"
-                    icon={<Info />}
-                    sx={{ color: tab === 2 ? 'var(--accent-primary)' : 'var(--text-secondary)' }}
-                />
+                <BottomNavigationAction label="Camera"  icon={<Videocam />}     sx={{ color: tab === 0 ? 'var(--accent-primary, #00ff88)' : 'var(--text-secondary)' }} />
+                <BottomNavigationAction label="Gallery" icon={<PhotoLibrary />} sx={{ color: tab === 1 ? 'var(--accent-primary, #00ff88)' : 'var(--text-secondary)' }} />
+                <BottomNavigationAction label="Intel"   icon={<Info />}         sx={{ color: tab === 2 ? 'var(--accent-primary, #00ff88)' : 'var(--text-secondary)' }} />
             </BottomNavigation>
         </Box>
     );
