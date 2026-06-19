@@ -103,7 +103,7 @@ body {
 }
 
 /* Ensure overlay edge buttons are circular in light mode to match dark mode */
-.theme-light .edge-btn {
+.theme-light .edge-btn.MuiIconButton-root {
   border-radius: 999px !important;
 }
 
