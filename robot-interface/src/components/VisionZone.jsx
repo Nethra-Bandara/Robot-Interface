@@ -218,7 +218,7 @@ const VisionZone = ({
         {/* cam_up button also needs to drop a little to match */}
         <IconButton onClick={() => sendCameraCommand?.('cam_up')}
             onTouchStart={(e)=>{e.preventDefault();sendCameraCommand?.('cam_up');}}
-            sx={{ ...edgeButtonStyle, top: 70, left: '50%', transform: 'translateX(-50%)' }}  {/* ← was 64 */}
+            sx={{ ...edgeButtonStyle, top: 70, left: '50%', transform: 'translateX(-50%)' }}  //{/* ← was 64 */}
             title="Camera Tilt Up" className="edge-btn">
             <KeyboardArrowUp />
         </IconButton>
