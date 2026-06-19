@@ -5,7 +5,6 @@ import { Menu } from '@mui/icons-material';
 import VisionZone from './VisionZone';
 import ScreenshotGallery from './ScreenshotGallery';
 import Sidebar from './Sidebar';
-import MobileBottomNav from './MobileBottomNav';
 
 const TabletLayout = (props) => {
     const { theme, screenshots, activeIndex, handleDelete,
@@ -54,7 +53,6 @@ const TabletLayout = (props) => {
                 )}
             </Box>
 
-            <MobileBottomNav value={tab} onChange={setTab} />
         </Box>
     );
 };

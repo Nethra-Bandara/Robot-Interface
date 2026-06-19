@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import MobileBottomNav from './MobileBottomNav';
 import VisionZone from './VisionZone';
 import ScreenshotGallery from './ScreenshotGallery';
 import Sidebar from './Sidebar';
@@ -92,8 +91,7 @@ const MobileLayout = ({
                 )}
             </Box>
 
-            {/* Bottom Navigation */}
-            <MobileBottomNav value={tab} onChange={setTab} />
+
         </Box>
     );
 };
