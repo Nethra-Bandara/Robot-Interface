@@ -1,0 +1,63 @@
+/* ─── Desktop Dashboard — responsive scaling ──────────────────────────────── */
+
+/*
+  Strategy: use CSS scale() on the dashboard wrapper so all children
+  (VisionZone, ScreenshotGallery, Sidebar) shrink/grow proportionally
+  without needing individual breakpoint overrides in each component.
+
+  The trick: after scaling down by factor S, the element visually shrinks
+  but still occupies its original layout space. We fix that by setting
+  width/height to (100% / S) and then the scale brings it back to 100vw/100dvh.
+*/
+
+.dashboard {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    overflow: hidden;
+
+    /* Default (≥1280px) — no scaling */
+    width: 100vw;
+    height: 100dvh;
+    transform-origin: top left;
+}
+
+/* Small laptop: 1024–1279px */
+@media (max-width: 1279px) and (min-width: 1024px) {
+    .dashboard {
+        transform: scale(0.92);
+        width: calc(100vw / 0.92);   /* ~108.7vw — counteracts the scale */
+        height: calc(100dvh / 0.92);
+    }
+}
+
+/* Landscape tablet: 768–1023px */
+@media (max-width: 1023px) and (min-width: 768px) {
+    .dashboard {
+        transform: scale(0.78);
+        width: calc(100vw / 0.78);   /* ~128vw */
+        height: calc(100dvh / 0.78);
+    }
+}
+
+/* Portrait tablet / large phone (fallback) */
+@media (max-width: 767px) {
+    .dashboard {
+        transform: scale(0.62);
+        width: calc(100vw / 0.62);
+        height: calc(100dvh / 0.62);
+    }
+}
+
+/* ─── Right panel stacking ─────────────────────────────────────────────────── */
+.content-panel {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.screenshot-gallery {
+    flex: 0 0 auto;
+}
