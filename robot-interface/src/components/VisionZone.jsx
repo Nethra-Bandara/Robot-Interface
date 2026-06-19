@@ -374,6 +374,7 @@ const VisionZone = ({
                             }
                         }}
                         title="Camera Tilt Up"
+                        className="edge-btn"
                     >
                         <KeyboardArrowUp />
                     </IconButton>
@@ -392,6 +393,7 @@ const VisionZone = ({
                             }
                         }}
                         title="Camera Tilt Down"
+                        className="edge-btn"
                     >
                         <KeyboardArrowDown />
                     </IconButton>
@@ -410,6 +412,7 @@ const VisionZone = ({
                             }
                         }}
                         title="Camera Pan Left"
+                        className="edge-btn"
                     >
                         <KeyboardArrowLeft />
                     </IconButton>
@@ -428,6 +431,7 @@ const VisionZone = ({
                             }
                         }}
                         title="Camera Pan Right"
+                        className="edge-btn"
                     >
                         <KeyboardArrowRight />
                     </IconButton>

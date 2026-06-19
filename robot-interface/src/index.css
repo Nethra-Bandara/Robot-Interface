@@ -102,6 +102,11 @@ body {
   box-shadow: 0 14px 36px rgba(0, 0, 0, 0.06) !important;
 }
 
+/* Ensure overlay edge buttons are circular in light mode to match dark mode */
+.theme-light .edge-btn {
+  border-radius: 999px !important;
+}
+
 .theme-light .mode-selector-group {
   border-radius: 16px;
 }
