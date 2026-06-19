@@ -563,7 +563,6 @@ const VisionZone = ({
                 }}>
                     <IconButton
                         onClick={handleCameraToggle}
-                        onTouchStart={(e) => { e.preventDefault(); handleCameraToggle(); }}
                         sx={{ ...toggleButtonStyle, backgroundColor: cameraOn ? '#00ff88' : (theme === 'dark' ? '#1b1b1b' : '#eee'), color: cameraOn ? '#000' : (theme === 'dark' ? '#888' : '#666') }}
                         title="Toggle Camera"
                     >
@@ -571,7 +570,6 @@ const VisionZone = ({
                     </IconButton>
                     <IconButton
                         onClick={handleMicToggle}
-                        onTouchStart={(e) => { e.preventDefault(); handleMicToggle(); }}
                         sx={{ ...toggleButtonStyle, backgroundColor: micOn ? '#00ff88' : (theme === 'dark' ? '#1b1b1b' : '#eee'), color: micOn ? '#000' : (theme === 'dark' ? '#888' : '#666') }}
                         title="Toggle Mic"
                     >
@@ -579,7 +577,6 @@ const VisionZone = ({
                     </IconButton>
                     <IconButton
                         onClick={handleLightsToggle}
-                        onTouchStart={(e) => { e.preventDefault(); handleLightsToggle(); }}
                         sx={{ ...toggleButtonStyle, backgroundColor: lightsOn ? '#00ff88' : (theme === 'dark' ? '#1b1b1b' : '#eee'), color: lightsOn ? '#000' : (theme === 'dark' ? '#888' : '#666') }}
                         title="Toggle Lights"
                     >
@@ -587,7 +584,6 @@ const VisionZone = ({
                     </IconButton>
                     <IconButton
                         onClick={handleCaptureInternal}
-                        onTouchStart={(e) => { e.preventDefault(); handleCaptureInternal(); }}
                         sx={{ ...toggleButtonStyle, borderColor: theme === 'dark' ? 'rgba(255,255,255,0.3)' : '#1a3324', color: theme === 'dark' ? '#fff' : '#0a1c12' }}
                         title="Capture Screenshot"
                     >
