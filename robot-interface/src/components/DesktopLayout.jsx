@@ -14,72 +14,75 @@ const DesktopLayout = (props) => {
         <Box
             className={`dashboard theme-${theme} mode-${mode?.toLowerCase()}`}
             sx={{
-                // Fill the full viewport
                 width: '100vw',
                 height: '100dvh',
-                overflow: 'hidden',
-
-                // Fluid side-by-side layout
                 display: 'flex',
                 flexDirection: 'row',
-                alignItems: 'stretch',
-
-                // Scale the entire dashboard to fit smaller screens.
-                // On a 1280px laptop the content stays natural size.
-                // On a 900px tablet it shrinks to ~70% so nothing overflows.
-                // transformOrigin must stay top-left so the scale anchors correctly.
-                transformOrigin: 'top left',
-                transform: {
-                    // ≥1280px  → no scale needed
-                    xl: 'scale(1)',
-                    // 1024–1279px (small laptop) → gentle shrink
-                    lg: 'scale(0.92)',
-                    // 768–1023px (landscape tablet) → moderate shrink
-                    md: 'scale(0.78)',
-                    // <768px → handled by mobile/tablet layouts, but just in case
-                    sm: 'scale(0.65)',
-                    xs: 'scale(0.55)',
-                },
-                // Compensate for the scale so the Box still occupies the right space
-                // width / height are kept at 100vw/100dvh above; the scale shrinks
-                // visual size but the element still takes up layout space, so we
-                // expand the inner dimensions to counteract:
-                '& > *': {
-                    flexShrink: 0,
-                },
+                overflow: 'hidden',
+                bgcolor: 'var(--bg-page)',
             }}
         >
-            {/* Left — camera + controls */}
-            <VisionZone {...props} />
+            {/* ── Left column: camera + controls ── */}
+            <Box
+                sx={{
+                    // On large screens take ~55% width, shrink gracefully on smaller
+                    flex: '0 0 auto',
+                    width: { xs: '52vw', md: '54vw', lg: '56vw', xl: '58vw' },
+                    minWidth: 0,
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    justifyContent: 'center',
+                    overflowY: 'auto',
+                    overflowX: 'hidden',
+                    p: { xs: 0.5, md: 1, lg: 1.5 },
+                }}
+            >
+                <VisionZone {...props} />
+            </Box>
 
-            {/* Right — gallery + sidebar stacked */}
+            {/* ── Right column: gallery + sidebar ── */}
             <Box
                 className="content-panel"
                 sx={{
-                    display: 'flex',
-                    flexDirection: 'column',
                     flex: 1,
                     minWidth: 0,
+                    display: 'flex',
+                    flexDirection: 'row',
                     overflow: 'hidden',
+                    borderLeft: '1px solid var(--panel-border)',
                 }}
             >
-                <ScreenshotGallery
-                    screenshots={screenshots}
-                    onSelect={handleSelectScreenshot}
-                    activeIndex={activeIndex}
-                    onDelete={handleDelete}
-                    onDeleteAll={handleDeleteAll}
-                    theme={theme}
-                    isPurging={isPurging}
-                    className="screenshot-gallery"
-                />
-                <Sidebar
-                    activeContext={screenshots[activeIndex]}
-                    currentMode={mode}
-                    onModeChange={setMode}
-                    theme={theme}
-                    telemetry={telemetry}
-                />
+                {/* Gallery */}
+                <Box
+                    sx={{
+                        flex: '0 0 auto',
+                        width: { xs: '220px', md: '240px', lg: '260px' },
+                        overflowY: 'auto',
+                        borderRight: '1px solid var(--panel-border)',
+                    }}
+                >
+                    <ScreenshotGallery
+                        screenshots={screenshots}
+                        onSelect={handleSelectScreenshot}
+                        activeIndex={activeIndex}
+                        onDelete={handleDelete}
+                        onDeleteAll={handleDeleteAll}
+                        theme={theme}
+                        isPurging={isPurging}
+                        className="screenshot-gallery"
+                    />
+                </Box>
+
+                {/* Sidebar / Intel */}
+                <Box sx={{ flex: 1, minWidth: 0, overflowY: 'auto' }}>
+                    <Sidebar
+                        activeContext={screenshots[activeIndex]}
+                        currentMode={mode}
+                        onModeChange={setMode}
+                        theme={theme}
+                        telemetry={telemetry}
+                    />
+                </Box>
             </Box>
         </Box>
     );

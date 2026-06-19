@@ -1,63 +1,55 @@
-/* ─── Desktop Dashboard — responsive scaling ──────────────────────────────── */
-
-/*
-  Strategy: use CSS scale() on the dashboard wrapper so all children
-  (VisionZone, ScreenshotGallery, Sidebar) shrink/grow proportionally
-  without needing individual breakpoint overrides in each component.
-
-  The trick: after scaling down by factor S, the element visually shrinks
-  but still occupies its original layout space. We fix that by setting
-  width/height to (100% / S) and then the scale brings it back to 100vw/100dvh.
-*/
+/* ─── Dashboard layout — fluid, no scale() ────────────────────────────────── */
 
 .dashboard {
-    display: flex;
-    flex-direction: row;
-    align-items: stretch;
-    overflow: hidden;
-
-    /* Default (≥1280px) — no scaling */
     width: 100vw;
     height: 100dvh;
-    transform-origin: top left;
+    display: flex;
+    flex-direction: row;
+    overflow: hidden;
 }
 
-/* Small laptop: 1024–1279px */
-@media (max-width: 1279px) and (min-width: 1024px) {
-    .dashboard {
-        transform: scale(0.92);
-        width: calc(100vw / 0.92);   /* ~108.7vw — counteracts the scale */
-        height: calc(100dvh / 0.92);
-    }
-}
-
-/* Landscape tablet: 768–1023px */
-@media (max-width: 1023px) and (min-width: 768px) {
-    .dashboard {
-        transform: scale(0.78);
-        width: calc(100vw / 0.78);   /* ~128vw */
-        height: calc(100dvh / 0.78);
-    }
-}
-
-/* Portrait tablet / large phone (fallback) */
-@media (max-width: 767px) {
-    .dashboard {
-        transform: scale(0.62);
-        width: calc(100vw / 0.62);
-        height: calc(100dvh / 0.62);
-    }
-}
-
-/* ─── Right panel stacking ─────────────────────────────────────────────────── */
-.content-panel {
+/* ── VisionZone: let it fill its container, not a fixed pixel width ── */
+.vision-zone {
+    width: 100%;
     display: flex;
     flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+}
+
+/* Camera container fills the column width */
+.vision-zone .camera-container {
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+/* Control bar matches camera width */
+.vision-zone .control-bar {
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+/* ── Right panel ── */
+.content-panel {
+    display: flex;
+    flex-direction: row;
     flex: 1;
     min-width: 0;
     overflow: hidden;
 }
 
-.screenshot-gallery {
-    flex: 0 0 auto;
+/* ── Fluid D-pad buttons: shrink on smaller screens ── */
+@media (max-width: 1100px) {
+    .vision-zone .control-btn {
+        min-width: 52px !important;
+        min-height: 52px !important;
+    }
+}
+
+@media (max-width: 900px) {
+    .vision-zone .control-btn {
+        min-width: 44px !important;
+        min-height: 44px !important;
+    }
 }
