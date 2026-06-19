@@ -55,18 +55,15 @@ const Sidebar = ({ activeContext, currentMode, onModeChange, theme, telemetry })
 
             {/* ── Chat window — fixed height at the bottom ── */}
             <Box
-                sx={{
-                    flexShrink: 0,
-                    borderTop: '1px solid var(--panel-border, rgba(255,255,255,0.1))',
-                    overflow: 'hidden',
-                }}
-            >
-                <ChatWindow
-                    activeContext={activeContext}
-                    currentMode={currentMode}
-                    theme={theme}
-                />
-            </Box>
+    sx={{
+        flexShrink: 0,
+        height: '38%',           // ← was just flexShrink:0 with no bound
+        borderTop: '1px solid var(--panel-border, rgba(255,255,255,0.1))',
+        overflow: 'hidden',
+    }}
+>
+    <ChatWindow activeContext={activeContext} currentMode={currentMode} theme={theme} />
+</Box>
         </Box>
     );
 };

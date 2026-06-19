@@ -67,153 +67,146 @@ const ChatWindow = ({ activeContext, theme }) => {
     };
 
     return (
-        <div className="chat-window" style={{ position: 'relative' }}>
-            {/* Chat Header/Tools */}
-            <Box sx={{ 
-                display: 'flex', 
-                justifyContent: 'flex-end', 
-                mb: 1, 
-                borderBottom: `1px solid ${theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}`,
-                pb: 0.5
-            }}>
-                <IconButton 
-                    size="small" 
-                    onClick={handleClear} 
-                    title="Clear Chat History"
-                    sx={{ 
-                        color: theme === 'dark' ? '#ff3d00' : '#d32f2f',
-                        '&:hover': {
-                            backgroundColor: theme === 'dark' ? 'rgba(255, 61, 0, 0.1)' : 'rgba(211, 47, 47, 0.1)',
-                        }
-                    }}
-                >
-                    <DeleteSweep fontSize="small" />
-                </IconButton>
-            </Box>
-            <div className="messages" onScroll={handleScroll} style={{ overflowY: 'auto', maxHeight: 'calc(100% - 60px)' }}>
-                {messages.map((msg, index) => (
-                    <div key={index} className={msg.isBot ? "bot-msg" : "user-msg"} style={{
-                        display: 'flex',
-                        gap: '10px',
-                        marginBottom: '15px',
-                        justifyContent: msg.isBot ? 'flex-start' : 'flex-end'
+    <div className="chat-window" style={{
+        position: 'relative',
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: 0,
+    }}>
+        {/* Chat Header/Tools — pinned, never shrinks */}
+        <Box sx={{ 
+            display: 'flex', 
+            justifyContent: 'flex-end', 
+            mb: 1, 
+            flexShrink: 0,
+            borderBottom: `1px solid ${theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}`,
+            pb: 0.5
+        }}>
+            <IconButton 
+                size="small" 
+                onClick={handleClear} 
+                title="Clear Chat History"
+                sx={{ 
+                    color: theme === 'dark' ? '#ff3d00' : '#d32f2f',
+                    '&:hover': {
+                        backgroundColor: theme === 'dark' ? 'rgba(255, 61, 0, 0.1)' : 'rgba(211, 47, 47, 0.1)',
+                    }
+                }}
+            >
+                <DeleteSweep fontSize="small" />
+            </IconButton>
+        </Box>
+
+        {/* Messages — the ONLY thing that grows/scrolls */}
+        <div
+            className="messages"
+            onScroll={handleScroll}
+            style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}
+        >
+            {messages.map((msg, index) => (
+                <div key={index} className={msg.isBot ? "bot-msg" : "user-msg"} style={{
+                    display: 'flex',
+                    gap: '10px',
+                    marginBottom: '15px',
+                    justifyContent: msg.isBot ? 'flex-start' : 'flex-end'
+                }}>
+                    {msg.isBot && <SmartToy sx={{ color: '#4caf50', mt: 0.5 }} />}
+                    <div style={{
+                        backgroundColor: msg.isBot ? 'transparent' : (theme === 'dark' ? 'rgba(0, 255, 136, 0.15)' : 'rgba(46, 125, 50, 0.15)'),
+                        color: theme === 'dark' ? '#fff' : '#0a1c12',
+                        padding: msg.isBot ? '0' : '10px 15px',
+                        borderRadius: '10px',
+                        maxWidth: '80%',
+                        border: msg.isBot ? 'none' : `1px solid ${theme === 'dark' ? 'rgba(0, 255, 136, 0.3)' : 'rgba(46, 125, 50, 0.3)'}`
                     }}>
-                        {msg.isBot && <SmartToy sx={{ color: '#4caf50', mt: 0.5 }} />}
-
-                        <div style={{
-                            backgroundColor: msg.isBot ? 'transparent' : (theme === 'dark' ? 'rgba(0, 255, 136, 0.15)' : 'rgba(46, 125, 50, 0.15)'),
-                            color: theme === 'dark' ? '#fff' : '#0a1c12',
-                            padding: msg.isBot ? '0' : '10px 15px',
-                            borderRadius: '10px',
-                            maxWidth: '80%',
-                            border: msg.isBot ? 'none' : `1px solid ${theme === 'dark' ? 'rgba(0, 255, 136, 0.3)' : 'rgba(46, 125, 50, 0.3)'}`
-                        }}>
-                            {msg.isBot && <strong>Assistant: </strong>}
-                            {msg.image && (
-                                <Box sx={{ mb: 1, mt: 1 }}>
-                                    <img
-                                        src={msg.image}
-                                        alt="Captured context"
-                                        style={{
-                                            width: '40px',
-                                            height: '40px',
-                                            objectFit: 'cover',
-                                            borderRadius: '4px',
-                                            border: `1px solid ${theme === 'dark' ? 'rgba(255,255,255,0.2)' : '#1a3324'}`
-                                        }}
-                                    />
-                                </Box>
-                            )}
-                            {msg.text}
-
-
-                        </div>
+                        {msg.isBot && <strong>Assistant: </strong>}
+                        {msg.image && (
+                            <Box sx={{ mb: 1, mt: 1 }}>
+                                <img
+                                    src={msg.image}
+                                    alt="Captured context"
+                                    style={{
+                                        width: '40px', height: '40px', objectFit: 'cover',
+                                        borderRadius: '4px',
+                                        border: `1px solid ${theme === 'dark' ? 'rgba(255,255,255,0.2)' : '#1a3324'}`
+                                    }}
+                                />
+                            </Box>
+                        )}
+                        {msg.text}
                     </div>
-                ))}
-                {isLoading && (
-                    <div style={{ display: 'flex', gap: '10px', color: theme === 'dark' ? '#aaa' : '#555', fontStyle: 'italic', paddingLeft: '34px' }}>
-                        <div>Analyzing...</div>
-                    </div>
-                )}
-                <div ref={messagesEndRef} />
-            </div>
-
-            {/* Scroll to Bottom Button */}
-            {showScrollButton && (
-                <Box sx={{ position: 'absolute', bottom: '80px', left: '20px', zIndex: 10 }}>
-                    <Fab
-                        size="small"
-                        color="primary"
-                        aria-label="scroll down"
-                        onClick={scrollToBottom}
-                        sx={{ 
-                            backgroundColor: theme === 'dark' ? 'rgba(0, 255, 136, 0.8)' : 'rgba(46, 125, 50, 0.8)',
-                            color: theme === 'dark' ? '#000' : '#fff',
-                            '&:hover': { 
-                                backgroundColor: '#00ff88',
-                                color: '#000',
-                                boxShadow: '0 0 15px rgba(0, 255, 136, 0.5)'
-                            } 
-                        }}
-                    >
-                        <KeyboardArrowDown />
-                    </Fab>
-                </Box>
+                </div>
+            ))}
+            {isLoading && (
+                <div style={{ display: 'flex', gap: '10px', color: theme === 'dark' ? '#aaa' : '#555', fontStyle: 'italic', paddingLeft: '34px' }}>
+                    <div>Analyzing...</div>
+                </div>
             )}
-
-            <Box sx={{
-                display: 'flex',
-                alignItems: 'center',
-                mt: 1,
-                bgcolor: theme === 'dark' ? '#000' : '#fff',
-                borderRadius: 1,
-                border: `1px solid ${theme === 'dark' ? '#444' : '#1a3324'}`,
-                pr: 1,
-                boxShadow: theme === 'dark' ? 'none' : '0 2px 6px rgba(0,0,0,0.1)'
-            }}>
-                <input
-                    type="text"
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
-                    placeholder={activeContext ? "Ask about this capture..." : "Ask about the detected species..."}
-                    aria-label="Chat input"
-                    style={{
-                        border: 'none',
-                        outline: 'none',
-                        background: 'transparent',
-                        flexGrow: 1,
-                        color: theme === 'dark' ? 'white' : '#0a1c12',
-                        padding: '12px',
-                        margin: 0,
-                        transition: 'background-color 0.25s ease'
-                    }}
-                    disabled={isLoading}
-                />
-                <IconButton
-                    size="small"
-                    sx={{ 
-                        color: isLoading 
-                            ? (theme === 'dark' ? '#444' : '#ccc') 
-                            : (theme === 'dark' ? '#00ff88' : '#2e7d32'),
-                        p: '8px',
-                        transition: 'all 0.2s',
-                        opacity: isLoading ? 0.6 : 1,
-                        pointerEvents: isLoading ? 'none' : 'auto',
-                        '&:hover': {
-                            backgroundColor: isLoading ? 'transparent' : '#00ff88',
-                            color: isLoading ? 'inherit' : '#000',
-                            borderRadius: '4px'
-                        }
-                    }}
-                    onClick={handleSend}
-                    disabled={isLoading}
-                >
-                    <Send />
-                </IconButton>
-            </Box>
+            <div ref={messagesEndRef} />
         </div>
-    );
+
+        {showScrollButton && (
+            <Box sx={{ position: 'absolute', bottom: '70px', left: '20px', zIndex: 10 }}>
+                <Fab
+                    size="small" color="primary" aria-label="scroll down" onClick={scrollToBottom}
+                    sx={{ 
+                        backgroundColor: theme === 'dark' ? 'rgba(0, 255, 136, 0.8)' : 'rgba(46, 125, 50, 0.8)',
+                        color: theme === 'dark' ? '#000' : '#fff',
+                        '&:hover': { backgroundColor: '#00ff88', color: '#000', boxShadow: '0 0 15px rgba(0, 255, 136, 0.5)' } 
+                    }}
+                >
+                    <KeyboardArrowDown />
+                </Fab>
+            </Box>
+        )}
+
+        {/* Input row — pinned, never shrinks, always reachable */}
+        <Box sx={{
+            display: 'flex',
+            alignItems: 'center',
+            mt: 1,
+            flexShrink: 0,
+            bgcolor: theme === 'dark' ? '#000' : '#fff',
+            borderRadius: 1,
+            border: `1px solid ${theme === 'dark' ? '#444' : '#1a3324'}`,
+            pr: 1,
+            boxShadow: theme === 'dark' ? 'none' : '0 2px 6px rgba(0,0,0,0.1)'
+        }}>
+            <input
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
+                placeholder={activeContext ? "Ask about this capture..." : "Ask about the detected species..."}
+                aria-label="Chat input"
+                style={{
+                    border: 'none', outline: 'none', background: 'transparent', flexGrow: 1,
+                    color: theme === 'dark' ? 'white' : '#0a1c12', padding: '12px', margin: 0,
+                    transition: 'background-color 0.25s ease'
+                }}
+                disabled={isLoading}
+            />
+            <IconButton
+                size="small"
+                sx={{ 
+                    color: isLoading ? (theme === 'dark' ? '#444' : '#ccc') : (theme === 'dark' ? '#00ff88' : '#2e7d32'),
+                    p: '8px', transition: 'all 0.2s', opacity: isLoading ? 0.6 : 1,
+                    pointerEvents: isLoading ? 'none' : 'auto',
+                    '&:hover': {
+                        backgroundColor: isLoading ? 'transparent' : '#00ff88',
+                        color: isLoading ? 'inherit' : '#000', borderRadius: '4px'
+                    }
+                }}
+                onClick={handleSend}
+                disabled={isLoading}
+            >
+                <Send />
+            </IconButton>
+        </Box>
+        
+    </div>
+);
 };
 
 export default ChatWindow;
