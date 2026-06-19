@@ -26,12 +26,12 @@
   /* SOFT FOREST LIGHT MODE */
   --bg-page: #eaf3ea;
   --bg-gradient: linear-gradient(135deg, #f4faf3 0%, #dfe9de 100%);
-  --panel-bg: rgba(8, 30, 16, 0.95);
-  --text-main: #e8f5e4;
-  --text-dim: #a0c1a0;
-  --panel-border: rgba(0, 120, 48, 0.32);
-  --card-bg: rgba(5, 25, 13, 0.96);
-  --input-bg: rgba(5, 25, 13, 0.96);
+  --panel-bg: rgba(255, 255, 255, 0.98);
+  --text-main: #0b2b15;
+  --text-dim: #4f6b53;
+  --panel-border: rgba(0, 0, 0, 0.06);
+  --card-bg: rgba(255, 255, 255, 0.98);
+  --input-bg: rgba(250, 252, 250, 0.98);
 }
 
 *,
@@ -82,8 +82,8 @@ body {
 }
 
 .theme-light .hud-overlay {
-  background: rgba(6, 30, 16, 0.94);
-  border-color: rgba(0, 120, 48, 0.22);
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(0, 0, 0, 0.06);
 }
 
 .theme-light .camera-container,
@@ -92,13 +92,14 @@ body {
 .theme-light .slider-panel,
 .theme-light .mode-selector-group,
 .theme-light .control-btn {
-  background: rgba(5, 25, 13, 0.96) !important;
-  border: 1px solid rgba(0, 100, 40, 0.55) !important;
-  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.18) !important;
+  background: rgba(255, 255, 255, 0.96) !important;
+  border: 1px solid rgba(0, 0, 0, 0.06) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06) !important;
+  color: #0b2b15 !important;
 }
 
 .theme-light .camera-container {
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.24) !important;
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.06) !important;
 }
 
 .theme-light .mode-selector-group {
@@ -106,7 +107,7 @@ body {
 }
 
 .theme-light .mode-btn {
-  color: #d7f3d1 !important;
+  color: var(--text-main) !important;
 }
 
 .theme-light .mode-btn.active {
@@ -313,38 +314,38 @@ input {
 .screenshot-card.active {
   border-color: var(--accent-primary);
 }
-
 .theme-light .screenshot-gallery {
-  background: rgba(5, 25, 13, 0.96);
-  border: 1px solid rgba(0, 100, 40, 0.55);
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(0, 0, 0, 0.06);
   border-radius: 18px;
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.06);
   padding: 20px;
+  color: #0b2b15;
 }
 
 .theme-light .slider-panel {
-  background: rgba(5, 25, 13, 0.96);
-  border: 1px solid rgba(0, 100, 40, 0.55);
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(0, 0, 0, 0.06);
   border-radius: 18px;
-  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.06);
   padding: 10px;
 }
 
 .theme-light .MuiIconButton-root,
 .theme-light .MuiButton-root,
 .theme-light .MuiFab-root {
-  background: rgba(5, 28, 13, 0.96) !important;
-  border: 1px solid rgba(0, 100, 40, 0.55) !important;
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.18) !important;
-  color: #d7f3d1 !important;
-  border-radius: 18px !important;
+  background: rgba(255, 255, 255, 0.98) !important;
+  border: 1px solid rgba(0, 0, 0, 0.06) !important;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.06) !important;
+  color: #0b2b15 !important;
+  border-radius: 12px !important;
 }
 
 .theme-light .MuiIconButton-root:hover,
 .theme-light .MuiButton-root:hover,
 .theme-light .MuiFab-root:hover {
-  background: rgba(6, 45, 23, 0.98) !important;
-  color: #fff !important;
+  background: rgba(245, 252, 245, 1) !important;
+  color: #0b2b15 !important;
 }
 
 .control-bar {
