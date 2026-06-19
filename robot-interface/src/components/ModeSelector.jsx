@@ -60,6 +60,12 @@ const ModeSelector = ({ theme, onModeChange, sendModeCommand }) => {
     const textActive  = isDark ? '#e8f5e9' : '#e8f5e4';
     const labelColor  = isDark ? 'rgba(255,255,255,0.35)' : 'rgba(215,243,209,0.65)';
 
+    // ── Layout values (preserve dark-mode sizes, tighten vertical spacing in light mode) ──
+    const outerPadding = isDark ? '12px 8px' : '8px 6px';
+    const internalGap  = isDark ? '10px' : '6px';
+    const domainPy     = isDark ? '12px' : '8px';
+    const modePy       = isDark ? '14px' : '8px';
+
     // ── Shared domain button ─────────────────────────────────────────────────
     const DomainBtn = ({ value, icon: Icon, label }) => {
         const active = domain === value;
@@ -72,7 +78,7 @@ const ModeSelector = ({ theme, onModeChange, sendModeCommand }) => {
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: '8px',
-                    py: '12px',
+                    py: domainPy,
                     cursor: 'pointer',
                     borderRadius: '10px',
                     color: active ? textActive : textDim,
@@ -108,7 +114,7 @@ const ModeSelector = ({ theme, onModeChange, sendModeCommand }) => {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    py: '14px',
+                    py: modePy,
                     cursor: isAqua ? 'not-allowed' : 'pointer',
                     borderRadius: '10px',
                     color: active ? accent : (isAqua ? 'transparent' : textDim),
@@ -130,7 +136,7 @@ const ModeSelector = ({ theme, onModeChange, sendModeCommand }) => {
     };
 
     return (
-        <Box sx={{ p: '12px 8px', display: 'flex', flexDirection: 'column', gap: '10px', minWidth: 200 }}>
+        <Box sx={{ p: outerPadding, display: 'flex', flexDirection: 'column', gap: internalGap, minWidth: 200 }}>
 
             {/* ── Label ── */}
             <Typography sx={{
