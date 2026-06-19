@@ -55,7 +55,7 @@ const MobileLayout = ({
             >
                 {/* 1. CAMERA TAB */}
                 {tab === 0 && (
-                    <Box sx={{ height: '100%', overflowY: 'auto', p: 1 }}>
+                    <Box sx={{ height: '100%', overflowY: 'auto', overflowX: 'hidden', p: 1 }}>
                         <VisionZone
                             onCapture={handleCapture}
                             mode={mode}
@@ -76,7 +76,7 @@ const MobileLayout = ({
 
                 {/* 2. GALLERY TAB */}
                 {tab === 1 && (
-                    <Box sx={{ height: '100%', overflowY: 'auto', p: 1 }}>
+                    <Box sx={{ height: '100%', overflowY: 'auto', overflowX: 'hidden', p: 1 }}>
                         <ScreenshotGallery
                             screenshots={screenshots}
                             onSelect={handleSelectScreenshot}
@@ -91,7 +91,7 @@ const MobileLayout = ({
 
                 {/* 3. INTEL TAB */}
                 {tab === 2 && (
-                    <Box sx={{ height: '100%', overflowY: 'auto' }}>
+                    <Box sx={{ height: '100%', overflowY: 'auto', overflowX: 'hidden' }}>
                         <Sidebar
                             activeContext={screenshots[activeIndex]}
                             currentMode={mode}

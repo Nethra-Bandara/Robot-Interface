@@ -39,7 +39,7 @@ const DesktopLayout = (props) => {
                 </Box>
             </Box>
 
-            {/* Right — gallery + sidebar stacked, fixed width, independent scroll */}
+            {/* Right — gallery + sidebar stacked, fixed width */}
             <Box
                 className="content-panel"
                 sx={{
@@ -52,8 +52,15 @@ const DesktopLayout = (props) => {
                     overflow: 'hidden',
                 }}
             >
-                {/* Gallery — scrollable, takes remaining space */}
-                <Box sx={{ flex: '1 1 0', minHeight: 0, overflowY: 'auto' }}>
+                {/* Gallery — top 55%, fully scrollable, never grows into sidebar */}
+                <Box
+                    sx={{
+                        height: '55%',
+                        flexShrink: 0,
+                        overflowY: 'auto',
+                        overflowX: 'hidden',
+                    }}
+                >
                     <ScreenshotGallery
                         screenshots={screenshots}
                         onSelect={handleSelectScreenshot}
@@ -66,13 +73,16 @@ const DesktopLayout = (props) => {
                     />
                 </Box>
 
-                {/* Sidebar — fixed height at bottom, scrolls if needed */}
+                {/* Sidebar — bottom 45%, contained box, scrolls internally */}
                 <Box
                     sx={{
+                        height: '45%',
                         flexShrink: 0,
-                        maxHeight: '40%',
-                        overflowY: 'auto',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        overflow: 'hidden',
                         borderTop: 'var(--border, 1px solid rgba(255,255,255,0.1))',
+                        position: 'relative', // contain any absolute/fixed children
                     }}
                 >
                     <Sidebar
