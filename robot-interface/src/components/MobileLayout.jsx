@@ -1,8 +1,12 @@
+// src/components/MobileLayout.jsx
 import React, { useState } from 'react';
+import { Box, BottomNavigation, BottomNavigationAction } from '@mui/material';
+import { Videocam, PhotoLibrary, Info } from '@mui/icons-material';
 import VisionZone from './VisionZone';
 import ScreenshotGallery from './ScreenshotGallery';
 import Sidebar from './Sidebar';
-import { Box } from '@mui/material';
+
+const BOTTOM_NAV_HEIGHT = 56;
 
 const MobileLayout = ({
     mode,
@@ -23,25 +27,33 @@ const MobileLayout = ({
     sendLightsToggle,
     sendCameraCommand,
     sendModeCommand,
-    telemetry
+    telemetry,
 }) => {
     const [tab, setTab] = useState(0);
 
     return (
-        <Box 
-            className={`mobile-layout theme-${theme} mode-${mode.toLowerCase()}`}
+        <Box
+            className={`mobile-layout theme-${theme} mode-${mode?.toLowerCase()}`}
             sx={{
+                width: '100vw',
                 height: '100dvh',
                 display: 'flex',
                 flexDirection: 'column',
                 bgcolor: 'var(--bg-page)',
-                overflow: 'hidden'
+                overflow: 'hidden',
             }}
         >
-            {/* Content Area */}
-            <Box sx={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
-
-                {/* 1. VISION TAB */}
+            {/* ── Scrollable content area above bottom nav ── */}
+            <Box
+                sx={{
+                    flex: 1,
+                    minHeight: 0,
+                    pb: `${BOTTOM_NAV_HEIGHT}px`, // always leave room for nav bar
+                    overflow: 'hidden',
+                    position: 'relative',
+                }}
+            >
+                {/* 1. CAMERA TAB */}
                 {tab === 0 && (
                     <Box sx={{ height: '100%', overflowY: 'auto', p: 1 }}>
                         <VisionZone
@@ -77,7 +89,7 @@ const MobileLayout = ({
                     </Box>
                 )}
 
-                {/* 3. INTEL TAB (Map + Chat) */}
+                {/* 3. INTEL TAB */}
                 {tab === 2 && (
                     <Box sx={{ height: '100%', overflowY: 'auto' }}>
                         <Sidebar
@@ -91,7 +103,37 @@ const MobileLayout = ({
                 )}
             </Box>
 
-
+            {/* ── Bottom navigation bar — always visible ── */}
+            <BottomNavigation
+                value={tab}
+                onChange={(_, newVal) => setTab(newVal)}
+                sx={{
+                    position: 'fixed',
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    height: `${BOTTOM_NAV_HEIGHT}px`,
+                    zIndex: 100,
+                    bgcolor: 'var(--panel-bg)',
+                    borderTop: 'var(--border, 1px solid rgba(255,255,255,0.1))',
+                }}
+            >
+                <BottomNavigationAction
+                    label="Camera"
+                    icon={<Videocam />}
+                    sx={{ color: tab === 0 ? 'var(--accent-primary)' : 'var(--text-secondary)' }}
+                />
+                <BottomNavigationAction
+                    label="Gallery"
+                    icon={<PhotoLibrary />}
+                    sx={{ color: tab === 1 ? 'var(--accent-primary)' : 'var(--text-secondary)' }}
+                />
+                <BottomNavigationAction
+                    label="Intel"
+                    icon={<Info />}
+                    sx={{ color: tab === 2 ? 'var(--accent-primary)' : 'var(--text-secondary)' }}
+                />
+            </BottomNavigation>
         </Box>
     );
 };
