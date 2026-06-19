@@ -8,7 +8,6 @@ import TabletLayout from './components/TabletLayout';
 import DesktopLayout from './components/DesktopLayout';
 import { useMediaQuery } from '@mui/material';
 import './App.css';
-import './dashboard-responsive.css'
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
