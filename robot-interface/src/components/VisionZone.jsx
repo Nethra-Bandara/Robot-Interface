@@ -278,11 +278,11 @@ const VisionZone = ({
                 </Box>
 
                 <Box sx={{ flex:'0 0 auto', display:'grid', gridTemplateColumns:'repeat(2,1fr)', gap:1 }}>
-                    <IconButton onClick={handleCameraToggle} sx={{...toggleButtonStyle, backgroundColor:cameraOn?'#00ff88':(theme==='dark'?'#1b1b1b':'#eee'), color:cameraOn?'#000':(theme==='dark'?'#888':'#666')}} title="Toggle Camera">{cameraOn?<Videocam/>:<VideocamOff/>}</IconButton>
-<IconButton onClick={handleMicToggle} sx={{...toggleButtonStyle, backgroundColor:micOn?'#00ff88':(theme==='dark'?'#1b1b1b':'#eee'), color:micOn?'#000':(theme==='dark'?'#888':'#666')}} title="Toggle Mic">{micOn?<Mic/>:<MicOff/>}</IconButton>
-<IconButton onClick={handleLightsToggle} sx={{...toggleButtonStyle, backgroundColor:lightsOn?'#00ff88':(theme==='dark'?'#1b1b1b':'#eee'), color:lightsOn?'#000':(theme==='dark'?'#888':'#666')}} title="Toggle Lights">{lightsOn?<Lightbulb/>:<LightbulbOutline/>}</IconButton>
-<IconButton onClick={handleCaptureInternal} sx={{...toggleButtonStyle, borderColor:theme==='dark'?'rgba(255,255,255,0.3)':'#1a3324', color:theme==='dark'?'#fff':'#0a1c12'}} title="Capture Screenshot"><PhotoCamera/></IconButton>
-</Box>
+                    <IconButton onClick={handleCameraToggle} onTouchStart={(e)=>{e.preventDefault();handleCameraToggle();}} sx={{...toggleButtonStyle, backgroundColor:cameraOn?'#00ff88':(theme==='dark'?'#1b1b1b':'#eee'), color:cameraOn?'#000':(theme==='dark'?'#888':'#666')}} title="Toggle Camera">{cameraOn?<Videocam/>:<VideocamOff/>}</IconButton>
+                    <IconButton onClick={handleMicToggle} onTouchStart={(e)=>{e.preventDefault();handleMicToggle();}} sx={{...toggleButtonStyle, backgroundColor:micOn?'#00ff88':(theme==='dark'?'#1b1b1b':'#eee'), color:micOn?'#000':(theme==='dark'?'#888':'#666')}} title="Toggle Mic">{micOn?<Mic/>:<MicOff/>}</IconButton>
+                    <IconButton onClick={handleLightsToggle} onTouchStart={(e)=>{e.preventDefault();handleLightsToggle();}} sx={{...toggleButtonStyle, backgroundColor:lightsOn?'#00ff88':(theme==='dark'?'#1b1b1b':'#eee'), color:lightsOn?'#000':(theme==='dark'?'#888':'#666')}} title="Toggle Lights">{lightsOn?<Lightbulb/>:<LightbulbOutline/>}</IconButton>
+                    <IconButton onClick={handleCaptureInternal} onTouchStart={(e)=>{e.preventDefault();handleCaptureInternal();}} sx={{...toggleButtonStyle, borderColor:theme==='dark'?'rgba(255,255,255,0.3)':'#1a3324', color:theme==='dark'?'#fff':'#0a1c12'}} title="Capture Screenshot"><PhotoCamera/></IconButton>
+                </Box>
             </Box>
         </Box>
     );
