@@ -8,6 +8,12 @@ const ScreenshotGallery = ({ screenshots, onSelect, activeIndex, onDelete, onDel
     const scrollToTop = () => {
         galleryRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
     };
+    const imageSrc = cameraFeedRef.current?.capture();
+if (imageSrc) {
+    onCapture(imageSrc);
+} else {
+    console.warn("Could not capture image from feed.");
+}
 
     return (
         <Box className="screenshot-gallery" ref={galleryRef} sx={{
