@@ -184,66 +184,7 @@ const VisionZone = ({
                 boxSizing: 'border-box',
             }}
         >
-            {/* ── Top bar: theme toggle + HUD in one row ── */}
-            <Box
-                sx={{
-                    width: '100%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    mb: 0.5,
-                    gap: 1,
-                }}
-            >
-                {/* Theme toggle — visible, inside the flow */}
-                <IconButton
-                    onClick={onToggleTheme}
-                    onTouchStart={(e) => { e.preventDefault(); onToggleTheme?.(); }}
-                    title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
-                    sx={{
-                        flexShrink: 0,
-                        color: theme === 'dark' ? '#fff' : '#0a2e1a',
-                        bgcolor: theme === 'dark' ? 'rgba(255,255,255,0.07)' : 'rgba(0,80,30,0.12)',
-                        border: theme === 'dark' ? '1px solid rgba(255,255,255,0.15)' : '1px solid rgba(0,90,40,0.3)',
-                        borderRadius: '12px',
-                        width: 38,
-                        height: 38,
-                        '&:hover': { bgcolor: '#00ff88', color: '#000' },
-                    }}
-                >
-                    {theme === 'dark' ? <Brightness7 fontSize="small" /> : <Brightness4 fontSize="small" />}
-                </IconButton>
-
-                {/* HUD bar — takes remaining width */}
-                <Box
-                    className="hud-overlay"
-                    sx={{
-                        flex: 1,
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        px: 2,
-                        py: 0.75,
-                        bgcolor: theme === 'dark' ? 'rgba(0,0,0,0.55)' : 'rgba(5,28,13,0.9)',
-                        borderRadius: '10px',
-                        border: theme === 'dark' ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,90,42,0.3)',
-                        flexWrap: 'wrap',
-                        gap: 1,
-                    }}
-                >
-                    {[
-                        ['SIGNAL', telemetry?.signal !== undefined ? `${telemetry.signal}%` : '92% (RF MESH)'],
-                        ['POWER',  telemetry?.battery !== undefined ? `${telemetry.battery}%` : '88%'],
-                        ['PRESSURE', telemetry?.pressure !== undefined ? `${telemetry.pressure} hPa` : '1013 hPa'],
-                    ].map(([label, value]) => (
-                        <Typography key={label} variant="caption"
-                            sx={{ color: theme === 'dark' ? 'rgba(255,255,255,0.75)' : '#cde8c0', fontSize: '0.72rem', whiteSpace: 'nowrap' }}>
-                            {label}: <strong style={{ color: theme === 'dark' ? '#fff' : '#e8f8e8' }}>{value}</strong>
-                        </Typography>
-                    ))}
-                </Box>
-            </Box>
-
-            {/* ── Camera feed ── */}
+            {/* ── Camera feed, with HUD + theme toggle overlaid directly on top of it ── */}
             <Box sx={{ position: 'relative', width: '100%' }}>
                 <Box
                     className="camera-container"
@@ -256,10 +197,74 @@ const VisionZone = ({
                         style={{ opacity: cameraOn ? 1 : 0.1 }}
                     />
 
-                    {/* Camera direction overlay buttons */}
+                    {/* ── HUD overlay row — pinned to the camera box's own width, sits on the feed ── */}
+                    <Box
+                        sx={{
+                            position: 'absolute',
+                            top: 'calc(env(safe-area-inset-top, 0px) + 10px)',
+                            left: 10,
+                            right: 10,
+                            zIndex: 20,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 1,
+                        }}
+                    >
+                        {/* Theme toggle — now sits ON the camera view, always visible against the feed */}
+                        <IconButton
+                            onClick={onToggleTheme}
+                            onTouchStart={(e) => { e.preventDefault(); onToggleTheme?.(); }}
+                            title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
+                            sx={{
+                                flexShrink: 0,
+                                color: theme === 'dark' ? '#000' : '#000',
+                                bgcolor: '#00ff88',
+                                border: '1px solid rgba(0,0,0,0.2)',
+                                borderRadius: '12px',
+                                width: 38,
+                                height: 38,
+                                boxShadow: '0 0 8px rgba(0,255,136,0.5)',
+                                '&:hover': { bgcolor: '#fff' },
+                            }}
+                        >
+                            {theme === 'dark' ? <Brightness7 fontSize="small" /> : <Brightness4 fontSize="small" />}
+                        </IconButton>
+
+                        {/* HUD bar — fills remaining width of the camera box, not the viewport */}
+                        <Box
+                            className="hud-overlay"
+                            sx={{
+                                flex: 1,
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                px: 2,
+                                py: 0.75,
+                                bgcolor: 'rgba(0,0,0,0.55)',
+                                borderRadius: '10px',
+                                border: '1px solid rgba(255,255,255,0.1)',
+                                backdropFilter: 'blur(4px)',
+                                flexWrap: 'wrap',
+                                gap: 1,
+                            }}
+                        >
+                            {[
+                                ['SIGNAL', telemetry?.signal !== undefined ? `${telemetry.signal}%` : '92% (RF MESH)'],
+                                ['POWER',  telemetry?.battery !== undefined ? `${telemetry.battery}%` : '88%'],
+                                ['PRESSURE', telemetry?.pressure !== undefined ? `${telemetry.pressure} hPa` : '1013 hPa'],
+                            ].map(([label, value]) => (
+                                <Typography key={label} variant="caption"
+                                    sx={{ color: 'rgba(255,255,255,0.75)', fontSize: '0.72rem', whiteSpace: 'nowrap' }}>
+                                    {label}: <strong style={{ color: '#fff' }}>{value}</strong>
+                                </Typography>
+                            ))}
+                        </Box>
+                    </Box>
+
+                    {/* Camera direction overlay buttons — pushed down so they clear the new HUD row */}
                     <IconButton onClick={() => sendCameraCommand?.('cam_up')}
                         onTouchStart={(e)=>{e.preventDefault();sendCameraCommand?.('cam_up');}}
-                        sx={{ ...edgeButtonStyle, top: 12, left: '50%', transform: 'translateX(-50%)' }}
+                        sx={{ ...edgeButtonStyle, top: 64, left: '50%', transform: 'translateX(-50%)' }}
                         title="Camera Tilt Up" className="edge-btn">
                         <KeyboardArrowUp />
                     </IconButton>
@@ -306,12 +311,10 @@ const VisionZone = ({
                     pb: 2,
                 }}
             >
-                {/* Mode Selector */}
                 <Box sx={{ flex: '0 0 auto' }}>
                     <ModeSelector theme={theme} onModeChange={onModeChange} sendModeCommand={sendModeCommand} />
                 </Box>
 
-                {/* Speed Slider */}
                 <Box sx={{ flex: '0 0 auto', height: 120, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
                     <Slider
                         orientation="vertical"
@@ -329,7 +332,6 @@ const VisionZone = ({
                     <Typography variant="caption" sx={{ color:'rgba(250,250,250,0.8)', fontSize:'0.7rem', letterSpacing:'0.08em' }}>SPEED</Typography>
                 </Box>
 
-                {/* D-Pad */}
                 <Box
                     onTouchStart={handleDpadTouch} onTouchMove={handleDpadTouch}
                     onTouchEnd={handleDpadTouchEnd} onTouchCancel={handleDpadTouchEnd}
@@ -343,7 +345,6 @@ const VisionZone = ({
                     <IconButton onMouseDown={()=>startMoving('right')} onMouseUp={()=>stopMoving('right')} onMouseLeave={()=>stopMoving('right')} data-direction="right" sx={{...controlButtonStyle,...(activeDirection==='RIGHT'&&activeStyle)}} className="control-btn"><ArrowForward fontSize="large" /></IconButton>
                 </Box>
 
-                {/* Toggle buttons 2×2 */}
                 <Box sx={{ flex:'0 0 auto', display:'grid', gridTemplateColumns:'repeat(2,1fr)', gap:1 }}>
                     <IconButton onClick={handleCameraToggle} onTouchStart={(e)=>{e.preventDefault();handleCameraToggle();}} sx={{...toggleButtonStyle, backgroundColor:cameraOn?'#00ff88':(theme==='dark'?'#1b1b1b':'#eee'), color:cameraOn?'#000':(theme==='dark'?'#888':'#666')}} title="Toggle Camera">{cameraOn?<Videocam/>:<VideocamOff/>}</IconButton>
                     <IconButton onClick={handleMicToggle} onTouchStart={(e)=>{e.preventDefault();handleMicToggle();}} sx={{...toggleButtonStyle, backgroundColor:micOn?'#00ff88':(theme==='dark'?'#1b1b1b':'#eee'), color:micOn?'#000':(theme==='dark'?'#888':'#666')}} title="Toggle Mic">{micOn?<Mic/>:<MicOff/>}</IconButton>
