@@ -205,10 +205,8 @@ def init_db():
         CREATE TABLE IF NOT EXISTS telemetry_history (
             id          INTEGER PRIMARY KEY AUTOINCREMENT,
             timestamp   DATETIME DEFAULT CURRENT_TIMESTAMP,
-            battery     REAL,
             temperature REAL,
             humidity    REAL,
-            signal      REAL,
             pressure    REAL,
             gps_lat     REAL,
             gps_lon     REAL,
@@ -327,20 +325,17 @@ def on_mqtt_message(client, userdata, message):
 
         # ── Telemetry channel ────────────────────────────────────────────────
         elif topic == MQTT_TOPIC:
-            battery     = payload.get("battery")
             temperature = payload.get("temp") or payload.get("temperature")
             humidity    = payload.get("humidity")
-            speed       = payload.get("speed")
-            signal      = payload.get("signal")
             pressure    = payload.get("pressure")
 
             conn = sqlite3.connect(DB_FILE)
             cursor = conn.cursor()
             cursor.execute('''
                 INSERT INTO telemetry_history
-                    (battery, temperature, humidity, signal, pressure)
-                VALUES (?, ?, ?, ?, ?)
-            ''', (battery, temperature, humidity, signal, pressure))
+                    (temperature, humidity,pressure)
+                VALUES (?, ?, ?)
+            ''', (temperature, humidity, pressure))
             cursor.execute('''
                 DELETE FROM telemetry_history
                 WHERE timestamp <= datetime('now', '-7 days')
