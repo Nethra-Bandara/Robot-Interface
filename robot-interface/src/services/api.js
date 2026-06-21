@@ -8,9 +8,10 @@ console.log('API_URL loaded:', REAL_API_URL);
 
 const realApi = {
     chat: async (message, imageUrl = null) => {
+        const url = `${REAL_API_URL}/chat`;
+        console.log('CHAT: POST', url, { message, imageUrl });
         try {
-            // FIX: Using REAL_API_URL instead of the raw import.meta.env
-            const response = await fetch(`${REAL_API_URL}/chat`, {
+            const response = await fetch(url, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -18,15 +19,19 @@ const realApi = {
                 body: JSON.stringify({ message, image_url: imageUrl }),
             });
 
-            const data = await response.json();
+            // If fetch fails at network layer this will throw and be caught below
+            const text = await response.text();
+            let data;
+            try { data = JSON.parse(text); } catch (e) { data = { raw: text }; }
 
             if (!response.ok) {
-                throw new Error(data?.response || 'Chat request failed');
+                console.error('CHAT RESPONSE NOT OK', response.status, data);
+                throw new Error(data?.response || `Chat request failed (${response.status})`);
             }
 
-            return data.response;
+            return data.response || data.raw || '';
         } catch (err) {
-            console.error("CHAT ERROR:", err);
+            console.error('CHAT FETCH ERROR:', err, 'url:', url);
             throw err;
         }
     },

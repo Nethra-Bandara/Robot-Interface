@@ -74,7 +74,6 @@ const TelemetryHistory = ({ open, onClose, theme }) => {
                             <TableHead>
                                 <TableRow sx={{ borderBottom: `2px solid ${isDark ? '#00ff88' : '#2e7d32'}` }}>
                                     <TableCell sx={{ color: isDark ? '#fff' : '#000', fontWeight: 'bold' }}>Timestamp</TableCell>
-                                    <TableCell sx={{ color: isDark ? '#fff' : '#000', fontWeight: 'bold' }}>Battery</TableCell>
                                     <TableCell sx={{ color: isDark ? '#fff' : '#000', fontWeight: 'bold' }}>Temp</TableCell>
                                     <TableCell sx={{ color: isDark ? '#fff' : '#000', fontWeight: 'bold' }}>Humidity</TableCell>
 
@@ -87,7 +86,6 @@ const TelemetryHistory = ({ open, onClose, theme }) => {
                                         <TableCell sx={{ color: isDark ? '#aaa' : '#333' }}>
                                             {new Date(row.timestamp + 'Z').toLocaleString()}
                                         </TableCell>
-                                        <TableCell sx={{ color: isDark ? '#aaa' : '#333' }}>{row.battery != null ? `${row.battery}%` : '-'}</TableCell>
                                         <TableCell sx={{ color: isDark ? '#aaa' : '#333' }}>{row.temperature != null ? `${row.temperature}°C` : '-'}</TableCell>
                                         <TableCell sx={{ color: isDark ? '#aaa' : '#333' }}>{row.humidity != null ? `${row.humidity}%` : '-'}</TableCell>
 

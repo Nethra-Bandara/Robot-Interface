@@ -183,7 +183,18 @@ const ChatWindow = ({ activeContext, theme }) => {
                 style={{
                     border: 'none', outline: 'none', background: 'transparent', flexGrow: 1,
                     color: theme === 'dark' ? 'white' : '#0a1c12', padding: '12px', margin: 0,
-                    transition: 'background-color 0.25s ease'
+                    transition: 'background-color 0.25s ease',
+                    caretColor: theme === 'dark' ? '#ffffff' : '#0a1c12',
+                    WebkitTextFillColor: theme === 'dark' ? '#ffffff' : '#0a1c12',
+                    lineHeight: '1.2',
+                    fontSize: '14px',
+                    fontFamily: "'Outfit', 'Inter', sans-serif",
+                    textRendering: 'optimizeLegibility',
+                    WebkitFontSmoothing: 'antialiased',
+                    MozOsxFontSmoothing: 'grayscale',
+                    textShadow: 'none',
+                    minHeight: '38px',
+                    boxSizing: 'border-box'
                 }}
                 disabled={isLoading}
             />

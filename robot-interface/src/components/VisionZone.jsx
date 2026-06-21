@@ -100,8 +100,27 @@ const VisionZone = ({
     };
 
     useEffect(() => {
+        const isTypingField = (target) => {
+            if (!target) return false;
+            try {
+                // Prefer the currently focused element when available
+                const active = document && document.activeElement ? document.activeElement : null;
+                const checkEl = active || target;
+                if (checkEl && checkEl.closest && checkEl.closest('input, textarea')) return true;
+                if (checkEl && checkEl.isContentEditable) return true;
+            } catch (err) {
+                // ignore
+            }
+            return false;
+        };
+
         const handleKeyDown = (e) => {
             if (e.repeat) return;
+
+            if (isTypingField(e.target)) {
+                // Don't intercept keys when the user is typing in an input/textarea/contentEditable
+                return;
+            }
 
             if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "w", "s", "a", "d"].includes(e.key)) {
                 e.preventDefault();
@@ -138,6 +157,8 @@ const VisionZone = ({
         };
 
         const handleKeyUp = (e) => {
+            if (isTypingField(e.target)) return;
+
             switch (e.key) {
                 case 'ArrowUp':
                 case 'w':
@@ -354,8 +375,8 @@ const VisionZone = ({
 
                     {/* HUD Overlay */}
                     <div className="hud-overlay">
-                        <span>SIGNAL: <strong>{telemetry && telemetry.signal !== undefined ? `${telemetry.signal}%` : '92% (RF MESH)'}</strong></span>
-                        <span>POWER: <strong>{telemetry && telemetry.battery !== undefined ? `${telemetry.battery}%` : '88%'}</strong></span>
+                        <span>SIGNAL: <strong>{telemetry && telemetry.temperature !== undefined ? `${telemetry.temperature}%` : '92% (RF MESH)'}</strong></span>
+                        <span>POWER: <strong>{telemetry && telemetry.humidity !== undefined ? `${telemetry.humidity}%` : '88%'}</strong></span>
                         <span>PRESSURE: <strong>{telemetry && telemetry.pressure !== undefined ? `${telemetry.pressure} hPa` : '1013 hPa'}</strong></span>
                     </div>
 
