@@ -4,6 +4,8 @@ import mqtt from 'mqtt';
 const MQTT_URL =
     'wss://002277b56cde45b29a96d3dd3ef81785.s1.eu.hivemq.cloud:8884/mqtt';
 
+const TELEMETRY_TOPIC = import.meta.env.VITE_TELEMETRY_TOPIC || 'robot/telemetry';
+
 const options = {
     username: 'robot_interface',
     password: 'Pwd12345',
@@ -33,6 +35,10 @@ export const useMQTT = () => {
                         console.log('Subscribed to', GPS_TOPIC);
                     }
                 });
+            mqttClient.subscribe(TELEMETRY_TOPIC, (err) => {
+                if (err) console.error('Subscribe error:', err);
+                else console.log('Subscribed to', TELEMETRY_TOPIC);
+    });
         });
 
         mqttClient.on('message', (topic, message) => {
@@ -46,7 +52,14 @@ export const useMQTT = () => {
                 if (topic === 'gps') {
                     console.log('GPS received:', data);
                     setTelemetry(prev => ({ ...prev, ...data, gps: data }));
-                }
+                } else if (topic === TELEMETRY_TOPIC) {
+                    console.log('Environmental telemetry received:', data);
+                    setTelemetry(prev => ({
+                ...prev,
+                        temperature: data.temperature ?? data.temp ?? prev?.temperature,
+                        humidity: data.humidity ?? prev?.humidity,
+                        pressure: data.pressure ?? prev?.pressure,
+            }));}
             } catch (e) {
                 console.error('Failed to parse MQTT message', e);
             }
