@@ -169,7 +169,14 @@ input {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: 30px;
+}
+
+.vision-container {
+  display: flex;
+  align-items: start;
+  justify-content: center;
+  width: 100%;
 }
 
 .camera-container {
@@ -194,10 +201,7 @@ input {
 
 /* Theme Toggle Position */
 .theme-toggle-btn {
-  position: absolute;
-  top: 0;
-  left: 20px;
-  z-index: 100;
+  left: -10px;
   color: var(--text-main) !important;
 }
 
@@ -226,13 +230,17 @@ input {
   color: #fff;
 }
 
-/* Controls */
+/* --- Camera/Mic Buttons (Matching Design) --- */
 .control-btn {
-  width: 64px !important;
-  height: 64px !important;
-  color: var(--text-main) !important;
-  border-color: var(--panel-border) !important;
-  background: var(--panel-bg) !important;
+  width: 64px;
+  height: 64px;
+  /* border-radius: 50%; */
+  background: var(--accent-primary) !important;
+  color: #000 !important;
+  border: none !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .control-btn:hover {
@@ -279,8 +287,6 @@ input {
   margin-bottom: 10px;
   border-left: 3px solid var(--accent-neon);
 }
-
-
 
 input {
   background: var(--input-bg);
@@ -355,11 +361,11 @@ input {
 
 .control-bar {
   display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 24px;
+  align-items: center;
+  justify-content: space-between;
   width: 100%;
-  
+  margin-top: 30px;
+  padding: 0 0 30px 30px;
 }
 
 /* --- Mode Selector Updates --- */
@@ -428,70 +434,180 @@ input {
   border-right: 1px solid var(--panel-border);
 }
 
-/* --- Camera/Mic Buttons (Matching Design) --- */
-.control-btn {
-  width: 64px;
-  height: 64px;
-  border-radius: 50%; /* Perfect circles */
-  background: var(--accent-primary) !important;
-  color: #000 !important;
-  border: none !important;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 input {
   border: var(--border);
 }
 
-/* ── Mobile (≤600px) ───────────────────────────────────────── */
-@media (max-width: 600px) {
-    .vision-zone { padding: 8px; }
+/* ── Small Mobile (<576px) ──────────────────────────────────────── */
+@media (max-width: 575.98px) {
+  .camera-container {
+      border-radius: 8px;
+      aspect-ratio: 4 / 3;   /* taller crop on phone */
+  }
+
+  .hud-overlay {
+      font-size: 0.6rem;
+      padding: 4px 6px;
+  }
+
+  .control-btn {
+      width: 48px !important;
+      height: 48px !important;
+  }
+
+  .control-bar {
+    display: grid !important;
+    grid-template-columns: repeat(2, min-content) !important;
+    gap: 8px !important;
+  }
+
+  .mode-selector-domain-btn {
+    font-size: 0.55rem !important;
+  }
+
+  .control-arrows {
+    font-size: 1.4rem !important;
+  }
 
     .camera-container {
-        border-radius: 10px;
-        aspect-ratio: 4 / 3;   /* taller crop on phone */
-    }
+      border-radius: 10px;
+      aspect-ratio: 4 / 3;   /* taller crop on phone */
+  }
 
-    .hud-overlay {
-        font-size: 0.65rem;
-        padding: 5px 8px;
-    }
+  .hud-overlay {
+      font-size: 0.65rem;
+      padding: 5px 8px;
+  }
 
-    .control-btn {
-        width: 52px !important;
-        height: 52px !important;
-    }
+  .control-btn {
+      width: 52px !important;
+      height: 52px !important;
+  }
 
-    .control-bar {
-        gap: 12px;
-        padding: 0;
-    }
+  .mode-selector-domain-btn {
+    font-size: 0.6rem !important;
+  }
+
+  .control-arrows {
+    font-size: 1.5rem !important;
+  }
 }
 
-/* ── Tablet (601px–1024px) ─────────────────────────────────── */
-@media (min-width: 601px) and (max-width: 1024px) {
-    .dashboard {
-        grid-template-columns: 1fr;   /* single column */
-    }
+/* ── Mobile (576px-767.98px) (sm - Small)───────────────────────────────────────── */
+@media (min-width: 576px) and (max-width: 767.98px) {
+  .camera-container {
+      border-radius: 10px;
+      aspect-ratio: 4 / 3;   /* taller crop on phone */
+  }
 
-    .content-panel { display: none; } /* hidden — use drawer instead */
+  .hud-overlay {
+      font-size: 0.65rem;
+      padding: 5px 8px;
+  }
 
-    .vision-zone { padding: 12px; }
+  .control-btn {
+      width: 52px !important;
+      height: 52px !important;
+  }
 
-    .camera-container { border-radius: 12px; }
+  .mode-selector-domain-btn {
+    font-size: 0.6rem !important;
+  }
 
-    .control-btn {
-        width: 58px !important;
-        height: 58px !important;
-    }
+  .control-arrows {
+    font-size: 1.5rem !important;
+  }
 
-    .control-bar { gap: 16px; }
+  .control-btn {
+    border-radius: 35% !important;
+    width: 45px !important;
+    height: 45px !important;
+  }
 }
 
-/* ── Laptop (1025px–1440px) ────────────────────────────────── */
-@media (min-width: 1025px) and (max-width: 1440px) {
+/* ── Tablet (768px–991.98px) (md - Medium)─────────────────────────────────── */
+@media (min-width: 768px) and (max-width: 991.98px) {
+  .dashboard {
+      grid-template-columns: 1fr;   /* single column */
+  }
+
+  .content-panel { display: none; } /* hidden — use drawer instead */
+
+  .camera-container { border-radius: 12px; }
+
+  .control-btn {
+    width: 58px !important;
+    height: 58px !important;
+  }
+
+  .mode-selector-domain-btn {
+    font-size: 0.6rem !important;
+  }
+
+  .control-arrows {
+    font-size: 1.5rem !important;
+  }
+  
+  .control-btn {
+    border-radius: 35% !important;
+    width: 50px !important;
+    height: 50px !important;
+  }
+}
+
+/* ── Laptop (992px–1199.98px) (lg - Large)────────────────────────────────── */
+@media (min-width: 992px) and (max-width: 1199.98px) {
+  .mode-selector-domain-btn {
+    font-size: 0.6rem !important;
+  }
+
+  .control-arrows {
+    font-size: 1.5rem !important;
+  }
+
+    .camera-container {
+      border-radius: 10px;
+      aspect-ratio: 4 / 3;   /* taller crop on phone */
+  }
+
+  .hud-overlay {
+      font-size: 0.65rem;
+      padding: 5px 8px;
+  }
+
+  .control-btn {
+      width: 52px !important;
+      height: 52px !important;
+  }
+
+  .mode-selector-domain-btn {
+    font-size: 0.6rem !important;
+  }
+
+  .control-arrows {
+    font-size: 1.5rem !important;
+  }
+
+  .control-btn {
+    border-radius: 35% !important;
+    width: 45px !important;
+    height: 45px !important;
+  }
+
+  .toggle-buttons {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+
+  .toggle-icon-button {
+    width: 40px !important;
+    height: 40px !important;
+  }
+}
+
+/* ── Laptop (1200px–1399.98px) (xl - Extra Large)────────────────────────────────── */
+@media (min-width: 1200px) and (max-width: 1399.98px) {
     .dashboard {
         grid-template-columns: 1fr 520px;
     }
@@ -500,11 +616,27 @@ input {
         grid-template-columns: 180px 340px;
     }
 
-    .camera-container { border-radius: 14px; }
+    .camera-container { 
+      border-radius: 14px; 
+    }
+
+    .mode-selector-domain-btn {
+      font-size: 0.6rem !important;
+    }
+
+    .control-arrows {
+      font-size: 1.5rem !important;
+    }
+
+    .control-btn {
+      border-radius: 35% !important;
+      width: 50px !important;
+      height: 50px !important;
+    }
 }
 
-/* ── Large desktop (≥1441px) ───────────────────────────────── */
-@media (min-width: 1441px) {
+/* ── Large desktop (≥1400px) (xxl - Extra Extra Large)───────────────────────────────── */
+@media (min-width: 1400px) {
     .dashboard {
         grid-template-columns: 1fr 680px;
     }

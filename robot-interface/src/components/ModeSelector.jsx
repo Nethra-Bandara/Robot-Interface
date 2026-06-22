@@ -63,14 +63,14 @@ const ModeSelector = ({ theme, onModeChange, sendModeCommand }) => {
     // ── Layout values (keep identical across themes to preserve exact positioning)
     const outerPadding = '12px 8px';
     const internalGap = '10px';
-    const domainPy = '12px';
     const modePy = '14px';
 
     // ── Shared domain button ─────────────────────────────────────────────────
     const DomainBtn = ({ value, icon: Icon, label }) => {
         const active = domain === value;
         return (
-            <Box
+            <Box 
+                className="mode-selector-domain-btn"
                 onClick={() => handleDomainChange(value)}
                 sx={{
                     flex: 1,
@@ -78,7 +78,8 @@ const ModeSelector = ({ theme, onModeChange, sendModeCommand }) => {
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: '8px',
-                    py: domainPy,
+                    py: '12px',
+                    px: '10px',
                     cursor: 'pointer',
                     borderRadius: '10px',
                     color: active ? textActive : textDim,
@@ -136,7 +137,7 @@ const ModeSelector = ({ theme, onModeChange, sendModeCommand }) => {
     };
 
     return (
-        <Box sx={{ p: outerPadding, display: 'flex', flexDirection: 'column', gap: internalGap, minWidth: 200 }}>
+        <Box sx={{ p: outerPadding, display: 'flex', flexDirection: 'column', gap: internalGap, }}>
 
             {/* ── Label ── */}
             <Typography sx={{

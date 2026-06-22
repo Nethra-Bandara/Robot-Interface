@@ -226,8 +226,8 @@ const VisionZone = ({
         backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(3, 30, 17, 0.98)',
         boxShadow: theme === 'dark' ? '0 0 0 1px rgba(255,255,255,0.04)' : '0 16px 34px rgba(0,0,0,0.24)',
         borderRadius: '22px',
-        minWidth: 64,
-        minHeight: 64,
+        minWidth: 32,
+        minHeight: 32,
         transition: 'all 0.25s ease',
         '&:hover': {
             backgroundColor: theme === 'dark' ? '#00ff88' : 'rgba(7, 85, 44, 0.98)',
@@ -327,18 +327,12 @@ const VisionZone = ({
 
     return (
         <main className="vision-zone">
-            <Box sx={{ position: 'relative', width: '90%', maxWidth: 850 }}>
+            <Box className="vision-container">
                 {/* Theme Toggle */}
                 <IconButton 
                     onClick={onToggleTheme} 
                     onTouchStart={(e) => { e.preventDefault(); onToggleTheme && onToggleTheme(); }}
                     className="theme-toggle-btn"
-                    sx={{ 
-                        position: 'absolute', 
-                        top: 0, 
-                        left: -60,
-                        color: 'var(--text-main)' 
-                    }}
                     title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
                 >
                     {theme === 'dark' ? <Brightness7 /> : <Brightness4 />}
@@ -445,34 +439,22 @@ const VisionZone = ({
             </Box>
 
             {/* Control bar */}
-            <Box
-                className="control-bar"
-                sx={{
-                    width: '90%',
-                    maxWidth: 850,
-                    mt: 2,
-                    display: 'flex',
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    gap: 0,
-                    px: 1,
-                }}
-            >
+            <Box className="control-bar">
                 {/* Mode Selector */}
-                <Box sx={{ flex: '0 0 auto' }}>
-                    <ModeSelector theme={theme} onModeChange={onModeChange} sendModeCommand={sendModeCommand} />
+                <Box className="mode-selector-box">
+                    <ModeSelector className="mode-selector-wrapper" theme={theme} onModeChange={onModeChange} sendModeCommand={sendModeCommand} />
                 </Box>
 
                 {/* Speed Slider */}
-                <Box className="slider-panel" sx={{
-                    flex: '0 0 auto',
-                    height: 120,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: 1,
-                }}>
+                <Box className="slider-panel" 
+                    sx={{
+                        height: 120,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: 1,
+                    }}
+                >
                     <Slider
                         orientation="vertical"
                         value={speed}
@@ -518,7 +500,10 @@ const VisionZone = ({
                         sx={{ ...controlButtonStyle, ...(activeDirection === 'UP' && activeStyle) }}
                         className="control-btn"
                     >
-                        <ArrowUpward fontSize="large" />
+                        <ArrowUpward
+                            className="control-arrows"
+                            sx={{ fontSize: "2rem" }}
+                        />
                     </IconButton>
                     <Box />
 
@@ -530,7 +515,10 @@ const VisionZone = ({
                         sx={{ ...controlButtonStyle, ...(activeDirection === 'LEFT' && activeStyle) }}
                         className="control-btn"
                     >
-                        <ArrowBack fontSize="large" />
+                        <ArrowBack
+                            className="control-arrows"
+                            sx={{ fontSize: "2rem" }}
+                        />
                     </IconButton>
                     <IconButton
                         onMouseDown={() => startMoving('down')}
@@ -540,7 +528,10 @@ const VisionZone = ({
                         sx={{ ...controlButtonStyle, ...(activeDirection === 'DOWN' && activeStyle) }}
                         className="control-btn"
                     >
-                        <ArrowDownward fontSize="large" />
+                        <ArrowDownward
+                            className="control-arrows"
+                            sx={{ fontSize: "2rem" }}
+                        />
                     </IconButton>
                     <IconButton
                         onMouseDown={() => startMoving('right')}
@@ -550,18 +541,22 @@ const VisionZone = ({
                         sx={{ ...controlButtonStyle, ...(activeDirection === 'RIGHT' && activeStyle) }}
                         className="control-btn"
                     >
-                        <ArrowForward fontSize="large" />
+                        <ArrowForward
+                            className="control-arrows"
+                            sx={{ fontSize: "2rem" }}
+                        />
                     </IconButton>
                 </Box>
 
                 {/* Toggle Buttons — 2x2 grid */}
-                <Box sx={{
+                <Box className="toggle-buttons" sx={{
                     flex: '0 0 auto',
                     display: 'grid',
                     gridTemplateColumns: 'repeat(2, 1fr)',
                     gap: 1,
                 }}>
                     <IconButton
+                        className="toggle-icon-button"
                         onClick={handleCameraToggle}
                         sx={{ ...toggleButtonStyle, backgroundColor: cameraOn ? '#00ff88' : (theme === 'dark' ? '#1b1b1b' : '#eee'), color: cameraOn ? '#000' : (theme === 'dark' ? '#888' : '#666') }}
                         title="Toggle Camera"
@@ -569,6 +564,7 @@ const VisionZone = ({
                         {cameraOn ? <Videocam /> : <VideocamOff />}
                     </IconButton>
                     <IconButton
+                        className="toggle-icon-button"
                         onClick={handleMicToggle}
                         sx={{ ...toggleButtonStyle, backgroundColor: micOn ? '#00ff88' : (theme === 'dark' ? '#1b1b1b' : '#eee'), color: micOn ? '#000' : (theme === 'dark' ? '#888' : '#666') }}
                         title="Toggle Mic"
@@ -576,6 +572,7 @@ const VisionZone = ({
                         {micOn ? <Mic /> : <MicOff />}
                     </IconButton>
                     <IconButton
+                        className="toggle-icon-button"
                         onClick={handleLightsToggle}
                         sx={{ ...toggleButtonStyle, backgroundColor: lightsOn ? '#00ff88' : (theme === 'dark' ? '#1b1b1b' : '#eee'), color: lightsOn ? '#000' : (theme === 'dark' ? '#888' : '#666') }}
                         title="Toggle Lights"
@@ -583,6 +580,7 @@ const VisionZone = ({
                         {lightsOn ? <Lightbulb /> : <LightbulbOutline />}
                     </IconButton>
                     <IconButton
+                        className="toggle-icon-button"
                         onClick={handleCaptureInternal}
                         sx={{ ...toggleButtonStyle, borderColor: theme === 'dark' ? 'rgba(255,255,255,0.3)' : '#1a3324', color: theme === 'dark' ? '#fff' : '#0a1c12' }}
                         title="Capture Screenshot"

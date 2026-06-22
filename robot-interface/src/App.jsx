@@ -39,8 +39,8 @@ function App() {
   //   < 768px  → Mobile   (single column, bottom nav)
   //   768–1100px → Tablet (single column, bottom nav)  
   //   > 1100px  → Desktop (three-column side-by-side)
-  const isMobile = useMediaQuery('(max-width: 767px)');
-  const isTablet = useMediaQuery('(min-width: 768px) and (max-width: 1100px)');
+  const isMobile = useMediaQuery('(max-width: 767.98px)');
+  const isTablet = useMediaQuery('(min-width: 768px) and (max-width: 991.98px)');
 
   const toggleTheme = () => setTheme(prev => prev === 'dark' ? 'light' : 'dark');
 
