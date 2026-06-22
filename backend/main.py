@@ -14,6 +14,7 @@ import json
 import threading
 import paho.mqtt.client as mqtt
 import asyncio
+from datetime import datetime
 
 load_dotenv()
 
@@ -71,6 +72,26 @@ class SignalingManager:
 
 
 signaling = SignalingManager()
+
+# Telemetry websocket clients (for live GPS updates)
+telemetry_clients = set()
+MAIN_LOOP = None
+
+async def broadcast_telemetry(message: dict):
+    dead = []
+    for ws in list(telemetry_clients):
+        try:
+            await ws.send_json(message)
+        except Exception:
+            dead.append(ws)
+    for d in dead:
+        telemetry_clients.discard(d)
+
+
+@app.on_event("startup")
+async def set_main_loop():
+    global MAIN_LOOP
+    MAIN_LOOP = asyncio.get_event_loop()
 
 
 @app.websocket("/ws/broadcaster")
@@ -165,6 +186,32 @@ async def viewer_ws(websocket: WebSocket):
         signaling.disconnect_viewer(websocket)
     finally:
         ping_task.cancel()
+
+
+@app.websocket("/ws/telemetry")
+async def telemetry_ws(websocket: WebSocket):
+    await websocket.accept()
+    telemetry_clients.add(websocket)
+    print(f"Telemetry client connected. Count: {len(telemetry_clients)}")
+
+    async def ping():
+        while True:
+            await asyncio.sleep(20)
+            try:
+                await websocket.send_json({"type": "ping"})
+            except Exception:
+                break
+
+    ping_task = asyncio.create_task(ping())
+    try:
+        while True:
+            # Keep the connection open; clients don't need to send data.
+            await asyncio.sleep(60)
+    except WebSocketDisconnect:
+        print("Telemetry client disconnected")
+    finally:
+        telemetry_clients.discard(websocket)
+        ping_task.cancel()
 # ─── CORS ────────────────────────────────────────────────────────────────────
 
 FRONTEND_ORIGINS = [
@@ -246,6 +293,8 @@ MQTT_TOPIC_COMMAND = "robot/commands"
 MQTT_TOPIC_MODE    = "robot/mode"
 MQTT_TOPIC_MOVEMENT = "robot/movement"
 MQTT_TOPIC_CAMERA   = "robot/camera_control"
+MQTT_TOPIC_GPS   = os.getenv('MQTT_TOPIC_GPS', "robot/gps")
+
 
 client = None
 
@@ -286,7 +335,8 @@ def on_mqtt_connect(client, userdata, flags, reason_code, properties):
         client.subscribe(MQTT_TOPIC_COMMAND)
         client.subscribe(MQTT_TOPIC_MOVEMENT)
         client.subscribe(MQTT_TOPIC_CAMERA)
-        print(f"Subscribed to: {MQTT_TOPIC}, {MQTT_TOPIC_COMMAND}, {MQTT_TOPIC_MOVEMENT}, {MQTT_TOPIC_CAMERA}")    
+        client.subscribe(MQTT_TOPIC_GPS)
+        print(f"Subscribed to: {MQTT_TOPIC}, {MQTT_TOPIC_COMMAND}, {MQTT_TOPIC_MOVEMENT}, {MQTT_TOPIC_CAMERA}, {MQTT_TOPIC_GPS}")    
     else:
         print(f"Backend MQTT connection failed with code: {reason_code}")
 
@@ -322,6 +372,72 @@ def on_mqtt_message(client, userdata, message):
         elif topic == MQTT_TOPIC_CAMERA:
             cam_direction = payload.get("direction")
             print(f"📷 Camera direction received: {cam_direction}")
+
+            # No further action for camera here
+
+        
+        
+        # ── GPS channel ─────────────────────────────────────────────────────────
+        
+        
+    
+        
+        elif topic == MQTT_TOPIC_GPS:
+                # Expected payload: { "type": "android.gps", "longitude": 155.9011, "latitude": 81.4278, "altitude": 217.5, "bearing": 135.0, "accuracy": 5.2, "speed": 2.8, "time": 1727845963000 }
+                lon = payload.get('longitude')
+                lat = payload.get('latitude')
+                alt = payload.get('altitude')
+                bearing = payload.get('bearing')
+                accuracy = payload.get('accuracy')
+                speed = payload.get('speed')
+                ts_ms = payload.get('time')
+
+                # Persist to DB
+                try:
+                    conn = sqlite3.connect(DB_FILE)
+                    cursor = conn.cursor()
+                    if ts_ms:
+                        ts = datetime.utcfromtimestamp(float(ts_ms) / 1000.0).strftime('%Y-%m-%d %H:%M:%S')
+                        cursor.execute('''
+                            INSERT INTO telemetry_history (timestamp, gps_lat, gps_lon, temperature, humidity, pressure)
+                            VALUES (?, ?, ?, ?, ?, ?)
+                        ''', (ts, lat, lon, None, None, None))
+                    else:
+                        cursor.execute('''
+                            INSERT INTO telemetry_history (gps_lat, gps_lon)
+                            VALUES (?, ?)
+                        ''', (lat, lon))
+                    # Keep only recent history (7 days)
+                    cursor.execute('''
+                        DELETE FROM telemetry_history
+                        WHERE timestamp <= datetime('now', '-7 days')
+                    ''')
+                    conn.commit()
+                    conn.close()
+                except Exception as e:
+                    print(f"⚠️  DB error saving GPS: {e}")
+
+                # Broadcast live to any connected WebSocket clients
+                message = {
+                    "type": "gps",
+                    "payload": {
+                        "latitude": lat,
+                        "longitude": lon,
+                        "altitude": alt,
+                        "bearing": bearing,
+                        "accuracy": accuracy,
+                        "speed": speed,
+                        "time": ts_ms
+                    }
+                }
+
+                try:
+                    if MAIN_LOOP:
+                        asyncio.run_coroutine_threadsafe(broadcast_telemetry(message), MAIN_LOOP)
+                    else:
+                        print("⚠️  MAIN_LOOP not set — cannot broadcast telemetry over WS yet")
+                except Exception as e:
+                    print(f"⚠️  Failed to schedule telemetry broadcast: {e}")
 
         # ── Telemetry channel ────────────────────────────────────────────────
         elif topic == MQTT_TOPIC:

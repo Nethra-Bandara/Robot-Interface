@@ -1,55 +1,100 @@
-import React from 'react';
+import React, { useMemo, useEffect } from 'react';
 import { Box } from '@mui/material';
+import { MapContainer as LeafletMapContainer, TileLayer, CircleMarker, Popup, useMap, ZoomControl } from 'react-leaflet';
 
-const MapContainer = ({ theme }) => {
+const defaultPosition = [6.383, 80.408];
+
+const FlyToLocation = ({ position }) => {
+    const map = useMap();
+
+    useEffect(() => {
+        if (position) {
+            map.flyTo(position, 15, { duration: 1.2 });
+        }
+    }, [map, position]);
+
+    return null;
+};
+
+const parseCoordinates = (telemetry) => {
+    if (!telemetry) return null;
+
+    const gps = telemetry.gps ?? telemetry;
+    const lat = gps.latitude ?? gps.lat ?? gps.gps?.latitude ?? gps.gps?.lat ?? gps.location?.latitude ?? gps.location?.lat;
+    const lon = gps.longitude ?? gps.lon ?? gps.lng ?? gps.gps?.longitude ?? gps.gps?.lon ?? gps.location?.longitude ?? gps.location?.lon;
+
+    const parsedLat = typeof lat === 'string' ? Number(lat) : lat;
+    const parsedLon = typeof lon === 'string' ? Number(lon) : lon;
+
+    if (Number.isFinite(parsedLat) && Number.isFinite(parsedLon)) {
+        return [parsedLat, parsedLon];
+    }
+
+    return null;
+};
+
+const MapContainer = ({ theme, telemetry }) => {
+    const position = useMemo(() => parseCoordinates(telemetry), [telemetry]);
+    const center = position || defaultPosition;
+    const label = position
+        ? `LAT: ${center[0].toFixed(5)} | LON: ${center[1].toFixed(5)}`
+        : 'Waiting for GPS coordinates...';
+
     return (
         <Box
             sx={{
                 width: '100%',
                 height: '100%',
-                position: 'relative',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
+                minHeight: 220,
+                borderRadius: 2,
                 overflow: 'hidden',
-                bgcolor: theme === 'dark' ? '#0a0a0a' : '#e8f0e8',
+                bgcolor: theme === 'dark' ? '#08100a' : '#eef4ec',
+                border: '1px solid rgba(255,255,255,0.08)',
+                display: 'flex',
+                flexDirection: 'column',
             }}
         >
-            <img
-                src="https://upload.wikimedia.org/wikipedia/commons/e/e4/Google_Maps_icon_%282020%29.svg"
-                style={{ width: '35%', maxWidth: 80, opacity: 0.5, objectFit: 'contain' }}
-                alt="GPS Map"
-            />
+            <Box sx={{ flex: '1 1 0', minHeight: 0, height: '100%' }}>
+                <LeafletMapContainer
+                    center={center}
+                    zoom={position ? 15 : 5}
+                    scrollWheelZoom={true}
+                    zoomControl={false}
+                    style={{ width: '100%', height: '100%', minHeight: 280 }}
+                >
+                    <TileLayer
+                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    />
+                    <ZoomControl position="topright" />
+                    {position && (
+                        <>
+                            <FlyToLocation position={center} />
+                            <CircleMarker
+                                center={center}
+                                radius={8}
+                                pathOptions={{ color: '#00ff88', fillColor: '#00ff88', fillOpacity: 0.9 }}
+                            >
+                                <Popup>Robot location</Popup>
+                            </CircleMarker>
+                        </>
+                    )}
+                </LeafletMapContainer>
+            </Box>
 
-            {/* GPS marker, centered */}
             <Box
                 sx={{
-                    position: 'absolute',
-                    top: '50%',
-                    left: '50%',
-                    width: 10,
-                    height: 10,
-                    borderRadius: '50%',
-                    bgcolor: '#00ff88',
-                    boxShadow: '0 0 10px #00ff88',
-                    transform: 'translate(-50%, -50%)',
-                }}
-            />
-
-            <Box
-                sx={{
-                    position: 'absolute',
-                    bottom: 8,
-                    left: 8,
-                    fontSize: '10px',
-                    bgcolor: theme === 'dark' ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.6)',
-                    color: '#fff',
-                    px: 1,
-                    py: 0.25,
-                    borderRadius: '4px',
+                    px: 1.25,
+                    py: 1,
+                    fontSize: 12,
+                    color: theme === 'dark' ? '#f7fff7' : '#0b2b15',
+                    bgcolor: theme === 'dark' ? 'rgba(0, 0, 0, 0.62)' : 'rgba(255, 255, 255, 0.95)',
+                    borderTop: '1px solid rgba(255,255,255,0.1)',
                 }}
             >
-                LAT: 6.38°N | LON: 80.41°E
+                {position
+                    ? `Robot location: LAT ${center[0].toFixed(5)}, LON ${center[1].toFixed(5)}`
+                    : 'Waiting for GPS coordinates...'}
             </Box>
         </Box>
     );

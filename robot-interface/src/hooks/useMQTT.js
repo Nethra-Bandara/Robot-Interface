@@ -25,43 +25,30 @@ export const useMQTT = () => {
             setMqttConnected(true);
             console.log('Connected to MQTT Broker');
 
-            mqttClient.subscribe('robot/telemetry', (err) => {
-
-                if (err) {
-                    console.error('Subscribe error:', err);
-                } else {
-                    console.log('Subscribed to robot/telemetry');
-                }
-            });
+            const GPS_TOPIC = import.meta.env.VITE_GPS_TOPIC || 'gps';
+            mqttClient.subscribe(GPS_TOPIC, (err) => {
+                    if (err) {
+                        console.error('Subscribe error:', err);
+                    } else {
+                        console.log('Subscribed to', GPS_TOPIC);
+                    }
+                });
         });
 
         mqttClient.on('message', (topic, message) => {
-
             console.log('MESSAGE RECEIVED');
-
             console.log('TOPIC:', topic);
-
             console.log('RAW:', message.toString());
 
-            if (topic === 'robot/telemetry') {
+            try {
+                const data = JSON.parse(message.toString());
 
-                try {
-
-                    const data = JSON.parse(
-                        message.toString()
-                    );
-
-                    console.log('Pi Stats:', data);
-
-                    setTelemetry(data);
-
-                } catch (e) {
-
-                    console.error(
-                        'Failed to parse telemetry',
-                        e
-                    );
+                if (topic === 'gps') {
+                    console.log('GPS received:', data);
+                    setTelemetry(prev => ({ ...prev, ...data, gps: data }));
                 }
+            } catch (e) {
+                console.error('Failed to parse MQTT message', e);
             }
         });
 
@@ -80,8 +67,61 @@ export const useMQTT = () => {
             console.log('MQTT Disconnected');
         });
 
+        // --- Telemetry WS (backend relay for GPS) -------------------------
+        let telemetryWs = null;
+        let telemetryReconnect = null;
+
+        const connectTelemetryWS = () => {
+            const rawApi = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+            const wsUrl = rawApi.replace(/^http/, rawApi.startsWith('https') ? 'wss' : 'ws') + '/ws/telemetry';
+            try {
+                telemetryWs = new WebSocket(wsUrl);
+
+                telemetryWs.onopen = () => {
+                    console.log('Telemetry WS connected', wsUrl);
+                };
+
+                telemetryWs.onmessage = (evt) => {
+                    try {
+                        const msg = JSON.parse(evt.data);
+                        if (msg.type === 'gps' && msg.payload) {
+                            setTelemetry(prev => ({ ...prev, ...msg.payload, gps: msg.payload }));
+                        }
+                    } catch (e) {
+                        console.error('Telemetry WS parse error', e);
+                    }
+                };
+
+                telemetryWs.onclose = () => {
+                    console.log('Telemetry WS closed — reconnecting in 3s');
+                    telemetryReconnect = setTimeout(connectTelemetryWS, 3000);
+                };
+
+                telemetryWs.onerror = (e) => {
+                    console.log('Telemetry WS error', e);
+                    try { telemetryWs.close(); } catch {};
+                };
+            } catch (e) {
+                console.error('Failed to open Telemetry WS', e);
+                telemetryReconnect = setTimeout(connectTelemetryWS, 3000);
+            }
+        };
+
+        connectTelemetryWS();
+
+        // Clean up when hook unmounts
+        const cleanupTelemetry = () => {
+            if (telemetryReconnect) clearTimeout(telemetryReconnect);
+            if (telemetryWs) {
+                try { telemetryWs.close(); } catch (e) {}
+                telemetryWs = null;
+            }
+        };
+
+
         return () => {
             mqttClient.end();
+            cleanupTelemetry();
         };
 
     }, []);

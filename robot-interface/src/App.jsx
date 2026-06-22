@@ -6,6 +6,7 @@ import MobileLayout from './components/MobileLayout';
 import TabletLayout from './components/TabletLayout';
 import DesktopLayout from './components/DesktopLayout';
 import ConfirmDialog from './components/ConfirmDialog';
+import StartupPage from './components/StartupPage';
 import './App.css';
 
 class ErrorBoundary extends React.Component {
@@ -29,16 +30,13 @@ function App() {
   const [theme, setTheme] = useState('dark');
   const [isPurging, setIsPurging] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [showSplash, setShowSplash] = useState(true);
 
   const {
     telemetry, sendMoveCommand, sendSpeedCommand, sendCameraToggle,
     sendMicToggle, sendLightsToggle, sendCameraCommand, sendModeCommand, mqttConnected
   } = useMQTT();
 
-  // Breakpoints:
-  //   < 768px  → Mobile   (single column, bottom nav)
-  //   768–1100px → Tablet (single column, bottom nav)  
-  //   > 1100px  → Desktop (three-column side-by-side)
   const isMobile = useMediaQuery('(max-width: 767px)');
   const isTablet = useMediaQuery('(min-width: 768px) and (max-width: 1100px)');
 
@@ -97,14 +95,24 @@ function App() {
     try { await api.deleteAllScreenshots(); } catch {} finally { setIsPurging(false); }
   };
 
+  // All hooks above run on every render no matter what — this conditional
+  // return comes AFTER them, so it doesn't violate the Rules of Hooks.
+  if (showSplash) {
+    return <StartupPage onGetStarted={() => setShowSplash(false)} />;
+  }
+
   const layoutProps = {
     mode, setMode, handleCapture, screenshots, handleSelectScreenshot,
     activeIndex, handleDelete, handleDeleteAll, theme, isPurging,
     onToggleTheme: toggleTheme, sendMoveCommand, sendSpeedCommand,
     sendCameraToggle, sendMicToggle, sendLightsToggle,
-    sendCameraCommand, sendModeCommand, telemetry,
+    sendCameraCommand, sendModeCommand, telemetry, mqttConnected,
   };
 
+  // Breakpoints:
+  //   < 768px    → Mobile   (single column, bottom nav)
+  //   768–1100px → Tablet   (single column, bottom nav)
+  //   > 1100px   → Desktop  (three-column side-by-side)
   return (
     <ErrorBoundary>
       {isMobile ? (

@@ -50,7 +50,7 @@ const Sidebar = ({ activeContext, currentMode, onModeChange, theme, telemetry })
 
             {/* ── GPS Map — takes remaining space above chat ── */}
             <Box sx={{ flex: '1 1 0', minHeight: 0, overflow: 'hidden' }}>
-                <MapContainer theme={theme} />
+                <MapContainer theme={theme} telemetry={telemetry} />
             </Box>
 
             {/* ── Chat window — fixed height at the bottom ── */}
