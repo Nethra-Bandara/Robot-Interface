@@ -1,5 +1,5 @@
 import { Box, Typography, Button, Fade } from '@mui/material';
-import logo from '../assets/logo-luminous.jpeg';
+import ForestIcon from '@mui/icons-material/Forest';
 
 export default function StartupPage({ onGetStarted }) {
   return (
@@ -19,16 +19,7 @@ export default function StartupPage({ onGetStarted }) {
           color: '#e8f5e9',
         }}
       >
-        <img
-          src={logo}
-          alt="Logo"
-          style={{
-            width: 56,
-            height: 56,
-            objectFit: 'contain',
-            marginBottom: 16,
-          }}
-        />
+        <ForestIcon sx={{ fontSize: 56, color: '#4caf50', mb: 2 }} />
 
         <Typography
           variant="overline"

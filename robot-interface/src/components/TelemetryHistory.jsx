@@ -82,7 +82,7 @@ const TelemetryHistory = ({ open, onClose, theme }) => {
                             </TableHead>
                             <TableBody>
                                 {history.map((row) => (
-                                    <TableRow key={row.id} sx={{ '&:last-child td, &:last-child th': { border: 0 }, borderBottom: `1px solid ${isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0,0,0,0.05)'}` }}>
+                                    <TableRow key={row.timestamp} sx={{ '&:last-child td, &:last-child th': { border: 0 }, borderBottom: `1px solid ${isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0,0,0,0.05)'}` }}>
                                         <TableCell sx={{ color: isDark ? '#aaa' : '#333' }}>
                                             {new Date(row.timestamp + 'Z').toLocaleString()}
                                         </TableCell>

@@ -731,7 +731,13 @@ def get_telemetry_history(limit: int = 100):
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
         cursor.execute('''
-            SELECT * FROM telemetry_history
+            SELECT
+                strftime('%Y-%m-%d %H:%M:00', timestamp) AS timestamp,
+                AVG(temperature) AS temperature,
+                AVG(humidity)    AS humidity,
+                AVG(pressure)    AS pressure
+            FROM telemetry_history
+            GROUP BY timestamp
             ORDER BY timestamp DESC
             LIMIT ?
         ''', (limit,))
