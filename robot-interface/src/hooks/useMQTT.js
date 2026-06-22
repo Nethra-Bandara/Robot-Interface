@@ -73,7 +73,15 @@ export const useMQTT = () => {
 
         const connectTelemetryWS = () => {
             const rawApi = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-            const wsUrl = rawApi.replace(/^http/, rawApi.startsWith('https') ? 'wss' : 'ws') + '/ws/telemetry';
+            let wsUrl;
+            try {
+                const u = new URL(rawApi);
+                const proto = (u.protocol === 'https:' ? 'wss:' : 'ws:');
+                wsUrl = `${proto}//${u.host.replace(/:\d+$/, u.port ? `:${u.port}` : '')}/ws/telemetry`;
+            } catch (e) {
+                // Fallback simple replace
+                wsUrl = rawApi.replace(/^https?:/, rawApi.startsWith('https') ? 'wss:' : 'ws:') + '/ws/telemetry';
+            }
             try {
                 telemetryWs = new WebSocket(wsUrl);
 
