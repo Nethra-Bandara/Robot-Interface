@@ -352,7 +352,6 @@ const VisionZone = ({
                 {/* Theme Toggle */}
                 <IconButton 
                     onClick={onToggleTheme} 
-                    onTouchStart={(e) => { e.preventDefault(); onToggleTheme && onToggleTheme(); }}
                     className="theme-toggle-btn"
                     sx={{ 
                         position: 'absolute', 

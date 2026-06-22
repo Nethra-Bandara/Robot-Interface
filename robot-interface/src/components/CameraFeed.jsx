@@ -33,7 +33,7 @@ const ICE_SERVERS = [
       },
 ];
 
-const CameraFeed = forwardRef(({ className, style }, ref) => {
+const CameraFeed = forwardRef(({ className, style, enabled = true }, ref) => {
   const videoRef = useRef(null);
   const pcRef = useRef(null);
   const wsRef = useRef(null);
@@ -45,12 +45,16 @@ const CameraFeed = forwardRef(({ className, style }, ref) => {
   useEffect(() => {
     if (mountedRef.current) return;
     mountedRef.current = true;
-    connect();
+    if (enabled) {
+      connect();
+    } else {
+      setStatus('off');
+    }
     return () => {
       mountedRef.current = false;
       cleanup();
     };
-  }, []);
+  }, [enabled]);
 
   const cleanup = () => {
     clearTimeout(reconnectRef.current);
@@ -179,6 +183,24 @@ const CameraFeed = forwardRef(({ className, style }, ref) => {
       return canvas.toDataURL('image/jpeg', 0.82);
     }
   }));
+
+  if (!enabled) {
+    return (
+      <Box
+        className={className}
+        style={{
+          ...style,
+          display: 'flex',
+          flexDirection: 'column',
+          backgroundColor: '#000',
+          width: style?.width || '100%',
+          height: style?.height || '100%',
+          justifyContent: 'center',
+          alignItems: 'center'
+        }}
+      />
+    );
+  }
 
   return (
     <>
