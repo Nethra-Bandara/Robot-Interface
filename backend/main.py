@@ -14,6 +14,7 @@ import json
 import threading
 import paho.mqtt.client as mqtt
 import asyncio
+import time
 from datetime import datetime
 
 load_dotenv()
@@ -543,6 +544,29 @@ def format_response(text):
     result = '\n'.join(cleaned).strip()
     return result
 
+
+def generate_with_retries(model, parts, max_attempts: int = 3, initial_timeout: int = 15):
+    """Call model.generate_content with retries and exponential backoff.
+
+    - initial_timeout is in seconds and will double each retry.
+    - Raises the last exception if all attempts fail.
+    """
+    last_exc = None
+    for attempt in range(1, max_attempts + 1):
+        timeout = initial_timeout * (2 ** (attempt - 1))
+        try:
+            print(f"Attempting Gemini generate_content (attempt {attempt}/{max_attempts}, timeout={timeout}s)")
+            return model.generate_content(parts, request_options={"timeout": timeout})
+        except Exception as e:
+            print(f"Gemini call failed on attempt {attempt}: {e}")
+            last_exc = e
+            if attempt < max_attempts:
+                sleep_for = min(5 * attempt, 30)
+                print(f"Retrying after {sleep_for}s...")
+                time.sleep(sleep_for)
+    # All attempts failed
+    raise last_exc
+
 class ChatRequest(BaseModel):
     message: str
     image_url: Optional[str] = None
@@ -621,7 +645,8 @@ async def chat_endpoint(request: ChatRequest):
             else:
                 print(f"Warning: Image file not found at {file_path}")
 
-        response = model.generate_content(parts, request_options={"timeout": 15})
+        # Use retry helper with exponential backoff to avoid short read timeouts
+        response = generate_with_retries(model, parts, max_attempts=3, initial_timeout=15)
 
         text_out = None
         if hasattr(response, "text") and response.text:
