@@ -13,6 +13,7 @@ export const useMQTT = () => {
 
     const [client, setClient] = useState(null);
     const [telemetry, setTelemetry] = useState(null);
+    const [mqttConnected, setMqttConnected] = useState(false);
 
     useEffect(() => {
 
@@ -21,7 +22,7 @@ export const useMQTT = () => {
         setClient(mqttClient);
 
         mqttClient.on('connect', () => {
-
+            setMqttConnected(true);
             console.log('Connected to MQTT Broker');
 
             mqttClient.subscribe('robot/telemetry', (err) => {
@@ -65,11 +66,18 @@ export const useMQTT = () => {
         });
 
         mqttClient.on('error', (err) => {
+            setMqttConnected(false);
             console.error('MQTT Error:', err);
         });
 
         mqttClient.on('close', () => {
+            setMqttConnected(false);
             console.log('MQTT Connection Closed');
+        });
+
+        mqttClient.on('disconnect', () => {
+            setMqttConnected(false);
+            console.log('MQTT Disconnected');
         });
 
         return () => {
@@ -132,6 +140,7 @@ export const useMQTT = () => {
     return {
         client,
         telemetry,
+        mqttConnected,
         sendMoveCommand,
         sendSpeedCommand,
         sendCameraToggle,

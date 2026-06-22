@@ -32,7 +32,7 @@ function App() {
 
   const {
     telemetry, sendMoveCommand, sendSpeedCommand, sendCameraToggle,
-    sendMicToggle, sendLightsToggle, sendCameraCommand, sendModeCommand
+    sendMicToggle, sendLightsToggle, sendCameraCommand, sendModeCommand, mqttConnected
   } = useMQTT();
 
   // Breakpoints:

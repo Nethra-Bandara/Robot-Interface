@@ -14,7 +14,7 @@ import ModeSelector from './ModeSelector';
 const VisionZone = ({
     onCapture, mode, onModeChange, theme, onToggleTheme,
     sendMoveCommand, sendSpeedCommand, sendCameraToggle,
-    sendMicToggle, sendLightsToggle, sendCameraCommand, sendModeCommand, telemetry
+    sendMicToggle, sendLightsToggle, sendCameraCommand, sendModeCommand, telemetry, mqttConnected
 }) => {
 
     const [activeDirection, setActiveDirection] = useState(null);
@@ -375,9 +375,28 @@ const VisionZone = ({
 
                     {/* HUD Overlay */}
                     <div className="hud-overlay">
-                        <span>SIGNAL: <strong>{telemetry && telemetry.temperature !== undefined ? `${telemetry.temperature}%` : '92% (RF MESH)'}</strong></span>
-                        <span>POWER: <strong>{telemetry && telemetry.humidity !== undefined ? `${telemetry.humidity}%` : '88%'}</strong></span>
-                        <span>PRESSURE: <strong>{telemetry && telemetry.pressure !== undefined ? `${telemetry.pressure} hPa` : '1013 hPa'}</strong></span>
+                        {/* MQTT Connection LED Indicator */}
+                        <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            marginRight: 'auto'
+                        }}>
+                            <div style={{
+                                width: '10px',
+                                height: '10px',
+                                borderRadius: '50%',
+                                backgroundColor: mqttConnected ? '#00ff88' : '#ff3d00',
+                                boxShadow: mqttConnected ? '0 0 8px rgba(0, 255, 136, 0.8)' : '0 0 8px rgba(255, 61, 0, 0.8)',
+                                transition: 'all 0.3s ease'
+                            }} />
+                            <span style={{ fontSize: '0.75rem', opacity: 0.7 }}>
+                                {mqttConnected ? 'CONNECTED' : 'DISCONNECTED'}
+                            </span>
+                        </div>
+                        <span>TEMPERATURE: <strong>{telemetry && telemetry.temperature !== undefined ? `${telemetry.temperature.toFixed(1)}°C` : '--°C'}</strong></span>
+                        <span>HUMIDITY: <strong>{telemetry && telemetry.humidity !== undefined ? `${telemetry.humidity.toFixed(1)}%` : '--%'}</strong></span>
+                        <span>PRESSURE: <strong>{telemetry && telemetry.pressure !== undefined ? `${telemetry.pressure.toFixed(1)} hPa` : '-- hPa'}</strong></span>
                     </div>
 
                     {/* Camera Direction Overlay Buttons */}
