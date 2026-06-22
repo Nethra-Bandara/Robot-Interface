@@ -1,5 +1,5 @@
 import { Box, Typography, Button, Fade } from '@mui/material';
-import PetsIcon from '@mui/icons-material/Pets';
+import ForestIcon from '@mui/icons-material/Forest';
 
 export default function StartupPage({ onGetStarted }) {
   return (
@@ -19,13 +19,13 @@ export default function StartupPage({ onGetStarted }) {
           color: '#e8f5e9',
         }}
       >
-        <PetsIcon sx={{ fontSize: 56, color: '#4caf50', mb: 2 }} />
+        <ForestIcon sx={{ fontSize: 56, color: '#4caf50', mb: 2 }} />
 
         <Typography
           variant="overline"
           sx={{ letterSpacing: 2, color: '#81c784', mb: 1 }}
         >
-          Final Year Project — Group 05
+          Final Year Project - Group 05
         </Typography>
 
         <Typography
