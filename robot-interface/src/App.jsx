@@ -102,7 +102,7 @@ function App() {
   }
 
   const layoutProps = {
-    mode, setMode, handleCapture, screenshots, handleSelectScreenshot,
+    mode, setMode, onCapture:handleCapture, screenshots, handleSelectScreenshot,
     activeIndex, handleDelete, handleDeleteAll, theme, isPurging,
     onToggleTheme: toggleTheme, sendMoveCommand, sendSpeedCommand,
     sendCameraToggle, sendMicToggle, sendLightsToggle,
