@@ -229,15 +229,19 @@ const VisionZone = ({
     };
 
     const handleCaptureInternal = () => {
-        if (onCapture) {
-            const imageSrc = cameraFeedRef.current?.capture();
-            if (imageSrc) {
-                onCapture(imageSrc);
-            } else {
-                console.warn("Could not capture image from feed.");
-            }
+    console.log('onCapture prop:', onCapture);
+    if (onCapture) {
+        const imageSrc = cameraFeedRef.current?.capture();
+        console.log('imageSrc result:', imageSrc ? 'got image data' : imageSrc);
+        if (imageSrc) {
+            onCapture(imageSrc);
+        } else {
+            console.warn("Could not capture image from feed.");
         }
-    };
+    } else {
+        console.warn('onCapture is undefined — prop never reached VisionZone!');
+    }
+};
 
     const controlButtonStyle = {
         // FIX: was '#000' in light mode — invisible against the dark button background.
