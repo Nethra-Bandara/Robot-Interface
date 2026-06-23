@@ -33,7 +33,7 @@ const ICE_SERVERS = [
       },
 ];
 
-const CameraFeed = forwardRef(({ className, style, enabled = true }, ref) => {
+const CameraFeed = forwardRef(({ className, style }, ref) => {
   const videoRef = useRef(null);
   const pcRef = useRef(null);
   const wsRef = useRef(null);
@@ -45,16 +45,12 @@ const CameraFeed = forwardRef(({ className, style, enabled = true }, ref) => {
   useEffect(() => {
     if (mountedRef.current) return;
     mountedRef.current = true;
-    if (enabled) {
-      connect();
-    } else {
-      setStatus('off');
-    }
+    connect();
     return () => {
       mountedRef.current = false;
       cleanup();
     };
-  }, [enabled]);
+  }, []);
 
   const cleanup = () => {
     clearTimeout(reconnectRef.current);
@@ -175,41 +171,14 @@ const CameraFeed = forwardRef(({ className, style, enabled = true }, ref) => {
 
   useImperativeHandle(ref, () => ({
     capture: () => {
-        const video = videoRef.current;
-        if (!video || !video.videoWidth || !video.videoHeight) {
-            console.warn('Camera feed not ready — no live stream to capture.');
-            return null;
-        }
-        try {
-            const canvas = document.createElement('canvas');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            canvas.getContext('2d').drawImage(video, 0, 0);
-            return canvas.toDataURL('image/jpeg', 0.82);
-        } catch (err) {
-            console.error('Capture failed:', err);
-            return null;
-        }
+      if (!videoRef.current) return null;
+      const canvas = document.createElement('canvas');
+      canvas.width = videoRef.current.videoWidth;
+      canvas.height = videoRef.current.videoHeight;
+      canvas.getContext('2d').drawImage(videoRef.current, 0, 0);
+      return canvas.toDataURL('image/jpeg', 0.82);
     }
-}));
-
-  if (!enabled) {
-    return (
-      <Box
-        className={className}
-        style={{
-          ...style,
-          display: 'flex',
-          flexDirection: 'column',
-          backgroundColor: '#000',
-          width: style?.width || '100%',
-          height: style?.height || '100%',
-          justifyContent: 'center',
-          alignItems: 'center'
-        }}
-      />
-    );
-  }
+  }));
 
   return (
     <>
